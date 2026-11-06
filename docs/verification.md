@@ -10,6 +10,19 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
+## Latest end-to-end results (2026-11-06, app code at `8b0091d`)
+
+| Flow | iOS 27 Simulator | Android 36 emulator |
+|---|---|---|
+| `pipeline.yaml` | Pass | Pass (after a flow fix: scroll the link field out from under the keyboard) |
+| `ai-intake.yaml` | Pass | — (AI is iOS only) |
+| `ai-prep.yaml` | Failed once (the End tap didn't register right after feedback rendered); flow now waits for the UI to settle, then 2 / 2 pass | — |
+| `ai-inbox.yaml` | Pass | — |
+| `android-ai-off.yaml` | — | Pass |
+| `a11y-large-text.yaml` | Pass (AX5) | Pass (font scale 2.0) |
+| `demo.yaml` | Pass, 4 consecutive runs | — |
+| `ai-checks.yaml` | 2 / 2 runs, every group "0 failed" | — |
+
 ## Story coverage
 
 | Story | Automated (Jest) | On a real build |
@@ -31,15 +44,15 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 | LATER-1 reviews | `quotes.test.ts`, task + screen tests | Model checks (interview reviews) |
 | LATER-2 Gmail | Paging, decoding, HTML fallback, 401/offline/503 with injected fetch | **Blocked:** live sign-in needs Google OAuth client IDs (see README) |
 
-## On-device model checks (2026-11-05, iOS 27.0 Simulator, M4 host)
+## On-device model checks (iOS 27.0 Simulator, M4 host)
 
-Each check has an expected outcome; the screen marks it Pass or Fail. Groups run in fresh launches.
+Each check has an expected outcome; the screen marks it Pass or Fail, and `e2e/ai-checks-group.yaml` asserts "0 failed" for each group. Groups run in fresh launches.
 
-| Group | Result | Latency |
-|---|---|---|
-| Listings (5 samples: 4 real employers, 1 with no employer named) | 5 / 5 pass | 1.3–4.2 s |
-| Triage (8 sample emails: categories, grounded matches, proposals) | 8 / 8 pass | 0.9–5.6 s |
-| Prep questions, first mock question, mock turn, interview reviews | 4 / 4 pass | 9.7 s, 1.1 s, 4.5 s, — |
+| Group | 2026-11-05 | 2026-11-06, final code, 2 consecutive runs | Latency (2026-11-05) |
+|---|---|---|---|
+| Listings (5 samples: 4 real employers, 1 with no employer named) | 5 / 5 pass | 5 / 5, 5 / 5 | 1.3–4.2 s |
+| Triage (8 sample emails: categories, grounded matches, proposals) | 8 / 8 pass | 8 / 8, 8 / 8 | 0.9–5.6 s |
+| Prep questions, first mock question, mock turn, interview reviews | 4 / 4 pass | 4 / 4, 4 / 4 | 9.7 s, 1.1 s, 4.5 s, — |
 
 What the checks caught before passing (all fixed, each with a unit test):
 

@@ -6,9 +6,9 @@ The brief asks for three things in the interview: a live demo, a code walkthroug
 
 1. Confirm Apple Intelligence is on in this Mac's System Settings (the iOS Simulator uses the Mac's model).
 2. Boot the iOS Simulator and the Android Emulator; install the latest dev build on both.
-3. Reset app state, then load the seed data (3 applications in different stages).
+3. Reset app state, then **Open settings → Load demo data** (3 applications in different stages).
 4. Open Safari on the simulator with the demo listing URL in a tab.
-5. Keep the backup video and the demo listing text ready to paste.
+5. Keep the backup videos (`e2e/artifacts/backup-demo.mov`, `e2e/artifacts/backup-intake.mov`) and the demo listing text ready. They are not in git; re-record them with the commands in [Dry run](#dry-run).
 6. Record a 15 s clip proving offline AI: on a physical iPhone (or the Simulator before the call), turn networking off, paste a listing, show the draft appear. Never turn off the Mac's network during the call; it drops the video call and screen share.
 
 ## Demo (6 minutes)
@@ -17,13 +17,33 @@ The brief asks for three things in the interview: a live demo, a code walkthroug
 |---|---|---|
 | 0:00 | Pipeline tab: stages, counts, urgent next-step badge | RN + TypeScript, Redux selectors |
 | 0:45 | Share the listing from Safari → app opens → draft review → confirm | AI intake, human-in-the-loop drafts |
-| 2:00 | Application detail → prep questions → one mock-interview turn with feedback | AI prep |
+| 2:00 | The application just confirmed → prep questions → one mock-interview turn with feedback | AI prep |
 | 3:30 | Inbox → "Receive next email" → triage proposes a next step → accept | Email Source interface, triage, Redux |
 | 4:30 | Paste a listing → draft appears with no API call → play the offline clip | On-device AI: no metered per-token cost, private, works offline |
 | 5:00 | Android Emulator → Inbox shows "Tag manually"; prep shows why AI is unavailable | Error handling, capability gating |
 | 5:15 | Settings → dark mode; dev gallery screen | Design system, theming |
 
 If the model fails live: say so, show the error state (it's part of the demo), then play the backup video.
+
+## Dry run
+
+`e2e/demo.yaml` runs the in-app part of the table above in order, with the real on-device model: load demo data, paste a listing → draft → confirm, prep questions, one mock-interview turn, inbox triage → accept, dark mode. Not in it: the Safari share sheet, Android, the offline clip.
+
+| Date | Result | Wall time (incl. app launch) |
+|---|---|---|
+| 2026-11-06 | Pass, 4 consecutive runs | 106 s, 149 s (first run after a simulator reboot), 109 s; the 4th was not timed separately |
+
+The recorded run (`backup-demo.mov`) is 77 s from demo data loaded to dark mode; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed.
+
+Re-record the backup videos (iOS Simulator, Metro running):
+
+```sh
+xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-demo.mov &   # Ctrl-C after the flow
+maestro --device <udid> test e2e/demo.yaml
+# 20–30 s intake clip from an app already open on the Pipeline:
+xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-intake.mov &
+maestro --device <udid> test e2e/clip-intake.yaml
+```
 
 ## Code walkthrough (5 minutes)
 

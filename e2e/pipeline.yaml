@@ -37,6 +37,13 @@ appId: dev.kristinadarroch.applicationtracker
     text: Role
     index: 1
 - inputText: Staff Mobile Engineer
+# On Android the field can sit under the keyboard; bring it into view first.
+- pressKey: Enter
+- scrollUntilVisible:
+    element:
+      text: Listing link
+      index: 1
+    visibilityPercentage: 100
 - tapOn:
     text: Listing link
     index: 1
@@ -46,6 +53,10 @@ appId: dev.kristinadarroch.applicationtracker
     element: Save application
 - tapOn: Save application
 - assertVisible: Enter a link that starts with http:// or https://
+- scrollUntilVisible:
+    element:
+      text: Listing link
+      index: 1
 - tapOn:
     text: Listing link
     index: 1

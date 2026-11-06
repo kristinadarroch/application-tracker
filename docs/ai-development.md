@@ -34,6 +34,9 @@ Entries where a proposal (from AI or from me) was accepted with changes, correct
 
 | Date | Area | Proposed | Decision | Why |
 |---|---|---|---|---|
+| 2026-11-06 | Accessibility | (AI) Prove the screen-reader story by automating TalkBack on the emulator | Rejected after trying | No speech output was logged and focus stayed on a system dialog, so it proved nothing. The VoiceOver/TalkBack pass stays a manual check, listed as open in [verification](verification.md#accessibility) |
+| 2026-11-06 | Intake | Confirm removes the draft, then navigates to the new application | Corrected after reviewing the backup video | Frame-by-frame, the review screen flashed "Not found" while animating away. It now keeps showing the draft it had, with a regression test |
+| 2026-11-06 | Design system | Icons at fixed sizes | Corrected by the largest-text pass | At iOS AX5 the icons stayed tiny beside 3× labels. Icons next to text now scale with it, capped like their label and at 2× |
 | 2026-11-05 | AI reliability | (AI) Fix two timeouts by flattening nested output schemas | Partly right, then revised | A later run showed the real failure mode: a timed-out request keeps running natively and every request queued behind it also times out. Fix: one native generation at a time, a required output-token cap on every task, and sequential inbox triage that pauses after a timeout |
 | 2026-11-05 | Listing extraction | Prompt example "e.g. Acme Health" to steer the company field | Rejected after a device run | The small model invented "Acme Tech" for a listing that names no employer. Example names were removed and company, location, and salary must now appear in the listing text |
 | 2026-11-05 | Inbox triage | Rely on the model to propose a Next Step for an interview invite | Changed | On device the model classified the invite correctly but proposed nothing; action categories now get a default title in code |

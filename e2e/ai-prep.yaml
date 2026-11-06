@@ -41,7 +41,10 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible: Gaps
 - takeScreenshot: e2e/artifacts/prep-03-feedback
 # MOCK-5
-- tapOn: End
+- waitForAnimationToEnd
+- tapOn:
+    text: End
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: '.*questions answered.*'
     timeout: 10000

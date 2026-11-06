@@ -51,7 +51,10 @@ appId: dev.kristinadarroch.applicationtracker
 - extendedWaitUntil:
     visible: Strengths
     timeout: 90000
-- tapOn: End
+- waitForAnimationToEnd
+- tapOn:
+    text: End
+    retryTapIfNoChange: true
 - extendedWaitUntil:
     visible: '.*questions answered.*'
     timeout: 10000
