@@ -41,7 +41,9 @@ flowchart LR
 - Gallery screen at `/dev/design-system`.
 - Redux store with typed hooks, `PersistGate`, `settings` slice (theme preference).
 
-**Done when:** the app launches on iOS Simulator and Android Emulator, the gallery renders every component in light and dark, and CI passes.
+**Stories:** [UX-1](user-stories.md#ux-1--choose-light-dark-or-system-theme-), [UX-6](user-stories.md#ux-6--browse-the-design-system-presenter-).
+
+**Engineering done when:** the app launches on iOS Simulator and Android Emulator, the gallery renders every component in light and dark, and CI passes.
 
 ## Tier 1 — Pipeline
 
@@ -51,13 +53,9 @@ flowchart LR
 - Edit and delete with confirmation.
 - Persistence across app restarts.
 
-**Acceptance criteria**
+**Stories:** [PIPE-1 – PIPE-7](user-stories.md#pipeline), [UX-2 – UX-5](user-stories.md#experience--accessibility).
 
-1. Creating an application with a blank company or role shows field errors and doesn't save.
-2. Changing stage moves the card to the new group immediately and survives restart.
-3. A next step due within 48 hours shows a warning badge on the pipeline card.
-4. All interactive elements pass the [accessibility checklist](design-system.md#accessibility-checklist).
-5. Selectors `selectApplicationsByStage`, `selectUpcomingNextSteps`, `selectPipelineCounts` have unit tests.
+**Engineering done when:** selectors `selectApplicationsByStage`, `selectUpcomingNextSteps`, and `selectPipelineCounts` have unit tests.
 
 ## Tier 2 — AI intake and prep questions
 
@@ -68,14 +66,9 @@ flowchart LR
 - Review-draft screen: every extracted field is editable; confirm creates the application.
 - `prep-questions` endpoint and a questions screen per application, grouped by type, with "mark practiced".
 
-**Acceptance criteria**
+**Stories:** [INT-1 – INT-6](user-stories.md#intake), [PREP-1 – PREP-3](user-stories.md#prep-questions).
 
-1. Sharing a listing URL from Safari (iOS) or Chrome (Android) opens the app on the share-received screen with the URL filled in.
-2. A pasted listing produces a draft with company and role filled in; the user can edit any field before confirming.
-3. A URL that is blocked, empty, behind a login, or JavaScript-only shows "Couldn't read this page" and switches to paste mode with the URL kept.
-4. A model response that fails Zod validation shows `ErrorState` with retry, and offers "Fill in manually".
-5. Turning off network during extraction shows the network error within 15 s; nothing is saved.
-6. No draft becomes an application without an explicit confirm tap.
+**Engineering done when:** `baseQuery` error mapping and the `ListingExtraction` / `PrepQuestionSet` schemas have unit tests.
 
 ## Tier 3 — Mock interview
 
@@ -84,11 +77,9 @@ flowchart LR
 - Sessions persist; the user can leave and resume.
 - End session → summary of feedback.
 
-**Acceptance criteria**
+**Stories:** [MOCK-1 – MOCK-5](user-stories.md#mock-interview).
 
-1. Each AI turn validates against `MockInterviewTurn`; a failed turn keeps the user's answer text and offers retry.
-2. Leaving mid-session and returning restores the transcript.
-3. Questions reference the application's role and requirements (checked manually against two different listings).
+**Engineering done when:** every AI turn is validated against `MockInterviewTurn` on server and client.
 
 ## Tier 4 — Mock inbox and next steps
 
@@ -98,13 +89,9 @@ flowchart LR
 - `triage-message` endpoint: category, matched application (or none), proposed next step with due date, confidence.
 - Accepting a proposed next step adds it to the matched application; low-confidence matches ask the user to choose.
 
-**Acceptance criteria**
+**Stories:** [INBX-1 – INBX-6](user-stories.md#inbox).
 
-1. Receiving the "interview invite" fixture produces a proposed next step on the matching application.
-2. The newsletter and receipt fixtures are categorized as unrelated and propose nothing.
-3. Triage can only match existing application IDs; an unknown ID from the model is treated as `invalid_response`.
-4. A failed triage shows "Couldn't analyze — Retry" on that message only, and the user can tag it by hand.
-5. With **AI replay** on, replayed results show a "Replayed" badge.
+**Engineering done when:** triage matching has unit tests driven by the fixture messages, including an unknown application ID.
 
 ## Tier 5 — Polish and rehearsal
 
@@ -116,8 +103,8 @@ flowchart LR
 
 ## Stretch
 
-- **Interview review summary.** The user pastes interview reviews they found (e.g. from Glassdoor); AI summarizes likely questions with the source text quoted. No scraping of any site.
-- **Gmail `EmailSource`.** OAuth with a read-only Gmail scope for test users only. Publishing publicly would need Google's verification, and a security assessment if email data passes through the server.
+- **Interview review summary** ([LATER-1](user-stories.md#later-1--summarize-interview-reviews-i-found)). The user pastes interview reviews they found (e.g. from Glassdoor); AI summarizes likely questions with the source text quoted. No scraping of any site.
+- **Gmail `EmailSource`** ([LATER-2](user-stories.md#later-2--connect-my-real-gmail)). OAuth with a read-only Gmail scope for test users only. Publishing publicly would need Google's verification, and a security assessment if email data passes through the server.
 
 ## Out of scope
 

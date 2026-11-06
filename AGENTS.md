@@ -8,6 +8,7 @@ Rules for AI coding agents (Claude Code, Codex, Copilot) working in this repo. H
 2. [`docs/architecture.md`](docs/architecture.md) — folder layout, store shape, error handling.
 3. [`docs/design-system.md`](docs/design-system.md) — tokens, components, accessibility checklist.
 4. [`docs/features.md`](docs/features.md) — work only on the current tier's scope.
+5. [`docs/user-stories.md`](docs/user-stories.md) — a story is done only when every Given/When/Then for it passes. Reference story IDs (e.g. `PIPE-3`) in commits and PRs.
 
 ## Hard rules
 
