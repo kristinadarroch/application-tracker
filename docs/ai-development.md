@@ -34,6 +34,7 @@ Entries where a proposal (from AI or from me) was accepted with changes, correct
 
 | Date | Area | Proposed | Decision | Why |
 |---|---|---|---|---|
+| 2026-11-06 | Model checks | Pass a triage check whenever an expected proposal exists; check only the company for listings | Tightened after review | The checks couldn't catch an unwanted proposal or a wrong role. Stricter checks then caught "Northwind Labs," with a trailing comma (now stripped in code) and an offer email with a sensible decision step (offers now accept either) |
 | 2026-11-06 | Accessibility | (AI) Prove the screen-reader story by automating TalkBack on the emulator | Rejected after trying | No speech output was logged and focus stayed on a system dialog, so it proved nothing. The VoiceOver/TalkBack pass stays a manual check, listed as open in [verification](verification.md#accessibility) |
 | 2026-11-06 | Intake | Confirm removes the draft, then navigates to the new application | Corrected after reviewing the backup video | Frame-by-frame, the review screen flashed "Not found" while animating away. It now keeps showing the draft it had, with a regression test |
 | 2026-11-06 | Design system | Icons at fixed sizes | Corrected by the largest-text pass | At iOS AX5 the icons stayed tiny beside 3× labels. Icons next to text now scale with it, capped like their label and at 2× |

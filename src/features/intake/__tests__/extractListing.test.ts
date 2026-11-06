@@ -46,6 +46,33 @@ describe('extractListing', () => {
     );
   });
 
+  it('drops separators the model copied after a name, but keeps periods that belong to it', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok({
+      ...ACME_EXTRACTION,
+      company: 'Acme Health,',
+      role: 'Senior React Native Engineer —',
+    });
+    const result = await extractListing(
+      model,
+      { kind: 'text', text: `${LISTING_TEXT} Acme Health Inc.`, source: 'pasted_text' },
+      { now: NOW },
+    );
+    expect(result.ok && result.value.status === 'drafted' && result.value.draft.extraction).toEqual(
+      expect.objectContaining({ company: 'Acme Health', role: 'Senior React Native Engineer' }),
+    );
+
+    model.nextResult = ok({ ...ACME_EXTRACTION, company: 'Acme Health Inc.' });
+    const withPeriod = await extractListing(
+      model,
+      { kind: 'text', text: `${LISTING_TEXT} Acme Health Inc.`, source: 'pasted_text' },
+      { now: NOW },
+    );
+    expect(
+      withPeriod.ok && withPeriod.value.status === 'drafted' && withPeriod.value.draft.extraction,
+    ).toEqual(expect.objectContaining({ company: 'Acme Health Inc.' }));
+  });
+
   it('keeps a link that came with pasted text', async () => {
     const model = createFakeModel();
     model.nextResult = ok(ACME_EXTRACTION);

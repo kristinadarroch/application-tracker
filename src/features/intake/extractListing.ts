@@ -114,13 +114,23 @@ export interface ExtractListingOptions {
   now?: Date;
 }
 
-/** Trims whitespace and drops empty optional fields, so "" never reaches the draft. */
+/**
+ * Separators the model sometimes copies from the listing ("Northwind Labs, …" → "Northwind Labs,").
+ * Periods stay: they belong to names like "Acme Inc.".
+ */
+const TRAILING_SEPARATORS = /[\s,;:\-–—|·]+$/u;
+
+function cleanField(value: string): string {
+  return value.trim().replace(TRAILING_SEPARATORS, '');
+}
+
+/** Trims whitespace and trailing separators, and drops empty optional fields, so "" never reaches the draft. */
 function cleanExtraction(raw: ListingExtraction): ListingExtraction {
-  const location = raw.location?.trim() ?? '';
-  const salary = raw.salary?.trim() ?? '';
+  const location = cleanField(raw.location ?? '');
+  const salary = cleanField(raw.salary ?? '');
   return {
-    company: raw.company.trim(),
-    role: raw.role.trim(),
+    company: cleanField(raw.company),
+    role: cleanField(raw.role),
     ...(location.length > 0 ? { location } : {}),
     ...(salary.length > 0 ? { salary } : {}),
     requirements: raw.requirements.map((item) => item.trim()).filter((item) => item.length > 0),

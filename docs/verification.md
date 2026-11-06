@@ -10,18 +10,20 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
-## Latest end-to-end results (2026-11-06, app code at `8b0091d`, flows at `e7b1e13`)
+## Latest end-to-end results (2026-11-06)
+
+Most flows ran on app code at `8b0091d` (flows at `e7b1e13`). After that, only the intake extraction cleanup, the review-screen id check, and the dev check screen changed; `ai-intake.yaml` and `ai-checks.yaml` were rerun on that final code.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
 | `pipeline.yaml` | Pass | Pass (after a flow fix: scroll the link field out from under the keyboard) |
-| `ai-intake.yaml` | Pass | — (AI is iOS only) |
+| `ai-intake.yaml` | Pass (rerun after the trailing-separator fix) | — (AI is iOS only) |
 | `ai-prep.yaml` | Failed once (the End tap didn't register right after feedback rendered); flow now waits for the UI to settle, then 2 / 2 pass | — |
 | `ai-inbox.yaml` | Pass | — |
 | `android-ai-off.yaml` | — | Pass |
 | `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, app code at `a5c8c91`) |
 | `demo.yaml` | 4 passes across flow revisions; the current flow passed once | — |
-| `ai-checks.yaml` | 2 / 2 runs, every group "0 failed" | — |
+| `ai-checks.yaml` | Stricter checks (below): 2 / 2 consecutive runs, every group "0 failed", after one fix | — |
 
 ## Story coverage
 
@@ -46,13 +48,15 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 
 ## On-device model checks (iOS 27.0 Simulator, M4 host)
 
-Each check has an expected outcome; the screen marks it Pass or Fail, and `e2e/ai-checks-group.yaml` asserts "0 failed" for each group. Groups run in fresh launches.
+Each check has an expected outcome; the screen marks it Pass or Fail, and `e2e/ai-checks-group.yaml` asserts "0 failed" for each group. Groups run in fresh launches. Listings must return the exact company **and role**; triage must match the expected category and application, and propose a Next Step exactly when expected (`true`/`false`; an offer may go either way, since it can carry a decision deadline).
 
-| Group | 2026-11-05 | 2026-11-06, final code, 2 consecutive runs | Latency (2026-11-05) |
+| Group | 2026-11-05 (company only; proposals only checked when expected) | 2026-11-06, stricter checks, 2 consecutive runs | Latency (2026-11-05) |
 |---|---|---|---|
 | Listings (5 samples: 4 real employers, 1 with no employer named) | 5 / 5 pass | 5 / 5, 5 / 5 | 1.3–4.2 s |
 | Triage (8 sample emails: categories, grounded matches, proposals) | 8 / 8 pass | 8 / 8, 8 / 8 | 0.9–5.6 s |
 | Prep questions, first mock question, mock turn, interview reviews | 4 / 4 pass | 4 / 4, 4 / 4 | 9.7 s, 1.1 s, 4.5 s, — |
+
+Before those two runs, the stricter checks failed twice: the offer email got a reasonable "Review offer letter and decide" step (expectation relaxed to either), and one extraction returned "Northwind Labs," with a trailing comma (fixed in code: trailing separators are stripped from extracted fields, with a test).
 
 What the checks caught before passing (all fixed, each with a unit test):
 

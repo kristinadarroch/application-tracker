@@ -15,27 +15,27 @@ import { ApplicationIdSchema } from '@/lib/ids';
 import { onDeviceModel } from '@/services/ai/foundationModels';
 
 /** Sample listings and what extraction must return for each (tier 2 prompt checks). */
-const SAMPLE_LISTINGS: { text: string; expectedCompany: string | null }[] = [
+const SAMPLE_LISTINGS: { text: string; expected: { company: string; role: string } | null }[] = [
   {
-    expectedCompany: 'Acme Health',
+    expected: { company: 'Acme Health', role: 'Senior React Native Engineer' },
     text: `Acme Health is hiring a Senior React Native Engineer (hybrid, Austin, TX). Salary: $150,000 - $180,000.
 You will build patient-facing mobile features in React Native and TypeScript and own our component library.
 Requirements: 5+ years React Native, TypeScript, Redux Toolkit, accessibility, CI/CD for mobile.`,
   },
   {
-    expectedCompany: 'Globex',
+    expected: { company: 'Globex', role: 'Mobile Engineer' },
     text: `Skip to content\nSign in\nCareers at Globex\nMobile Engineer\nNew York, NY · Full-time\nAbout the role\nGlobex builds logistics software for 2,000 warehouses. As a Mobile Engineer you'll ship our driver app.\nWhat you bring\n- 3+ years iOS or Android\n- React Native experience\n- Offline-first data sync\n- Testing with Jest and Detox\nAccept all cookies\n© 2026 Globex Corporation. All rights reserved.`,
   },
   {
-    expectedCompany: 'Northwind Labs',
+    expected: { company: 'Northwind Labs', role: 'Frontend Engineer (React)' },
     text: `Northwind Labs — Frontend Engineer (React), Remote (US). We're a 40-person team building analytics for clinics. You'll work across our React web app and design system. Must have: React, TypeScript, CSS architecture, Storybook. Nice to have: React Native.`,
   },
   {
-    expectedCompany: 'Initech',
+    expected: { company: 'Initech', role: 'Staff Mobile Engineer' },
     text: `ROLE: Staff Mobile Engineer\nCOMPANY: Initech\nLOCATION: Remote\nCOMP: $200k–$240k + equity\nRESPONSIBILITIES:\n• Lead the mobile architecture for our payments app\n• Mentor 6 engineers\nREQUIREMENTS:\n• 8+ years mobile\n• React Native New Architecture\n• Security and PCI awareness`,
   },
   {
-    expectedCompany: null,
+    expected: null,
     text: `We're looking for someone passionate about mobile to join a fast-growing team. You'll collaborate with design and product, write clean code, and have fun. Apply today!`,
   },
 ];
@@ -62,12 +62,14 @@ const CANDIDATES: TriageCandidate[] = [
 ];
 
 /**
- * Accepted categories and the expected match per sample email; `proposes` = a Next Step must be
- * proposed. A scheduling email may fairly be read as an interview invite: both lead to booking time.
+ * Accepted categories and the expected match per sample email. `proposes`: a Next Step must
+ * (`true`) or must not (`false`) be proposed; `'either'` where both are reasonable (an offer may
+ * carry a decision deadline). A scheduling email may fairly be read as an interview invite: both
+ * lead to booking time.
  */
 const EXPECTED_TRIAGE: Record<
   string,
-  { categories: string[]; match: string | null; proposes: boolean }
+  { categories: string[]; match: string | null; proposes: boolean | 'either' }
 > = {
   msg_fixture_acme_invite: {
     categories: ['interview_invite', 'scheduling'],
@@ -93,7 +95,11 @@ const EXPECTED_TRIAGE: Record<
     match: NORTHWIND_ID,
     proposes: true,
   },
-  msg_fixture_acme_offer: { categories: ['offer'], match: DEMO_APPLICATION.id, proposes: false },
+  msg_fixture_acme_offer: {
+    categories: ['offer'],
+    match: DEMO_APPLICATION.id,
+    proposes: 'either',
+  },
 };
 
 const SAMPLE_REVIEWS = `Interviewed for a mobile role at Acme Health. The first round asked "How do you make a React Native screen accessible to VoiceOver users?" Then a system design question: design offline sync for appointment booking. Final round was behavioral, they asked about a time I disagreed with a designer.`;
@@ -153,13 +159,14 @@ export default function AiChecksScreen() {
           });
           if (!result.ok) return { passed: false, detail: result.error };
           const outcome = result.value;
-          if (sample.expectedCompany === null) {
+          if (sample.expected === null) {
             return { passed: outcome.status === 'missing_company_or_role', detail: outcome };
           }
           return {
             passed:
               outcome.status === 'drafted' &&
-              outcome.draft.extraction.company === sample.expectedCompany,
+              outcome.draft.extraction.company === sample.expected.company &&
+              outcome.draft.extraction.role === sample.expected.role,
             detail: outcome.status === 'drafted' ? outcome.draft.extraction : outcome,
           };
         });
@@ -177,7 +184,8 @@ export default function AiChecksScreen() {
             passed:
               expected.categories.includes(value.category) &&
               value.applicationId === expected.match &&
-              (!expected.proposes || value.proposedNextStep !== undefined),
+              (expected.proposes === 'either' ||
+                (value.proposedNextStep !== undefined) === expected.proposes),
             detail: value,
           };
         });

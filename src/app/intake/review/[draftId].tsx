@@ -15,10 +15,11 @@ export default function ReviewDraftRoute() {
     id.success ? selectDraftById(state, id.data) : undefined,
   );
   // Confirm and Discard remove the draft, then navigate away. Keep showing the draft this screen
-  // already had while it animates out, instead of flashing "Not found".
+  // already had while it animates out, instead of flashing "Not found". Only that same draft: a
+  // route whose id points elsewhere still gets Not found.
   const [shown, setShown] = useState(draft);
   if (draft !== undefined && draft !== shown) setShown(draft);
-  const current = draft ?? shown;
+  const current = draft ?? (id.success && shown?.id === id.data ? shown : undefined);
 
   if (current === undefined) {
     return (
