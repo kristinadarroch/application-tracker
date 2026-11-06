@@ -103,6 +103,13 @@ Every text/background pair specified below meets AA (≥ 4.5:1). Ratios were com
 | `action.primary.fg` on `action.primary.bgPressed` | 8.40 | 9.04 |
 | `text.link` on `bg.surface` | 6.25 | 8.27 |
 | Stage pill fg on bg (lowest of all stages) | 5.34 | 6.25 |
+| `text.primary` on `bg.surface` (cards, chips, list rows) | 17.41 | 16.38 |
+| `text.primary` on `bg.subtle` (neutral banner, pressed rows) | 15.26 | 13.34 |
+| `text.secondary` on `bg.surface` (list subtitles) | 7.36 | 10.47 |
+| `feedback.warning.fg` on `feedback.warning.bg` (urgent badge, warning banner) | 5.67 | 7.69 |
+| `feedback.info.fg` on `feedback.info.bg` | 6.12 | 6.97 |
+| `feedback.success.fg` on `feedback.success.bg` | 5.34 | 6.71 |
+| `feedback.danger.fg` on `feedback.danger.bg` (destructive button, danger banner) | 5.75 | 6.25 |
 
 Any new color pair must be added to this table with its ratio before it is used.
 

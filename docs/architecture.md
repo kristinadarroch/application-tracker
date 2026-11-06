@@ -68,30 +68,36 @@ src/
       index.tsx                 # Pipeline
       inbox.tsx                 # Inbox
       prep.tsx                  # Prep hub
-    application/[id].tsx        # Application detail
+    application/new.tsx         # Manual add (accepts prefill params)
+    application/[id]/index.tsx  # Application detail
+    application/[id]/edit.tsx
     intake/new.tsx              # Paste URL or text
     intake/share.tsx            # Share-received handler
     intake/review/[draftId].tsx # Confirm AI draft
-    prep/[applicationId]/mock.tsx
+    prep/[applicationId]/index.tsx, mock.tsx, reviews.tsx, session/[sessionId].tsx
+    inbox/[messageId].tsx, inbox/connect-gmail.tsx
     settings.tsx
-    dev/design-system.tsx       # gallery (__DEV__ only)
+    dev/design-system.tsx, dev/ai-spike.tsx   # __DEV__ only
   design-system/                # see docs/design-system.md
   features/
-    applications/  { schema.ts, slice.ts, selectors.ts, components/, hooks/ }
-    intake/        { schema.ts, draftsSlice.ts, fetchListing.ts, components/ }
-    inbox/         { emailSource.ts, mockEmailSource.ts, fixtures/, slice.ts, matching.ts, components/ }
-    prep/          { schema.ts, slice.ts, components/ }
+    applications/  { schema.ts, slice.ts, selectors.ts, demoSeed.ts, components/ }
+    capabilities/  { slice.ts, useAiAvailabilitySync.ts }
+    intake/        { schema.ts, draftsSlice.ts, fetchListing.ts, AI task + prompt, components/ }
+    inbox/         { schema.ts, emailSource.ts, mock + Gmail sources, fixtures/, slice.ts, AI task + prompt, components/ }
+    prep/          { schema.ts, slice.ts, AI tasks + prompts, components/ }
     settings/      { slice.ts }
   services/
-    ai/            { model.ts (adapter interface), foundationModels.ts, unavailableModel.ts, prompts/, tasks.ts, aiApi.ts (RTK Query), budget.ts }
-  store/           { store.ts, rootReducer.ts, persist.ts, hooks.ts }
-  lib/             { errors.ts, result.ts, assertNever.ts, ids.ts, dates.ts }
+    ai/            { model.ts (adapter interface), foundationModels.ios.ts (library), foundationModels.ts (non-iOS stub),
+                     errorMapping.ts, withTimeout.ts, budget.ts, aiApi.ts (RTK Query base) }
+  store/           { store.ts, hooks.ts }
+  lib/             { errors.ts, result.ts, assertNever.ts, ids.ts, dates.ts, stage.ts }
+  test/            { renderWithProviders.tsx }
 ```
 
 Rules:
 
 1. A feature can import from `design-system`, `lib`, `services`, `store/hooks`, and its own folder. Features don't import each other's internals; they share through selectors exported from a feature's `index.ts`.
-2. Only `src/services/ai/foundationModels.ts` imports the on-device model library. An ESLint `no-restricted-imports` rule blocks it everywhere else, so swapping libraries touches one file.
+2. Only `src/services/ai/foundationModels.ios.ts` imports the on-device model library. An ESLint `no-restricted-imports` rule blocks it everywhere else, so swapping libraries touches one file. Metro picks the `.ios.ts` file on iOS; every other platform gets `foundationModels.ts`, which always reports AI as unavailable, so the native library never loads on Android.
 3. Components receive data through props. Hooks (`useApplication(id)`) connect components to the store.
 
 ### Error handling
@@ -107,21 +113,22 @@ export type AppError =
   | { kind: 'ai_unavailable'; reason: AiUnavailableReason }
   | { kind: 'context_too_long' }                          // input didn't fit the model's context window
   | { kind: 'content_blocked' }                           // model safety guardrail refused the request
+  | { kind: 'ai_failed'; code: string }                   // any other model failure, code kept for diagnosis
   | { kind: 'listing_unreadable'; reason: 'blocked' | 'empty' | 'login_wall' | 'non_html' }
   | { kind: 'not_found'; entity: 'application' | 'draft' | 'message' };
 
 export type AiUnavailableReason =
-  | 'unsupported_platform'      // Android
-  | 'os_too_old'                // iOS < 26
-  | 'device_not_eligible'
-  | 'apple_intelligence_off'
-  | 'model_not_ready';          // still downloading
+  | 'unsupported_platform'             // Android
+  | 'os_too_old'                       // iOS < 26
+  | 'apple_intelligence_unavailable';  // ineligible device, turned off, or still downloading
 ```
+
+The provider reports availability as a boolean, so the three iPhone-side causes share one reason, with copy that points to Settings → Apple Intelligence & Siri.
 
 | Layer | Responsibility |
 |---|---|
-| `services/ai/foundationModels.ts` | Maps library errors to `AppError`; Zod-parses every result even though the library already applies the schema |
-| `services/ai/aiApi.ts` | Enforces per-task time limits; returns `AppError`, never throws |
+| `services/ai/foundationModels.ios.ts` + `errorMapping.ts` | Map provider and AI SDK errors to `AppError` (the provider forwards Foundation Models errors as text, so context and guardrail errors are matched by message); Zod-parse every result even though the provider already applies the schema |
+| `services/ai/withTimeout.ts` | Per-task time limits; a late native result is ignored |
 | `features/intake/fetchListing.ts` | URL fetch with a 10 s timeout; maps failures to `network` or `listing_unreadable` |
 | Slices | Store `AppError` in state where the UI needs it (e.g. a message's triage status) |
 | Components | `ErrorState` maps `kind` to plain-language copy and a retry action |
@@ -203,13 +210,13 @@ export interface OnDeviceModel {
 }
 ```
 
-- `foundationModels.ts` implements `OnDeviceModel` with the library that passes the [spike gate](adr/0005-on-device-apple-foundation-models.md#spike-gate-tier-0).
-- `unavailableModel.ts` implements it for Android and ineligible iPhones; every call returns `ai_unavailable`.
+- `foundationModels.ios.ts` implements `OnDeviceModel` with `@react-native-ai/apple` + `ai@6` (`generateText` with `Output.object`), which passed the [spike gate](adr/0005-on-device-apple-foundation-models.md#spike-result-2026-11-05).
+- `foundationModels.ts` implements it for every non-iOS platform; every call returns `ai_unavailable`.
 - Jest tests use a fake `OnDeviceModel`. The library is never loaded in tests.
 
 ### Tasks
 
-Each task is a function in `tasks.ts` with its own prompt (`prompts/*.ts`), Zod schema, and time limit, exposed through RTK Query `queryFn` endpoints.
+Each task lives in its feature folder with its own prompt, Zod output schema, and time limit, and is exposed through `aiApi.injectEndpoints` with a `queryFn`.
 
 | Task | Input | Output (Zod schema) | Time limit |
 |---|---|---|---|
@@ -218,7 +225,7 @@ Each task is a function in `tasks.ts` with its own prompt (`prompts/*.ts`), Zod 
 | `prepQuestions` | application summary | `PrepQuestionSet`: questions grouped by type (behavioral, technical, role-specific, questions to ask) | 45 s |
 | `mockInterviewTurn` | application summary, current question, answer, earlier question titles | `MockInterviewTurn`: feedback on the answer + next question | 45 s |
 
-Time limits are starting values, to be tuned after measuring on the Simulator and a device in tier 2.
+Time limits are starting values. Measured on the iOS 27 Simulator (M4 host): listing extraction 5.3–6.3 s.
 
 ### Context budget
 

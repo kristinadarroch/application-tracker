@@ -63,7 +63,7 @@ flowchart LR
 - Dev build with the `expo-sharing` plugin enabled (iOS share extension, Android intent filter for `text/plain` URLs).
 - `+native-intent.ts` routes incoming shares to `/intake/share`.
 - New-application screen: paste a URL or the listing text.
-- `OnDeviceModel` adapter (`foundationModels.ts`, `unavailableModel.ts`), `capabilities` slice, and `selectAiAvailability`.
+- `OnDeviceModel` adapter (`foundationModels.ios.ts`, non-iOS stub `foundationModels.ts`), `capabilities` slice, and `selectAiAvailability`.
 - `extractListing` task: fetch URL on device (if given) → readability check → trim to context budget → on-device extraction → **Application Draft**.
 - Review-draft screen: every extracted field is editable; confirm creates the application.
 - `prepQuestions` task and a questions screen per application, grouped by type, with "mark practiced".

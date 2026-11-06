@@ -30,8 +30,8 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 1. `README.md` table: brief → architecture.
 2. `src/design-system/`: tokens → semantic tokens → `makeStyles` → `StagePill`.
 3. `src/features/applications/schema.ts` → `slice.ts` → `selectors.ts`: one Zod schema drives the type, validation, and Redux entity.
-4. `src/services/ai/model.ts` → `foundationModels.ts`: the adapter boundary, `AppError` mapping, Zod re-validation.
-5. `src/services/ai/budget.ts` + `prompts/`: fitting a small on-device context window.
+4. `src/services/ai/model.ts` → `foundationModels.ios.ts`: the adapter boundary, `AppError` mapping, Zod re-validation.
+5. `src/services/ai/budget.ts` + a feature prompt: fitting a small on-device context window.
 
 ## Discussion prompts (4 minutes)
 
