@@ -125,7 +125,7 @@ export type AppError =
 | Root | `ErrorBoundary` in `_layout.tsx` catches render errors, shows a recover screen, and logs in dev |
 | Forms | Zod schemas validate manual entry; field errors render through `TextField.error` |
 
-**Every AI feature has a non-AI path.** If extraction fails, the user fills the form by hand. If triage fails, the user tags the message by hand. AI speeds things up; it is never required.
+**AI failure never blocks core application tracking.** If extraction fails, the user fills the form by hand. If triage fails, the user tags the message by hand. Prep questions and mock interviews have no manual equivalent; on failure they keep existing state (question set, transcript, typed answer) and offer retry.
 
 ## Requirement 3 — Redux (Redux Toolkit)
 
@@ -200,7 +200,7 @@ URL intake fetches the page on the server, strips it to text, and checks the res
 1. Structured output only. The model returns JSON matching the endpoint's Zod schema, validated on the server **and** the client.
 2. Triage receives only the user's existing applications as match candidates and must return one of those IDs or `none`. It can't invent applications.
 3. Low temperature for extraction and triage to reduce run-to-run drift (it doesn't remove it).
-4. 15 s client timeout; one manual retry; then the manual path.
+4. 15 s client timeout and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
 5. **AI replay** (`settings.aiReplay`, dev only): replays recorded responses for the fixture inbox and demo listing. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
 
 ## Inbox

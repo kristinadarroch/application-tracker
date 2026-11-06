@@ -29,7 +29,7 @@ These apply to every story, so they aren't repeated in each one.
 
 - **Loading:** any wait over 300 ms shows a `Skeleton` or a busy button, never a blank screen.
 - **AI timeout:** AI requests give up after 15 seconds and show the timeout error.
-- **AI is optional:** every AI story has a manual path that works with no network.
+- **AI never blocks tracking:** AI failure never blocks core application tracking. Intake and inbox stories offer a manual path; prep and mock-interview stories keep existing state and offer retry.
 - **Urgent:** a Next Step is urgent when it is due within 48 hours or overdue.
 - **Accessibility:** every screen passes the [accessibility checklist](design-system.md#accessibility-checklist).
 
