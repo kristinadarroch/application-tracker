@@ -12,7 +12,7 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 
 ## Latest end-to-end results (2026-11-06)
 
-All rows below ran on the final app code (AI runs from the saved job: link-first intake, prep questions in the background and on open, mock interview starting on open), except the large-text pass.
+All rows below ran on the final app code (AI runs from the saved job: link-first intake, prep questions in the background and on open, mock interview starting on open), except the large-text pass and the model checks, which ran at `7cf0ac3`; the model prompts and tasks have not changed since.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
