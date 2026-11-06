@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text } from 'react-native';
+
+import { Button, Card, Screen, Text } from '@/design-system';
 
 import { ListingExtractionSchema } from '@/features/intake/schema';
 import { onDeviceModel } from '@/services/ai/foundationModels';
@@ -63,17 +64,16 @@ export default function AiSpikeScreen() {
   if (!__DEV__) return <Redirect href="/" />;
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <Button title={running ? 'Running…' : 'Run spike checks'} onPress={run} disabled={running} />
+    <Screen title="On-device AI spike" scroll>
+      <Button label="Run spike checks" onPress={run} loading={running} />
       {checks.map((check) => (
-        <Text key={check.name} selectable>
-          {`${check.name} (${check.ms} ms)\n${check.outcome}\n`}
-        </Text>
+        <Card key={check.name}>
+          <Text variant="heading">{`${check.name} · ${check.ms} ms`}</Text>
+          <Text variant="bodySmall" color="secondary">
+            {check.outcome}
+          </Text>
+        </Card>
       ))}
-    </ScrollView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: { padding: 16, gap: 12 },
-});
