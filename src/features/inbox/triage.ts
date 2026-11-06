@@ -38,15 +38,29 @@ const TRIAGE_RESERVED_TOKENS = 1_600;
 /**
  * What the on-device model returns. Kept small (it costs tokens) and within the
  * structured-output rules: a root object, string enums, optional fields, no unions.
+ * No length or range limits here: the model doesn't always honor them, and a violation fails the
+ * whole response. `toTriageResult` enforces them instead (title length, due-day range, id shape).
  */
 export const TriageOutputSchema = z.object({
   matchedApplicationId: z.string().describe(`One candidate id, or "${NO_MATCH}"`),
   category: TriageCategorySchema,
   confidence: TriageConfidenceSchema.describe('low when the match is a guess'),
-  nextStepTitle: z.string().max(80).optional().describe('What the job seeker must do, if anything'),
-  dueInDays: z.number().int().min(0).max(30).optional().describe('Days after the email date'),
+  nextStepTitle: z.string().optional().describe('Short action the job seeker must take, if any'),
+  dueInDays: z.number().optional().describe('Days after the email date, 0 to 30'),
 });
+
 export type TriageOutput = z.infer<typeof TriageOutputSchema>;
+
+/** Longest Next Step title kept from the model; longer ones are cut at a word boundary. */
+const MAX_TITLE_LENGTH = 80;
+const MAX_DUE_IN_DAYS = 30;
+
+function shortenTitle(title: string): string {
+  if (title.length <= MAX_TITLE_LENGTH) return title;
+  const cut = title.slice(0, MAX_TITLE_LENGTH);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > MAX_TITLE_LENGTH / 2 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
 
 /**
  * Categories that always ask the job seeker to act, with the Next Step used when the model
@@ -134,7 +148,8 @@ export function toTriageResult(
   candidates: readonly TriageCandidate[],
   message: InboxMessage,
 ): Result<TriageResult, AppError> {
-  const matched = output.matchedApplicationId.trim();
+  // The model sometimes wraps the id in stray quotes or punctuation; ids are word characters only.
+  const matched = /[A-Za-z0-9_-]+/.exec(output.matchedApplicationId)?.[0] ?? '';
   const candidate = candidates.find((c) => c.id === matched);
   if (matched.toLowerCase() !== NO_MATCH && candidate === undefined) {
     return err({
@@ -155,9 +170,14 @@ export function toTriageResult(
   if (output.category === 'rejection') return ok(result);
   const modelTitle = output.nextStepTitle?.trim() ?? '';
   // Action categories always propose a step; an offer only when the model gave one.
-  const title = modelTitle.length > 0 ? modelTitle : DEFAULT_ACTION_TITLES[output.category];
+  const title =
+    modelTitle.length > 0 ? shortenTitle(modelTitle) : DEFAULT_ACTION_TITLES[output.category];
   if (title === undefined) return ok(result);
-  const due = addDays(new Date(message.receivedAt), output.dueInDays ?? DEFAULT_DUE_IN_DAYS);
+  const dueInDays = Math.min(
+    MAX_DUE_IN_DAYS,
+    Math.max(0, Math.round(output.dueInDays ?? DEFAULT_DUE_IN_DAYS)),
+  );
+  const due = addDays(new Date(message.receivedAt), dueInDays);
   return ok({ ...result, proposedNextStep: { title, dueDate: toIsoDate(due) } });
 }
 

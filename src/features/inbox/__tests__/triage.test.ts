@@ -35,6 +35,32 @@ const invite: TriageOutput = {
 };
 
 describe('toTriageResult', () => {
+  it('reads an id the model wrapped in stray punctuation (seen on device)', () => {
+    const result = toTriageResult(
+      { ...invite, matchedApplicationId: `${acmeId}',` },
+      candidates,
+      acmeInvite,
+    );
+    expect(result.ok && result.value.applicationId).toBe(acmeId);
+  });
+
+  it('shortens a long proposed title at a word boundary instead of rejecting the response', () => {
+    const longTitle =
+      'Book a forty-five minute technical interview with the mobile lead using the scheduling link in the email';
+    const result = toTriageResult({ ...invite, nextStepTitle: longTitle }, candidates, acmeInvite);
+    const title = result.ok ? result.value.proposedNextStep?.title : undefined;
+    expect(title?.length).toBeLessThanOrEqual(81);
+    expect(title?.endsWith('…')).toBe(true);
+    expect(longTitle.startsWith(title?.slice(0, -1) ?? '-')).toBe(true);
+  });
+
+  it('keeps due days within 0–30 and whole days', () => {
+    const late = toTriageResult({ ...invite, dueInDays: 90 }, candidates, acmeInvite);
+    const early = toTriageResult({ ...invite, dueInDays: -3.6 }, candidates, acmeInvite);
+    expect(late.ok && late.value.proposedNextStep?.dueDate).toBe('2026-12-05');
+    expect(early.ok && early.value.proposedNextStep?.dueDate).toBe('2026-11-05');
+  });
+
   it('keeps a match the message names and dates the proposal from when it arrived', () => {
     expect(toTriageResult(invite, candidates, acmeInvite)).toEqual({
       ok: true,
