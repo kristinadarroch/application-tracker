@@ -14,5 +14,5 @@ All model calls go through server-only Expo API routes (`src/app/api/ai/*+api.ts
 
 ## Consequences
 
-- The app needs a reachable server for AI features; offline, every AI feature falls back to manual entry.
+- The app needs a reachable server for AI features. Offline, intake and triage fall back to manual entry; prep and mock interview keep existing state and offer retry. Core application tracking works fully offline.
 - Code under `server/` (prompts, provider client) is imported only by `src/app/api/**`; an ESLint `no-restricted-imports` rule enforces this so it never reaches the client bundle.
