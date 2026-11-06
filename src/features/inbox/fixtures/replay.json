@@ -24,7 +24,7 @@
     "confidence": "high"
   },
   "msg_fixture_recruiter_followup": {
-    "matchedCompany": "Globex",
+    "matchedCompany": "none",
     "category": "recruiter_followup",
     "confidence": "low",
     "nextStepTitle": "Send resume and call times to recruiter",

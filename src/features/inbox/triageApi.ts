@@ -24,7 +24,7 @@ export const triageApi = aiApi.injectEndpoints({
       async queryFn({ message, candidates, replay }) {
         const recorded = replay ? replayedTriageOutput(message.id, candidates) : undefined;
         if (recorded !== undefined) {
-          const result = toTriageResult(recorded, candidates, message.receivedAt);
+          const result = toTriageResult(recorded, candidates, message);
           return result.ok
             ? { data: { result: result.value, replayed: true } }
             : { error: result.error };

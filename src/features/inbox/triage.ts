@@ -96,16 +96,43 @@ export function buildTriagePrompt(
   ].join('\n');
 }
 
+/** Lowercase words, with punctuation (including `.`, `-`, `@`) collapsed to single spaces. */
+function normalizeWords(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+/**
+ * Whether the message names the company: in the sender name, the sender's domain, the subject,
+ * or the body, as whole words. Also matches the name written without spaces, as domains do
+ * (`northwindlabs.com` for "Northwind Labs").
+ */
+export function mentionsCompany(message: InboxMessage, company: string): boolean {
+  const name = normalizeWords(company);
+  if (name.length === 0) return false;
+  const domain = message.from.split('@')[1] ?? '';
+  const text = normalizeWords(
+    [message.fromName ?? '', domain, message.subject, message.bodyText].join(' '),
+  );
+  const padded = ` ${text} `;
+  return padded.includes(` ${name} `) || padded.includes(` ${name.replace(/ /g, '')} `);
+}
+
 /**
  * Turns model output into a `TriageResult`. Guardrails:
  * - an id that isn't one of the candidates is an unexpected response, never a match (INBX-4);
+ * - a match is kept only when the message names that company; otherwise it is unmatched and
+ *   low confidence, so the user picks the application (the model guesses from weak hints);
  * - unrelated messages match nothing and propose nothing (INBX-3);
+ * - a rejection is a final outcome and never proposes a Next Step;
  * - the due date counts from when the message was received.
  */
 export function toTriageResult(
   output: TriageOutput,
   candidates: readonly TriageCandidate[],
-  receivedAt: string,
+  message: InboxMessage,
 ): Result<TriageResult, AppError> {
   const matched = output.matchedApplicationId.trim();
   const candidate = candidates.find((c) => c.id === matched);
@@ -118,16 +145,19 @@ export function toTriageResult(
   if (output.category === 'unrelated') {
     return ok({ category: 'unrelated', applicationId: null, confidence: output.confidence });
   }
+  const grounded =
+    candidate !== undefined && mentionsCompany(message, candidate.company) ? candidate : undefined;
   const result: TriageResult = {
     category: output.category,
-    applicationId: candidate?.id ?? null,
-    confidence: output.confidence,
+    applicationId: grounded?.id ?? null,
+    confidence: grounded === undefined ? 'low' : output.confidence,
   };
+  if (output.category === 'rejection') return ok(result);
   const modelTitle = output.nextStepTitle?.trim() ?? '';
-  // Action categories always propose a step; offer and rejection only when the model gave one.
+  // Action categories always propose a step; an offer only when the model gave one.
   const title = modelTitle.length > 0 ? modelTitle : DEFAULT_ACTION_TITLES[output.category];
   if (title === undefined) return ok(result);
-  const due = addDays(new Date(receivedAt), output.dueInDays ?? DEFAULT_DUE_IN_DAYS);
+  const due = addDays(new Date(message.receivedAt), output.dueInDays ?? DEFAULT_DUE_IN_DAYS);
   return ok({ ...result, proposedNextStep: { title, dueDate: toIsoDate(due) } });
 }
 
@@ -146,7 +176,7 @@ export async function triageWithModel(
     sampling: 'repeatable',
   });
   if (!generated.ok) return generated;
-  return toTriageResult(generated.value, candidates, message.receivedAt);
+  return toTriageResult(generated.value, candidates, message);
 }
 
 /**

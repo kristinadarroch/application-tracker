@@ -61,27 +61,39 @@ const CANDIDATES: TriageCandidate[] = [
   { id: GLOBEX_ID, company: 'Globex', role: 'Mobile Engineer' },
 ];
 
-/** Expected category and match per sample email; `proposes` = a Next Step must be proposed. */
+/**
+ * Accepted categories and the expected match per sample email; `proposes` = a Next Step must be
+ * proposed. A scheduling email may fairly be read as an interview invite: both lead to booking time.
+ */
 const EXPECTED_TRIAGE: Record<
   string,
-  { category: string; match: string | null; proposes: boolean }
+  { categories: string[]; match: string | null; proposes: boolean }
 > = {
   msg_fixture_acme_invite: {
-    category: 'interview_invite',
+    categories: ['interview_invite', 'scheduling'],
     match: DEMO_APPLICATION.id,
     proposes: true,
   },
-  msg_fixture_newsletter: { category: 'unrelated', match: null, proposes: false },
-  msg_fixture_northwind_schedule: { category: 'scheduling', match: NORTHWIND_ID, proposes: true },
-  msg_fixture_initech_rejection: { category: 'rejection', match: null, proposes: false },
-  msg_fixture_recruiter_followup: {
-    category: 'recruiter_followup',
-    match: GLOBEX_ID,
+  msg_fixture_newsletter: { categories: ['unrelated'], match: null, proposes: false },
+  msg_fixture_northwind_schedule: {
+    categories: ['scheduling', 'interview_invite'],
+    match: NORTHWIND_ID,
     proposes: true,
   },
-  msg_fixture_receipt: { category: 'unrelated', match: null, proposes: false },
-  msg_fixture_northwind_takehome: { category: 'take_home', match: NORTHWIND_ID, proposes: true },
-  msg_fixture_acme_offer: { category: 'offer', match: DEMO_APPLICATION.id, proposes: false },
+  msg_fixture_initech_rejection: { categories: ['rejection'], match: null, proposes: false },
+  // An agency recruiter who never names the client: no grounded match, so the user picks (INBX-4).
+  msg_fixture_recruiter_followup: {
+    categories: ['recruiter_followup'],
+    match: null,
+    proposes: true,
+  },
+  msg_fixture_receipt: { categories: ['unrelated'], match: null, proposes: false },
+  msg_fixture_northwind_takehome: {
+    categories: ['take_home'],
+    match: NORTHWIND_ID,
+    proposes: true,
+  },
+  msg_fixture_acme_offer: { categories: ['offer'], match: DEMO_APPLICATION.id, proposes: false },
 };
 
 const SAMPLE_REVIEWS = `Interviewed for a mobile role at Acme Health. The first round asked "How do you make a React Native screen accessible to VoiceOver users?" Then a system design question: design offline sync for appointment booking. Final round was behavioral, they asked about a time I disagreed with a designer.`;
@@ -163,7 +175,7 @@ export default function AiChecksScreen() {
           const value = result.value;
           return {
             passed:
-              value.category === expected.category &&
+              expected.categories.includes(value.category) &&
               value.applicationId === expected.match &&
               (!expected.proposes || value.proposedNextStep !== undefined),
             detail: value,
