@@ -7,3 +7,4 @@ export type { IntakeInput } from './hooks/useListingIntake';
 export { ListingExtractionSchema } from './schema';
 export { readSharedListing } from './sharedListing';
 export type { SharedListing } from './sharedListing';
+export { extractListing } from './extractListing';

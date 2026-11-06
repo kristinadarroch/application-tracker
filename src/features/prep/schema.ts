@@ -38,7 +38,7 @@ export const PrepQuestionSetSchema = z.object({
 });
 export type PrepQuestionSet = z.infer<typeof PrepQuestionSetSchema>;
 
-/** Also the model's output shape for feedback, so the two can't drift. */
+/** Answer Feedback as stored on a turn. The model returns these fields flat, see `MockInterviewTurnOutputSchema`. */
 export const AnswerFeedbackSchema = z.object({
   strengths: z.array(z.string()).max(3),
   gaps: z.array(z.string()).max(3),
@@ -73,6 +73,8 @@ export type ReviewQuestion = z.infer<typeof ReviewQuestionSchema>;
 
 // ---------------------------------------------------------------------------
 // On-device model output. Root `z.object`, no unions or nullables, bounded arrays.
+// Flat only: the provider turns nested objects into unnamed sub-schemas, which hang
+// generation on device (seen 2026-11-05).
 // ---------------------------------------------------------------------------
 
 const questionList = (description: string) => z.array(z.string()).max(5).describe(description);
@@ -90,12 +92,16 @@ export const MockInterviewFirstQuestionOutputSchema = z.object({
   question: z.string(),
 });
 
+/** Feedback fields plus the next question, flat; tasks map them to `AnswerFeedback`. */
 export const MockInterviewTurnOutputSchema = z.object({
-  feedback: AnswerFeedbackSchema,
+  strengths: z.array(z.string()).max(3),
+  gaps: z.array(z.string()).max(3),
+  strongerAnswer: z.string(),
   nextQuestion: z.string(),
 });
-export type MockInterviewTurnOutput = z.infer<typeof MockInterviewTurnOutputSchema>;
 
+/** Paired by index: `quotes[i]` is the review text that `questions[i]` came from. */
 export const ReviewQuestionsOutputSchema = z.object({
-  questions: z.array(ReviewQuestionSchema).max(8),
+  questions: z.array(z.string()).max(8),
+  quotes: z.array(z.string()).max(8),
 });

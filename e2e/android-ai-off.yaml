@@ -1,0 +1,36 @@
+# UX-7 on Android, where Apple Intelligence doesn't exist: every non-AI feature works and AI explains itself.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Settings
+- assertVisible: AI isn’t available
+- tapOn: Load demo data
+- tapOn: Back
+- assertVisible: '.*Acme Health.*'
+- takeScreenshot: e2e/artifacts/android-01-pipeline
+
+# Intake: manual path with the pasted text kept
+- tapOn: Paste a listing
+- assertVisible: AI isn’t available
+- tapOn: 'Listing text.*'
+- inputText: 'Initech is hiring a Staff Mobile Engineer.'
+- tapOn: Continue manually
+- extendedWaitUntil:
+    visible: AI wasn’t used
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/android-02-manual-form
+- tapOn: Back
+
+# Inbox: tag manually instead of analysis
+- tapOn: Back
+- tapOn: Inbox
+- tapOn: Receive next email
+- assertVisible: '.*Tag manually.*'
+- takeScreenshot: e2e/artifacts/android-03-inbox
+
+# Prep: reason instead of Generate, existing data still viewable
+- tapOn: Prep
+- tapOn: '.*Acme Health.*'
+- assertVisible: '.*Apple Intelligence.*'
+- assertNotVisible: Generate prep questions
+- takeScreenshot: e2e/artifacts/android-04-prep

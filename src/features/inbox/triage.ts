@@ -5,6 +5,7 @@ import type { AppError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';
 import { err, ok, type Result } from '@/lib/result';
 import { inputTokenBudget, trimToTokenBudget } from '@/services/ai/budget';
+import type { OnDeviceModel } from '@/services/ai/model';
 
 import replayJson from './fixtures/replay.json';
 import {
@@ -12,6 +13,7 @@ import {
   TriageConfidenceSchema,
   type InboxMessage,
   type TriageCandidate,
+  type TriageCategory,
   type TriageResult,
 } from './schema';
 
@@ -43,12 +45,24 @@ export const TriageOutputSchema = z.object({
 });
 export type TriageOutput = z.infer<typeof TriageOutputSchema>;
 
+/**
+ * Categories that always ask the job seeker to act, with the Next Step used when the model
+ * leaves the title out (seen on device for an interview invite).
+ */
+const DEFAULT_ACTION_TITLES: Partial<Record<TriageCategory, string>> = {
+  interview_invite: 'Book the interview',
+  scheduling: 'Pick a time',
+  take_home: 'Submit the take-home',
+  recruiter_followup: 'Reply to the recruiter',
+};
+
 export const TRIAGE_INSTRUCTIONS = [
   'Triage one email for a job seeker.',
   'Pick the category. Newsletters, receipts, and anything not about a job application are unrelated.',
   `Set matchedApplicationId to the id of the candidate application the email is about, or "${NO_MATCH}". Never invent an id.`,
   'Set confidence to low when the email does not name the company or role.',
-  'If the email asks the job seeker to act, give a short next step title and the days until it is due. Otherwise omit both.',
+  'For interview_invite, scheduling, take_home, and recruiter_followup, always give a short nextStepTitle and dueInDays.',
+  'For other categories, give them only if the email asks the job seeker to act.',
   'Use only facts in the email.',
 ].join('\n');
 
@@ -101,15 +115,34 @@ export function toTriageResult(
   if (output.category === 'unrelated') {
     return ok({ category: 'unrelated', applicationId: null, confidence: output.confidence });
   }
-  const title = output.nextStepTitle?.trim() ?? '';
   const result: TriageResult = {
     category: output.category,
     applicationId: candidate?.id ?? null,
     confidence: output.confidence,
   };
-  if (title.length === 0) return ok(result);
+  const modelTitle = output.nextStepTitle?.trim() ?? '';
+  // Action categories always propose a step; offer and rejection only when the model gave one.
+  const title = modelTitle.length > 0 ? modelTitle : DEFAULT_ACTION_TITLES[output.category];
+  if (title === undefined) return ok(result);
   const due = addDays(new Date(receivedAt), output.dueInDays ?? DEFAULT_DUE_IN_DAYS);
   return ok({ ...result, proposedNextStep: { title, dueDate: toIsoDate(due) } });
+}
+
+/** Triage one message with the on-device model: prompt, structured output, then the validation above. */
+export async function triageWithModel(
+  model: OnDeviceModel,
+  message: InboxMessage,
+  candidates: readonly TriageCandidate[],
+): Promise<Result<TriageResult, AppError>> {
+  const generated = await model.generate({
+    instructions: TRIAGE_INSTRUCTIONS,
+    prompt: buildTriagePrompt(message, candidates),
+    schema: TriageOutputSchema,
+    timeoutMs: TRIAGE_TIMEOUT_MS,
+    deterministic: true,
+  });
+  if (!generated.ok) return generated;
+  return toTriageResult(generated.value, candidates, message.receivedAt);
 }
 
 /**

@@ -10,7 +10,7 @@ The principle: AI drafts, a human decides. The value shows in what was checked, 
 |---|---|---|
 | Spec | AI drafted these specs and ADRs from a scoping conversation | Claims checked against primary docs (Expo SDK 58, Google OAuth policy); corrections logged below |
 | Rules | [`AGENTS.md`](../AGENTS.md) gives coding agents the domain terms, layering, and design-system rules | Rules are enforced by TypeScript and ESLint, not just stated |
-| Build | Agents implement one tier at a time from [`features.md`](features.md) | Review each diff against the tier's acceptance criteria |
+| Build | Contracts first (store shape, slice names, routes, adapter API), then parallel coding agents, one per feature folder, each owning only its files. See [How the build ran](#how-the-build-ran) | Each agent's report checked against the story criteria; integration checks (tsc, ESLint, Prettier, Jest, Maestro on simulators) run by the integrator |
 | Tests | AI drafts test cases from acceptance criteria and schemas | Human adds missed edge cases and deletes tests that only restate the implementation |
 | Review | AI PR review on each tier's pull request | Each suggestion accepted or rejected with a reason in the PR |
 | Verification | Scripts compute facts instead of trusting AI claims (e.g. contrast ratios in the design system) | Script output pasted into docs |
@@ -20,12 +20,25 @@ The principle: AI drafts, a human decides. The value shows in what was checked, 
 - **Claude Code** — spec drafting, scaffolding, implementation, refactors.
 - **GitHub Copilot** — inline completion and PR review.
 
+## How the build ran
+
+1. **Contracts by hand.** The integrator wrote the shared contracts before any feature code: domain schemas for applications, the store with named slice exports, the `OnDeviceModel` adapter, `aiApi`, route ownership, and cross-feature links (prefill params, the drafts banner, delete cascades).
+2. **Parallel agents.** Five coding agents built design-system additions, pipeline, intake, prep, and inbox at the same time. Each could edit only its own folder and routes; shared files changed only through the integrator.
+3. **Integration fixes found by agents.** Agents reported shared-file problems instead of patching them: Jest needed ESM packages transformed, `persistStore` ran on import and leaked timers, persisted placeholder state would crash old installs, and RNTL 14's async `render` broke the test helper. Each was fixed once, centrally.
+4. **Boundaries enforced after the fact.** A follow-up agent added feature barrels and an ESLint rule that blocks deep imports across features, because the architecture doc required it and the first pass hadn't.
+5. **Real-device proof.** Maestro flows in `e2e/` drive the built app on the iOS Simulator (with the Mac's Apple Intelligence) and the Android emulator.
+
 ## Decision log
 
 Entries where a proposal (from AI or from me) was accepted with changes, corrected, or rejected after checking. Newest first.
 
 | Date | Area | Proposed | Decision | Why |
 |---|---|---|---|---|
+| 2026-11-05 | Interview reviews (LATER-1) | Model output: likely questions, each with a "quote" from the pasted reviews | Changed | Questions whose quote doesn't appear in the pasted text are dropped, so the app never shows invented quotes |
+| 2026-11-05 | Inbox triage | Model output: matched application ID | Constrained | Only IDs from the candidate list are accepted; anything else is an "unexpected response", never a match (INBX-4) |
+| 2026-11-05 | Persistence | (AI) Migration that copies `settings` and `applications` from v1 data | Corrected after review | Copying a missing key as `undefined` would overwrite the reducer's initial state on rehydrate; keys are now copied only when present, with a test |
+| 2026-11-05 | AI library | `react-native-foundation-models`, whose docs show Zod-typed output | Rejected after spike | The published 0.1.3 package returns plain strings; typed output exists only on the unreleased main branch ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)) |
+| 2026-11-05 | Text cleanup | (AI) Boilerplate regex ending in `\b` | Corrected by a failing test | `©\b` never matches before a space, so copyright lines leaked into prompts |
 | 2026-11-05 | Demo script | Turn on airplane mode on the Mac to show offline AI live | Rejected | Would drop the video call and screen share. Offline proof is a pre-recorded clip |
 | 2026-11-05 | AI binding | (AI) Write our own Expo module in Swift | Rejected after review | Puts Swift source in the repo against the brief's "built entirely with TypeScript". Using a library behind a TypeScript adapter instead ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)) |
 | 2026-11-05 | AI context | Apple docs: on-device context is 4,096 tokens | Measured, then budgeted conservatively | A Swift probe on macOS 27.0.1 (M4) reported 8,192 tokens and extracted a sample listing in 2.1 s. The app still budgets for 4,096 |

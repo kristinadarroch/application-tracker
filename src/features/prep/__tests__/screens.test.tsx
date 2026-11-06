@@ -191,7 +191,7 @@ describe('Mock interview screen', () => {
   async function answerFirstQuestion() {
     fakeGenerate
       .mockResolvedValueOnce(ok({ question: firstQuestion }))
-      .mockResolvedValueOnce(ok({ feedback, nextQuestion: secondQuestion }));
+      .mockResolvedValueOnce(ok({ ...feedback, nextQuestion: secondQuestion }));
     await press('Start mock interview');
     expect(await screen.findByText(firstQuestion)).toBeOnTheScreen();
     await fireEvent.changeText(screen.getByLabelText('Your answer'), firstAnswer);
@@ -271,9 +271,8 @@ describe('Interview reviews screen (LATER-1)', () => {
     const store = makePrepStore();
     fakeGenerate.mockResolvedValueOnce(
       ok({
-        questions: [
-          { question: 'Design an offline sync queue.', quote: 'design an offline sync queue' },
-        ],
+        questions: ['Design an offline sync queue.'],
+        quotes: ['design an offline sync queue'],
       }),
     );
     await renderPrepRoute(`/prep/${application.id}/reviews`, store);

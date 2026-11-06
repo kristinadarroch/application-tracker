@@ -100,7 +100,9 @@ describe('answerMockInterviewTurn', () => {
   it('sends only the summary, current question, answer, and earlier question titles', async () => {
     fakeGenerate.mockResolvedValueOnce(
       ok({
-        feedback: { strengths: ['Specific'], gaps: [' ', 'No metrics'], strongerAnswer: 'I led…' },
+        strengths: ['Specific'],
+        gaps: [' ', 'No metrics'],
+        strongerAnswer: 'I led…',
         nextQuestion: 'How do you profile a slow list?',
       }),
     );
@@ -130,19 +132,19 @@ describe('findReviewQuestions', () => {
   const reviews = `Three rounds. They asked me to “design an offline sync queue”.
 The manager asked how I handle disagreements with designers.`;
 
-  it('keeps questions whose quote is in the pasted text and drops invented quotes (LATER-1)', async () => {
+  it('pairs questions with quotes and drops missing or invented quotes (LATER-1)', async () => {
     fakeGenerate.mockResolvedValueOnce(
       ok({
         questions: [
-          {
-            question: 'Design an offline sync queue.',
-            quote: 'asked me to "design an offline sync queue"',
-          },
-          {
-            question: 'How do you handle disagreements with designers?',
-            quote: 'how I handle disagreements',
-          },
-          { question: 'Reverse a linked list.', quote: 'reverse a linked list on a whiteboard' },
+          'Design an offline sync queue.',
+          'How do you handle disagreements with designers?',
+          'Reverse a linked list.',
+          'Why do you want to work here?',
+        ],
+        quotes: [
+          'asked me to "design an offline sync queue"',
+          'how I handle disagreements',
+          'reverse a linked list on a whiteboard',
         ],
       }),
     );

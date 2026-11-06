@@ -250,11 +250,13 @@ URL intake fetches the page on the device, strips it to text, and checks the res
 
 ### Guardrails
 
-1. Structured output only. The library constrains output to the task's Zod schema, and the adapter validates it again with Zod.
-2. Triage receives only the user's existing applications as match candidates and must return one of those IDs or `none`. It can't invent applications.
-3. Deterministic (greedy) sampling for extraction and triage, if the library supports it, to reduce run-to-run drift.
-4. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
-5. **AI replay** (`settings.aiReplay`, dev only): replays recorded results for the fixture inbox and demo listing. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
+1. Structured output only. The provider constrains output to the task's Zod schema, and the adapter validates it again with Zod.
+2. **Flat output schemas.** Model output schemas use only top-level strings, string enums, numbers, and arrays of strings; code maps them to nested domain types. In the 2026-11-05 model checks, the only two requests that timed out were the two whose output schemas had nested objects; every flat schema finished in 1–7 s. The provider gives nested objects unnamed sub-schemas, which is the suspected cause, not a proven one.
+3. Triage receives only the user's existing applications as match candidates and must return one of those IDs or `none`. It can't invent applications.
+4. Deterministic sampling (temperature 0) for extraction and triage to reduce run-to-run drift.
+5. **Small-model compensation, in code, not prompts alone.** Extraction treats a sentence-like "company" as missing; triage fills a default Next Step title for action categories when the model omits one. Both are unit-tested.
+6. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
+7. **AI replay** (`settings.aiReplay`, dev only): replays recorded triage results for the sample inbox. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
 
 ## Inbox
 

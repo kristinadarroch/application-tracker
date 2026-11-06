@@ -8,9 +8,7 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible:
     text: Create draft
     enabled: false
-- tapOn:
-    text: Listing text
-    index: 1
+- tapOn: 'Listing text Paste the job listing here'
 - inputText: 'Northwind Labs is hiring a Senior Mobile Engineer (React Native) in Denver, CO. Salary $160,000 to $190,000. You will lead our patient scheduling app. Requirements: 6+ years mobile, React Native, TypeScript, Redux, accessibility, CI/CD.'
 - tapOn: Create draft
 - extendedWaitUntil:

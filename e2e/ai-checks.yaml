@@ -1,0 +1,13 @@
+# Prompt checks: every AI task against fixed samples on the real on-device model. Results go to Metro as `[ai-checks]` lines.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Settings
+- scrollUntilVisible:
+    element: 'AI spike.*'
+- tapOn: 'AI spike.*'
+- tapOn: Run all checks
+- extendedWaitUntil:
+    visible: '.*interview reviews.*'
+    timeout: 900000
+- takeScreenshot: e2e/artifacts/ai-checks

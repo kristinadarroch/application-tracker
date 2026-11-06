@@ -72,6 +72,55 @@ describe('toTriageResult', () => {
       value: { category: 'unrelated', applicationId: null, confidence: 'high' },
     });
   });
+
+  it('proposes a default Next Step when the model leaves the title out of an interview invite (INBX-2)', () => {
+    const result = toTriageResult(
+      { matchedApplicationId: acmeId, category: 'interview_invite', confidence: 'high' },
+      candidates,
+      receivedAt,
+    );
+    expect(result.ok && result.value.proposedNextStep).toEqual({
+      title: 'Book the interview',
+      dueDate: '2026-11-07',
+    });
+  });
+
+  it.each([
+    ['scheduling', 'Pick a time'],
+    ['take_home', 'Submit the take-home'],
+    ['recruiter_followup', 'Reply to the recruiter'],
+  ] as const)('defaults the %s Next Step to "%s"', (category, title) => {
+    const result = toTriageResult(
+      { ...invite, category, nextStepTitle: ' ' },
+      candidates,
+      receivedAt,
+    );
+    expect(result.ok && result.value.proposedNextStep?.title).toBe(title);
+  });
+
+  it('keeps an offer’s Next Step only when the model gave one', () => {
+    const withTitle = toTriageResult(
+      { ...invite, category: 'offer', nextStepTitle: 'Respond to offer' },
+      candidates,
+      receivedAt,
+    );
+    const withoutTitle = toTriageResult(
+      { ...invite, category: 'offer', nextStepTitle: '' },
+      candidates,
+      receivedAt,
+    );
+    expect(withTitle.ok && withTitle.value.proposedNextStep?.title).toBe('Respond to offer');
+    expect(withoutTitle.ok && withoutTitle.value.proposedNextStep).toBeUndefined();
+  });
+
+  it('still proposes nothing for unrelated messages without a title (INBX-3)', () => {
+    const result = toTriageResult(
+      { ...invite, category: 'unrelated', nextStepTitle: '' },
+      candidates,
+      receivedAt,
+    );
+    expect(result.ok && result.value.proposedNextStep).toBeUndefined();
+  });
 });
 
 describe('replayedTriageOutput', () => {

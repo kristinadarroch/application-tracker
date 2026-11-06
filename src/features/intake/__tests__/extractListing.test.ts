@@ -1,6 +1,6 @@
 import { err, ok } from '@/lib/result';
 
-import { extractListing } from '../extractListing';
+import { extractListing, withoutImplausibleNames } from '../extractListing';
 import { createFakeModel } from '../testing/fakeModel';
 import { ACME_EXTRACTION, LISTING_PAGE_HTML, LISTING_TEXT } from '../testing/fixtures';
 
@@ -144,5 +144,61 @@ describe('extractListing', () => {
     expect(result.value.draft.trimmed).toBe(true);
     expect(result.value.draft.sourceText.length).toBeLessThan(longListing.length);
     expect(result.value.draft.sourceText.startsWith('Acme Health is hiring')).toBe(true);
+  });
+});
+
+/** Sample 5 from the on-device check: no employer named, and the model copied prose instead. */
+const NO_EMPLOYER_TEXT =
+  "We're looking for someone passionate about mobile to join a fast-growing team. You'll collaborate with design and product, write clean code, and have fun. Apply today!";
+const NO_EMPLOYER_EXTRACTION = {
+  company: "We're looking for someone passionate about mobile",
+  role: 'mobile',
+  requirements: [],
+};
+
+describe('withoutImplausibleNames', () => {
+  it.each(['Acme Health', 'Northwind Labs', 'Initech', 'Acme Inc.', 'Booking.com'])(
+    'keeps the company name %s',
+    (company) => {
+      expect(withoutImplausibleNames({ ...ACME_EXTRACTION, company }).company).toBe(company);
+    },
+  );
+
+  it.each([
+    ["We're looking for someone passionate about mobile", 'it starts with "we"'],
+    ['You’ll join a fast-growing team', 'it starts with "you"'],
+    ['A fast growing team building great mobile apps for everyone', 'it is longer than 6 words'],
+    ['Apply today!', 'it has sentence punctuation'],
+    ['Fast-growing team. Great culture', 'it has a sentence break'],
+  ])('blanks the company "%s" because %s', (company) => {
+    expect(withoutImplausibleNames({ ...ACME_EXTRACTION, company }).company).toBe('');
+  });
+
+  it('keeps a real job title and blanks a lone lowercase word', () => {
+    expect(withoutImplausibleNames(ACME_EXTRACTION).role).toBe('Senior React Native Engineer');
+    expect(withoutImplausibleNames({ ...ACME_EXTRACTION, role: 'iOS Engineer' }).role).toBe(
+      'iOS Engineer',
+    );
+    expect(withoutImplausibleNames({ ...ACME_EXTRACTION, role: 'mobile' }).role).toBe('');
+  });
+
+  it('turns a listing that never names the employer into the missing-fields outcome (INT-2)', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok(NO_EMPLOYER_EXTRACTION);
+
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: NO_EMPLOYER_TEXT,
+      source: 'pasted_text',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        status: 'missing_company_or_role',
+        extraction: { company: '', role: '', requirements: [] },
+        sourceText: NO_EMPLOYER_TEXT,
+      },
+    });
   });
 });

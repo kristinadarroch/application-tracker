@@ -4,13 +4,14 @@ import type { Application } from '@/features/applications/model';
 import type { AppError } from '@/lib/errors';
 import { aiApi } from '@/services/ai/aiApi';
 
-import type { MockInterviewSession, MockInterviewTurnOutput, PrepQuestionSet } from './schema';
+import type { MockInterviewSession, PrepQuestionSet } from './schema';
 import {
   answerMockInterviewTurn,
   findReviewQuestions,
   generatePrepQuestions,
   startMockInterview,
   type MockInterviewTurnInput,
+  type MockInterviewTurnResult,
   type ReviewQuestions,
   type ReviewQuestionsInput,
 } from './tasks';
@@ -33,7 +34,7 @@ export const prepApi = aiApi.injectEndpoints({
         return result.ok ? { data: result.value } : { error: result.error };
       },
     }),
-    answerMockInterviewTurn: build.mutation<MockInterviewTurnOutput, MockInterviewTurnInput>({
+    answerMockInterviewTurn: build.mutation<MockInterviewTurnResult, MockInterviewTurnInput>({
       queryFn: async (input) => {
         const result = await answerMockInterviewTurn(input);
         return result.ok ? { data: result.value } : { error: result.error };

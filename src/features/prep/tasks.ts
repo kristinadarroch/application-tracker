@@ -12,7 +12,7 @@ import {
   PrepQuestionsOutputSchema,
   ReviewQuestionsOutputSchema,
   type MockInterviewSession,
-  type MockInterviewTurnOutput,
+  type AnswerFeedback,
   type PrepQuestion,
   type PrepQuestionSet,
   type ReviewQuestion,
@@ -40,12 +40,12 @@ Ask the first interview question. Make it specific to this role and its requirem
 Ask exactly one question.`;
 
 const TURN_INSTRUCTIONS = `You are the interviewer for the job application below.
-Give feedback on the candidate's answer to the current question: up to 3 strengths, up to 3 gaps, and a stronger example answer written in the first person.
+Give feedback on the candidate's answer to the current question: up to 3 strengths, up to 3 gaps, and a stronger example answer in the first person, in at most 4 sentences.
 Then ask the next interview question. Do not repeat earlier questions.
 Be specific and brief.`;
 
 const REVIEWS_INSTRUCTIONS = `Read interview reviews a job seeker pasted. List the questions candidates say they were asked, up to 8.
-For each, copy a short exact quote from the reviews that mentions it. Do not invent questions or quotes.`;
+For each question, put a short exact quote from the reviews that mentions it in "quotes", in the same order. Do not invent questions or quotes.`;
 
 /** Compact description of an application. Requirements are capped and notes trimmed to fit the context budget. */
 export function applicationSummary(application: Application): string {
@@ -124,13 +124,19 @@ export interface MockInterviewTurnInput {
   earlierQuestions: string[];
 }
 
+/** The model's flat turn output, mapped to the domain shape the slice stores. */
+export interface MockInterviewTurnResult {
+  feedback: AnswerFeedback;
+  nextQuestion: string;
+}
+
 /** MOCK-2: feedback on one answer plus the next question. */
 export async function answerMockInterviewTurn({
   application,
   currentQuestion,
   answer,
   earlierQuestions,
-}: MockInterviewTurnInput): Promise<Result<MockInterviewTurnOutput, AppError>> {
+}: MockInterviewTurnInput): Promise<Result<MockInterviewTurnResult, AppError>> {
   const earlier = earlierQuestions.slice(-MAX_EARLIER_QUESTIONS);
   const prompt = [
     applicationSummary(application),
@@ -149,14 +155,14 @@ export async function answerMockInterviewTurn({
   });
   if (!result.ok) return result;
   const nextQuestion = result.value.nextQuestion.trim();
-  const strongerAnswer = result.value.feedback.strongerAnswer.trim();
+  const strongerAnswer = result.value.strongerAnswer.trim();
   if (nextQuestion.length === 0 || strongerAnswer.length === 0) {
     return err({ kind: 'invalid_response', issues: ['Feedback or next question was empty.'] });
   }
   return ok({
     feedback: {
-      strengths: cleanList(result.value.feedback.strengths),
-      gaps: cleanList(result.value.feedback.gaps),
+      strengths: cleanList(result.value.strengths),
+      gaps: cleanList(result.value.gaps),
       strongerAnswer,
     },
     nextQuestion,
@@ -198,12 +204,15 @@ export async function findReviewQuestions({
   });
   if (!result.ok) return result;
   const haystack = normalizeForQuote(source.text);
-  const questions = result.value.questions
-    .map(({ question, quote }) => ({ question: question.trim(), quote: quote.trim() }))
-    .filter(
-      ({ question, quote }) =>
-        question.length > 0 && quote.length > 0 && haystack.includes(normalizeForQuote(quote)),
-    );
+  const { questions: rawQuestions, quotes } = result.value;
+  // Paired by index; a question without a matching quote from the pasted text is dropped.
+  const questions: ReviewQuestion[] = rawQuestions.flatMap((raw, index) => {
+    const question = raw.trim();
+    const quote = quotes[index]?.trim() ?? '';
+    return question.length > 0 && quote.length > 0 && haystack.includes(normalizeForQuote(quote))
+      ? [{ question, quote }]
+      : [];
+  });
   if (questions.length === 0) {
     return err({
       kind: 'invalid_response',

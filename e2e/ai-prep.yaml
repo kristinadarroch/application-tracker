@@ -6,6 +6,8 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: Load demo data
 - tapOn: Back
 - tapOn: '.*Acme Health.*'
+- scrollUntilVisible:
+    element: Prep questions
 - tapOn: Prep questions
 - tapOn: Generate prep questions
 - extendedWaitUntil:
@@ -14,11 +16,13 @@ appId: dev.kristinadarroch.applicationtracker
 - takeScreenshot: e2e/artifacts/prep-01-questions
 # PREP-2: mark the first behavioral question practiced
 - tapOn:
-    checked: false
-    index: 0
+    text: '.+'
+    below: Behavioral
 - assertVisible: '1 / .* practiced'
 - tapOn: Back
 # MOCK-1 / MOCK-2
+- scrollUntilVisible:
+    element: Mock interview
 - tapOn: Mock interview
 - tapOn: Start mock interview
 - extendedWaitUntil:

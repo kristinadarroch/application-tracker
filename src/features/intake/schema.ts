@@ -7,8 +7,12 @@ import { DraftIdSchema } from '@/lib/ids';
  * Optional fields use `.optional()` because the model can't emit `null` for required fields.
  */
 export const ListingExtractionSchema = z.object({
-  company: z.string().describe('Hiring company name'),
-  role: z.string().describe('Job title'),
+  company: z
+    .string()
+    .describe(
+      'The employer’s proper name exactly as written, e.g. Acme Health; empty string if the text never names the employer',
+    ),
+  role: z.string().describe('The job title exactly as written; empty string if none'),
   location: z.string().optional().describe('City, region, or Remote'),
   salary: z.string().optional().describe('Salary range as written in the listing'),
   requirements: z.array(z.string()).max(8).describe('Key requirements, short phrases'),

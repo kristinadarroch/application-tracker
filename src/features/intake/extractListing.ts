@@ -20,11 +20,38 @@ const RESERVED_TOKENS = 900;
 export const EXTRACTION_INSTRUCTIONS = [
   'You read one job listing and extract its details.',
   'Use only facts stated in the listing text. Never guess.',
-  'Leave a field empty when the listing does not state it.',
-  'company is the hiring company, not a job board or recruiter.',
-  'role is the job title as written.',
+  'Leave a field as an empty string when the listing does not state it.',
+  'company is the employer’s proper name exactly as written, e.g. Acme Health. It is never a sentence or a phrase like "We’re looking for". If the text never names the employer, company is an empty string.',
+  'role is the job title exactly as written, e.g. Senior React Native Engineer. If there is no job title, role is an empty string.',
   'requirements are up to 8 short phrases taken from the listing.',
 ].join('\n');
+
+const MAX_COMPANY_WORDS = 6;
+/** Sentence punctuation: `!` or `?` anywhere, or a `.` that ends one sentence before another starts ("Acme Inc." and "Booking.com" are fine). */
+const SENTENCE_PUNCTUATION = /[!?]|\.\s+\S/;
+/** "We're looking for…", "You'll join…", "Our team…": prose about the reader, not an employer's name. */
+const PRONOUN_START = /^(?:we|you|our|your|us)\b/i;
+/** A lone lowercase word ("mobile") is a topic, not a job title. */
+const LOWERCASE_SINGLE_WORD = /^[^\sA-Z]+$/;
+
+/**
+ * Blanks a company or role that can't be a real one. The small on-device model sometimes
+ * copies a phrase from the text instead of leaving a field empty (e.g. company
+ * "We're looking for someone passionate about mobile", role "mobile"). Blanking them sends
+ * the user to "Couldn't find the company or role" (INT-2) instead of a wrong draft.
+ */
+export function withoutImplausibleNames(extraction: ListingExtraction): ListingExtraction {
+  const { company, role } = extraction;
+  const implausibleCompany =
+    company.split(/\s+/).length > MAX_COMPANY_WORDS ||
+    SENTENCE_PUNCTUATION.test(company) ||
+    PRONOUN_START.test(company);
+  return {
+    ...extraction,
+    company: implausibleCompany ? '' : company,
+    role: LOWERCASE_SINGLE_WORD.test(role) ? '' : role,
+  };
+}
 
 /**
  * `drafted`: ready for review. `missing_company_or_role`: the model answered but
@@ -91,7 +118,7 @@ export async function extractListing(
   });
   if (!result.ok) return err(result.error);
 
-  const extraction = cleanExtraction(result.value);
+  const extraction = withoutImplausibleNames(cleanExtraction(result.value));
   if (extraction.company.length === 0 || extraction.role.length === 0) {
     return ok({ status: 'missing_company_or_role', extraction, sourceText: text });
   }

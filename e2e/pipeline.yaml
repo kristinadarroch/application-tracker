@@ -60,6 +60,7 @@ appId: dev.kristinadarroch.applicationtracker
 - takeScreenshot: e2e/artifacts/pipeline-03-detail
 
 # PIPE-3: move to a new stage
+- waitForAnimationToEnd
 - tapOn: Applied
 - assertVisible: 'Stage: Applied'
 
@@ -83,9 +84,7 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: Cancel
 - assertVisible: Delete application
 - tapOn: Delete application
-- tapOn:
-    text: Delete
-    index: 1
+- tapOn: Delete
 - extendedWaitUntil:
     visible: Pipeline
     timeout: 10000
