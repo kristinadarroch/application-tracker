@@ -52,6 +52,16 @@ describe('Add from a link (INT-3)', () => {
     expect(draft?.listingUrl).toBe(LINK);
     expect(getPathname()).toBe(`/intake/review/${draft?.id}`);
   });
+
+  it('waits for Create draft when a link is typed rather than pasted', async () => {
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    await renderIntake('/intake/new');
+    for (const partial of ['h', 'ht', 'https://careers.acme.example/jobs/4', LINK]) {
+      await fireEvent.changeText(screen.getByLabelText('Job link'), partial);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Create draft' })).toBeEnabled();
+  });
 });
 
 describe('Paste a listing (INT-2)', () => {

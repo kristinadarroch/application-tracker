@@ -34,6 +34,21 @@ describe('prep questions generate when a job is saved (PREP-1)', () => {
     expect(fakeGenerate.mock.calls[0]?.[0].prompt).toContain('Senior React Native Engineer');
   });
 
+  it('generates once when the save signal arrives again while a request is running', async () => {
+    const pending = Promise.withResolvers<Awaited<ReturnType<typeof fakeGenerate>>>();
+    fakeGenerate.mockReturnValueOnce(pending.promise);
+    const store = makePrepStore();
+
+    store.dispatch(applicationSaved({ id: application.id }));
+    store.dispatch(applicationSaved({ id: application.id }));
+    pending.resolve(ok(questions));
+
+    await waitFor(() =>
+      expect(selectQuestionSet(store.getState(), application.id)?.questions).toHaveLength(4),
+    );
+    expect(fakeGenerate).toHaveBeenCalledTimes(1);
+  });
+
   it('does nothing for demo data, which adds applications without saving them from a form', async () => {
     const store = makePrepStore({ applications: [] });
     const { company, role, stage, notes, requirements } = application;
