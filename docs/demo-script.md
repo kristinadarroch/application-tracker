@@ -35,6 +35,8 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 
 The recorded run (`backup-demo.mov`) is 77 s from demo data loaded to dark mode; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed.
 
+`e2e/new-experience.yaml` shows the link-first path end to end: a job link (a sample page served from the Mac, `e2e/fixtures/job-listing.html`) is read on the device, the draft is confirmed, prep questions are already there, and the mock interview asks its first question on open. Its recording, `new-experience.mov` (35 s), passed on 2026-11-06. The link is typed in that run, so it takes one Create draft tap; the simulator used here has no working pasteboard to show a real paste.
+
 Re-record the backup videos (iOS Simulator, Metro running):
 
 ```sh

@@ -1,0 +1,65 @@
+# The AI-from-the-saved-job experience, end to end on iOS with the real on-device model:
+# enter a job link → the page is read on the device → confirm the draft → prep questions are
+# already there → the mock interview asks its first question on open.
+#
+# The link is typed, so it needs one Create draft tap; a real paste or the share sheet starts
+# reading by itself (unit-tested). This headless simulator has no working pasteboard.
+# Needs the sample listing served from the Mac:
+#   python3 -m http.server 8099 --bind 127.0.0.1 --directory e2e/fixtures
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Open settings
+- scrollUntilVisible:
+    element: Load demo data
+- tapOn: Load demo data
+- tapOn: Back
+- waitForAnimationToEnd
+
+# Add from a link: the page is fetched and read on the device
+- tapOn: Add from a link
+- tapOn:
+    text: Job link
+    index: 1
+- inputText: http://localhost:8099/job-listing.html
+- tapOn: Create draft
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 60000
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: Confirm
+- tapOn: Confirm
+- extendedWaitUntil:
+    visible: Details
+    timeout: 10000
+
+# Prep questions started generating when the job was saved; nothing to tap
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: Prep questions
+- tapOn: Prep questions
+- extendedWaitUntil:
+    visible: '.*practiced.*'
+    timeout: 90000
+- waitForAnimationToEnd
+- tapOn: Back
+
+# The mock interview asks its first question on open; no Start step
+- scrollUntilVisible:
+    element: Mock interview
+- tapOn: Mock interview
+- extendedWaitUntil:
+    visible: Your answer
+    timeout: 90000
+- tapOn:
+    text: Your answer
+    index: 1
+- inputText: 'I led our move to the React Native New Architecture in phases behind a feature flag, measured startup time on each release, and cut cold start by 30 percent without a payments outage.'
+- tapOn: Submit answer
+- extendedWaitUntil:
+    visible: Strengths
+    timeout: 90000
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: Gaps
