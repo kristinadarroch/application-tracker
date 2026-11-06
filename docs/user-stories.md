@@ -154,8 +154,9 @@ As a job seeker, I want to share a job listing straight from my browser, so that
 
 As a job seeker, I want to paste a listing's text, so that I can import roles from any site.
 
-- **When** I paste listing text and submit, **then** I get an Application Draft with at least company and role filled in.
-- **When** I submit fewer than 200 characters, **then** I'm asked to paste the full listing and nothing is sent.
+- **When** I paste listing text and submit, **then** I get an Application Draft with company and role filled in.
+- **Given** the text box is empty or only whitespace, **then** Submit is disabled and nothing is sent.
+- **When** the AI can't find a company or role in the text, **then** I see "Couldn't find the company or role" with "Edit text" and "Fill in manually", and my text is kept.
 
 ### INT-3 · Paste a listing URL
 
