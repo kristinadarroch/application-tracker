@@ -33,7 +33,7 @@ export default defineConfig([
             {
               group: ['react-native-foundation-models', '@react-native-ai/apple'],
               message:
-                'Only src/services/ai/foundationModels.ts may import the on-device model library.',
+                'Only src/services/ai/foundationModels.ios.ts may import the on-device model library.',
             },
           ],
         },
@@ -51,7 +51,7 @@ export default defineConfig([
     rules: { 'react-native/no-color-literals': 'off' },
   },
   {
-    files: ['src/services/ai/foundationModels.ts'],
+    files: ['src/services/ai/foundationModels.ios.ts'],
     rules: { 'no-restricted-imports': 'off' },
   },
   {

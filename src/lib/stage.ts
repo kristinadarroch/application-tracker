@@ -1,7 +1,8 @@
+import { z } from 'zod';
+
 /**
- * Pipeline stages in display order. Shared by the domain schema
- * (`z.enum(STAGES)`) and the design system's stage tokens, so neither
- * has to import the other.
+ * Pipeline stages in display order. Shared by domain schemas (`StageSchema`)
+ * and the design system's stage tokens, so neither has to import the other.
  */
 export const STAGES = [
   'saved',
@@ -12,7 +13,9 @@ export const STAGES = [
   'withdrawn',
 ] as const;
 
-export type Stage = (typeof STAGES)[number];
+export const StageSchema = z.enum(STAGES);
+
+export type Stage = z.infer<typeof StageSchema>;
 
 export const STAGE_LABELS: Record<Stage, string> = {
   saved: 'Saved',
