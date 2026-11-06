@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0005 (the proxy is replaced; the validated-drafts rule carries over)
 ---
 
 # Route AI through Expo API routes; AI output lands only as validated drafts

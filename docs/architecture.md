@@ -4,25 +4,25 @@ The architecture is organized around the four requirements in the project brief.
 
 ```mermaid
 flowchart TB
-  subgraph Device["React Native app (Expo dev build)"]
+  subgraph Device["React Native app (Expo dev build) — all repo code is TypeScript"]
     UI["Screens<br/>src/app (Expo Router)"]
     DS["Design system<br/>src/design-system"]
     FE["Feature modules<br/>src/features/*"]
     ST["Redux store<br/>slices + RTK Query"]
     PS[("AsyncStorage<br/>redux-persist")]
     ES["EmailSource<br/>Mock (demo) | Gmail (later)"]
+    AD["AI adapter<br/>src/services/ai"]
+    LIB["On-device model library<br/>(dependency)"]
   end
-  subgraph Server["Expo API routes (server only)"]
-    API["/api/ai/* handlers"]
-    LLM["LLM provider<br/>structured output"]
-  end
+  OS["Apple Intelligence<br/>on-device model (iOS 26+)"]
   UI --> DS
   UI --> FE
   FE --> ST
   ST <--> PS
   FE --> ES
-  ST -- "RTK Query fetch<br/>(timeout + Zod)" --> API
-  API --> LLM
+  ST -- "RTK Query queryFn<br/>(timeout + Zod)" --> AD
+  AD --> LIB
+  LIB --> OS
 ```
 
 ## Requirement 1 — React Native & TypeScript
@@ -33,6 +33,7 @@ flowchart TB
 - **Expo Router** with typed routes. Route files stay thin: they read params, call a feature hook, and render feature components.
 - **New Architecture** (Expo default).
 - Targets: iOS Simulator and Android Emulator for the demo. Web is out of scope.
+- **AI is iOS-only** (Apple Intelligence). Android runs every non-AI feature, with AI gated off. See [ADR 0005](adr/0005-on-device-apple-foundation-models.md).
 
 ### TypeScript rules
 
@@ -74,11 +75,6 @@ src/
     prep/[applicationId]/mock.tsx
     settings.tsx
     dev/design-system.tsx       # gallery (__DEV__ only)
-    api/ai/                     # server-only API routes
-      extract-listing+api.ts
-      triage-message+api.ts
-      prep-questions+api.ts
-      mock-interview+api.ts
   design-system/                # see docs/design-system.md
   features/
     applications/  { schema.ts, slice.ts, selectors.ts, components/, hooks/ }
@@ -87,17 +83,15 @@ src/
     prep/          { schema.ts, slice.ts, components/ }
     settings/      { slice.ts }
   services/
-    ai/            { aiApi.ts (RTK Query), schemas.ts, baseQuery.ts }
+    ai/            { model.ts (adapter interface), foundationModels.ts, unavailableModel.ts, prompts/, tasks.ts, aiApi.ts (RTK Query), budget.ts }
   store/           { store.ts, rootReducer.ts, persist.ts, hooks.ts }
   lib/             { errors.ts, result.ts, assertNever.ts, ids.ts, dates.ts }
-server/
-  ai/              { provider.ts, prompts/, extract.ts, triage.ts, prep.ts }  # imported only by api routes
 ```
 
 Rules:
 
 1. A feature can import from `design-system`, `lib`, `services`, `store/hooks`, and its own folder. Features don't import each other's internals; they share through selectors exported from a feature's `index.ts`.
-2. `server/` is imported only by `src/app/api/**`. An ESLint `no-restricted-imports` rule blocks it everywhere else so secrets and prompts never reach the client bundle.
+2. Only `src/services/ai/foundationModels.ts` imports the on-device model library. An ESLint `no-restricted-imports` rule blocks it everywhere else, so swapping libraries touches one file.
 3. Components receive data through props. Hooks (`useApplication(id)`) connect components to the store.
 
 ### Error handling
@@ -107,19 +101,28 @@ All failures become one typed union. Screens never see raw exceptions.
 ```ts
 // src/lib/errors.ts
 export type AppError =
-  | { kind: 'network' }                                   // offline, DNS, connection reset
-  | { kind: 'timeout'; afterMs: number }                  // AbortController fired
+  | { kind: 'network' }                                   // offline, DNS, connection reset (URL fetch only)
+  | { kind: 'timeout'; afterMs: number }                  // request took longer than its limit
   | { kind: 'invalid_response'; issues: string[] }        // Zod parse failed
-  | { kind: 'rate_limited'; retryAfterSec?: number }
-  | { kind: 'server'; status: number }
+  | { kind: 'ai_unavailable'; reason: AiUnavailableReason }
+  | { kind: 'context_too_long' }                          // input didn't fit the model's context window
+  | { kind: 'content_blocked' }                           // model safety guardrail refused the request
   | { kind: 'listing_unreadable'; reason: 'blocked' | 'empty' | 'login_wall' | 'non_html' }
   | { kind: 'not_found'; entity: 'application' | 'draft' | 'message' };
+
+export type AiUnavailableReason =
+  | 'unsupported_platform'      // Android
+  | 'os_too_old'                // iOS < 26
+  | 'device_not_eligible'
+  | 'apple_intelligence_off'
+  | 'model_not_ready';          // still downloading
 ```
 
 | Layer | Responsibility |
 |---|---|
-| `services/ai/baseQuery.ts` | `fetch` with a 15 s `AbortController` timeout; maps status codes and aborts to `AppError`; Zod-parses every response body |
-| API routes | Validate request body with Zod (400 on failure); validate model output with the same schema; return typed error JSON, never stack traces |
+| `services/ai/foundationModels.ts` | Maps library errors to `AppError`; Zod-parses every result even though the library already applies the schema |
+| `services/ai/aiApi.ts` | Enforces per-task time limits; returns `AppError`, never throws |
+| `features/intake/fetchListing.ts` | URL fetch with a 10 s timeout; maps failures to `network` or `listing_unreadable` |
 | Slices | Store `AppError` in state where the UI needs it (e.g. a message's triage status) |
 | Components | `ErrorState` maps `kind` to plain-language copy and a retry action |
 | Root | `ErrorBoundary` in `_layout.tsx` catches render errors, shows a recover screen, and logs in dev |
@@ -145,6 +148,7 @@ interface RootState {
     sessions: EntityState<MockInterviewSession, SessionId>;
   };
   settings: { theme: ThemePreference; emailSource: 'mock'; aiReplay: boolean };
+  capabilities: { ai: AiAvailability };                   // not persisted; re-checked at launch and on app foreground
   aiApi: /* RTK Query cache */;
 }
 ```
@@ -166,11 +170,12 @@ Memoized with `createSelector`, colocated in each feature's `selectors.ts`, and 
 | `selectUpcomingNextSteps` | Next steps sorted by due date, flagged `urgent` within 48 h |
 | `selectPipelineCounts` | Counts per stage for the header summary |
 | `selectUntriagedMessages` | Inbox messages with no triage result |
+| `selectAiAvailability` | `capabilities.ai`, read by every AI entry point |
 | `selectPrepProgress(applicationId)` | Answered / total prep questions |
 
 ### Persistence
 
-`redux-persist` with AsyncStorage. Persisted: `applications`, `drafts`, `inbox`, `prep`, `settings`. Not persisted: `aiApi` (request cache). Each persisted slice has a `version` and a `migrate` function from the first release onward.
+`redux-persist` with AsyncStorage. Persisted: `applications`, `drafts`, `inbox`, `prep`, `settings`. Not persisted: `capabilities` (the user can turn Apple Intelligence on or off at any time) and `aiApi` (request cache). Each persisted slice has a `version` and a `migrate` function from the first release onward.
 
 ### Typed hooks
 
@@ -178,30 +183,71 @@ Memoized with `createSelector`, colocated in each feature's `selectors.ts`, and 
 
 ## AI features (product)
 
-### Proxy
+### On-device model
 
-AI calls go through **Expo API routes** (`src/app/api/ai/*+api.ts`), which run only on the server. The provider API key is a server environment variable and never ships in the app bundle. In development the dev server serves these routes; relative `fetch` resolves to the dev server origin. For a shareable build, the server deploys to EAS Hosting and `origin` is set in app config. See [ADR 0003](adr/0003-ai-through-server-proxy-with-validated-drafts.md).
+AI runs on Apple's on-device foundation model through a third-party React Native library, wrapped by one adapter ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)). No server, no API key, no per-token cost, and listing and email text never leave the device.
 
-### Endpoints
+```ts
+// src/services/ai/model.ts
+export type AiAvailability =
+  | { status: 'available'; contextTokens: number }
+  | { status: 'unavailable'; reason: AiUnavailableReason };
 
-| Endpoint | Input | Output (Zod schema) |
-|---|---|---|
-| `POST /api/ai/extract-listing` | `{ url } \| { text }` | `ListingExtraction` → becomes an `ApplicationDraft` |
-| `POST /api/ai/triage-message` | `{ message, applications: { id, company, role }[] }` | `TriageResult`: category, matched application ID or none, proposed next step, confidence |
-| `POST /api/ai/prep-questions` | `{ application }` | `PrepQuestionSet`: questions grouped by type (behavioral, technical, role-specific, questions to ask) |
-| `POST /api/ai/mock-interview` | `{ application, transcript, answer }` | `MockInterviewTurn`: feedback on the answer + next question |
+export interface OnDeviceModel {
+  availability(): AiAvailability;
+  generate<S extends z.ZodType>(request: {
+    instructions: string;
+    prompt: string;
+    schema: S;
+  }): Promise<Result<z.infer<S>, AppError>>;
+}
+```
+
+- `foundationModels.ts` implements `OnDeviceModel` with the library that passes the [spike gate](adr/0005-on-device-apple-foundation-models.md#spike-gate-tier-0).
+- `unavailableModel.ts` implements it for Android and ineligible iPhones; every call returns `ai_unavailable`.
+- Jest tests use a fake `OnDeviceModel`. The library is never loaded in tests.
+
+### Tasks
+
+Each task is a function in `tasks.ts` with its own prompt (`prompts/*.ts`), Zod schema, and time limit, exposed through RTK Query `queryFn` endpoints.
+
+| Task | Input | Output (Zod schema) | Time limit |
+|---|---|---|---|
+| `extractListing` | listing text | `ListingExtraction` → becomes an `ApplicationDraft` | 20 s |
+| `triageMessage` | `{ message, applications: { id, company, role }[] }` | `TriageResult`: category, matched application ID or none, proposed next step, confidence | 20 s |
+| `prepQuestions` | application summary | `PrepQuestionSet`: questions grouped by type (behavioral, technical, role-specific, questions to ask) | 45 s |
+| `mockInterviewTurn` | application summary, current question, answer, earlier question titles | `MockInterviewTurn`: feedback on the answer + next question | 45 s |
+
+Time limits are starting values, to be tuned after measuring on the Simulator and a device in tier 2.
+
+### Context budget
+
+The on-device model has a small context window (8,192 tokens measured on macOS 27; Apple documents 4,096). Rules:
+
+1. **One fresh session per request.** No long-lived chat sessions, so context never accumulates.
+2. **Budget for 4,096 tokens** regardless of the measured size, so the app behaves the same on every supported OS.
+3. **Trim listings before sending.** `budget.ts` strips boilerplate (navigation, legal footers, repeated whitespace) and, if still too long, keeps the beginning, where company and role usually appear. The draft review shows "Only the first part of this listing was read" when trimming happened.
+4. **Mock interviews send a summary, not the transcript.** Each turn sends the application summary, the current question and answer, and the titles of earlier questions (to avoid repeats). The full transcript stays in Redux.
+5. **`context_too_long` is still handled** in case an estimate is wrong: intake offers manual entry; other tasks offer retry with shorter input.
+
+### Availability
+
+`capabilities.ai` is filled at launch and re-checked when the app returns to the foreground. AI entry points read it through `selectAiAvailability`:
+
+- **Available:** AI actions are shown normally.
+- **Unavailable:** intake opens the manual form, inbox shows "Tag manually", and prep and mock interview show why AI is unavailable and what to do (e.g. "Turn on Apple Intelligence in Settings"). See [UX-7](user-stories.md#ux-7--know-when-ai-isnt-available-).
 
 ### Listing fetch
 
-URL intake fetches the page on the server, strips it to text, and checks the result before calling the model. Blocked, empty, login-wall, or JavaScript-only pages return `listing_unreadable`, and the app asks the user to paste the listing text. **Pasted text is the primary path for every job board**; URL fetch is a shortcut that may fail on any site.
+URL intake fetches the page on the device, strips it to text, and checks the result before calling the model. Blocked, empty, login-wall, or JavaScript-only pages return `listing_unreadable`, and the app asks the user to paste the listing text. **Pasted text is the primary path for every job board**; URL fetch is a shortcut that may fail on any site. URL fetch is the only AI-adjacent step that needs a network.
 
 ### Guardrails
 
-1. Structured output only. The model returns JSON matching the endpoint's Zod schema, validated on the server **and** the client.
+1. Structured output only. The library constrains output to the task's Zod schema, and the adapter validates it again with Zod.
 2. Triage receives only the user's existing applications as match candidates and must return one of those IDs or `none`. It can't invent applications.
-3. Low temperature for extraction and triage to reduce run-to-run drift (it doesn't remove it).
-4. 15 s client timeout and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
-5. **AI replay** (`settings.aiReplay`, dev only): replays recorded responses for the fixture inbox and demo listing. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
+3. Deterministic (greedy) sampling for extraction and triage, if the library supports it, to reduce run-to-run drift.
+4. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
+5. **AI replay** (`settings.aiReplay`, dev only): replays recorded results for the fixture inbox and demo listing. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
 
 ## Inbox
 
@@ -222,9 +268,11 @@ How AI is used to build the app (separate from AI features in the product) is in
 
 | Level | Tool | What |
 |---|---|---|
-| Unit | Jest (`jest-expo`) | Zod schemas (accept/reject real-shaped payloads), reducers, selectors, triage matching, `baseQuery` error mapping |
+| Unit | Jest (`jest-expo`) | Zod schemas (accept/reject real-shaped payloads), reducers, selectors, triage matching, adapter error mapping, `budget.ts` trimming |
 | Component | React Native Testing Library | Design-system components by role/label: disabled, loading, error copy, required labels |
-| Screen | RNTL + mocked `fetch` | Intake flow: paste → draft → confirm → appears in pipeline; failure → manual form |
-| Manual | Simulator + Emulator | Share-sheet intake, theme switch, font scaling, VoiceOver/TalkBack pass |
+| Screen | RNTL + fake `OnDeviceModel` | Intake flow: paste → draft → confirm → appears in pipeline; failure → manual form; AI unavailable → manual form |
+| Manual | Simulator + Emulator | On-device AI on the iOS Simulator; AI gated off on Android; share-sheet intake, theme switch, font scaling, VoiceOver/TalkBack pass |
+
+CI runners have no Apple Intelligence, so CI never calls the real model. Prompt quality is checked by hand against a fixed set of sample listings and emails (tier 2 and 4).
 
 CI (GitHub Actions): `tsc --noEmit`, ESLint, Jest on every push.

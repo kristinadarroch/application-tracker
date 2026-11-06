@@ -15,7 +15,7 @@ User stories are the source of truth for **what** the app does and how we know i
 
 | Epic | Stories | Tier | Priority |
 |---|---|---|---|
-| [Experience & accessibility](#experience--accessibility) | UX-1 – UX-6 | 0–1 | Must |
+| [Experience & accessibility](#experience--accessibility) | UX-1 – UX-7 | 0–2 | Must |
 | [Pipeline](#pipeline) | PIPE-1 – PIPE-7 | 1 | Must |
 | [Intake](#intake) | INT-1 – INT-6 | 2 | Must |
 | [Prep questions](#prep-questions) | PREP-1 – PREP-3 | 2 | Must |
@@ -28,7 +28,8 @@ User stories are the source of truth for **what** the app does and how we know i
 These apply to every story, so they aren't repeated in each one.
 
 - **Loading:** any wait over 300 ms shows a `Skeleton` or a busy button, never a blank screen.
-- **AI timeout:** AI requests give up after 15 seconds and show the timeout error.
+- **AI time limits:** each AI task has a time limit (20 s for extraction and triage, 45 s for prep questions and interview turns; tuned in tier 2) and shows the timeout error when it runs out.
+- **AI runs on the device:** AI needs an iPhone with Apple Intelligence turned on, but no network. See [UX-7](#ux-7--know-when-ai-isnt-available-) for every other device.
 - **AI never blocks tracking:** AI failure never blocks core application tracking. Intake and inbox stories offer a manual path; prep and mock-interview stories keep existing state and offer retry.
 - **Urgent:** a Next Step is urgent when it is due within 48 hours or overdue.
 - **Accessibility:** every screen passes the [accessibility checklist](design-system.md#accessibility-checklist).
@@ -71,8 +72,8 @@ As a job seeker who is sensitive to motion, I want animations turned off when I 
 
 As a job seeker, I want errors in plain language with a way forward, so that a failure never leaves me stuck.
 
-- **When** any request fails, **then** I see what happened in plain language (offline, took too long, unexpected response, server problem) and a Retry action.
-- **When** an AI feature fails, **then** I also see a manual alternative.
+- **When** any request fails, **then** I see what happened in plain language (offline, took too long, unexpected response, AI not available on this device) and a Retry action where retrying can help.
+- **When** intake or inbox AI fails, **then** I also see a manual alternative.
 - **When** a screen crashes while rendering, **then** I see a recovery screen instead of a blank app, and my saved data is intact.
 
 ### UX-6 · Browse the design system (Presenter) ★
@@ -82,6 +83,16 @@ As the presenter, I want one screen showing every token and component in both th
 - **Given** a development build, **when** I open `/dev/design-system`, **then** I see colors, type, spacing, radii, elevation, and every component in each of its variants and states.
 - **When** I toggle the theme on that screen, **then** everything re-renders in the other theme.
 - **Given** a release build, **then** the route doesn't exist.
+
+### UX-7 · Know when AI isn't available ★
+
+As a job seeker on a device without Apple Intelligence, I want to know why AI features are missing and still use everything else, so that the app never feels broken.
+
+- **Given** an Android phone or an iPhone that can't run Apple Intelligence, **then** every non-AI feature works normally.
+- **Given** AI is unavailable, **when** I start intake, **then** the manual form opens with my pasted text or URL kept, and a note says why AI wasn't used.
+- **Given** AI is unavailable, **when** I open the Inbox, **then** messages show "Tag manually" instead of an analysis status.
+- **Given** AI is unavailable, **when** I open prep questions or a mock interview, **then** I see the reason and what I can do, e.g. "Turn on Apple Intelligence in Settings" or "Apple Intelligence isn't available on this device".
+- **Given** I turn Apple Intelligence on while the app is in the background, **when** I return to the app, **then** AI features become available without a restart.
 
 ---
 
@@ -179,7 +190,9 @@ As a job seeker, I want to check and fix what the AI extracted, so that wrong de
 As a job seeker, I want a way forward when the AI can't read a listing, so that I can still save the role.
 
 - **When** the AI response doesn't match the expected shape, **then** I see an error with Retry and "Fill in manually".
-- **When** I go offline during extraction, **then** I see the offline error within 15 seconds and nothing is saved.
+- **Given** I'm offline, **when** I paste listing text, **then** extraction still works, because AI runs on the device.
+- **When** I go offline while a listing URL is loading, **then** I see the offline error and the screen switches to paste mode with the URL kept.
+- **Given** the listing is longer than the AI can read at once, **then** the draft review says "Only the first part of this listing was read".
 - **When** I tap "Fill in manually", **then** the manual form opens with any text or URL I already entered.
 
 ### INT-6 · Come back to an unfinished draft

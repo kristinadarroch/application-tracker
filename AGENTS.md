@@ -18,7 +18,9 @@ Rules for AI coding agents (Claude Code, Codex, Copilot) working in this repo. H
 - Import the design system from `@/design-system` only.
 - Use `useAppDispatch` / `useAppSelector`, never the untyped hooks.
 - AI output goes to drafts or proposals; it never writes straight into `applications`.
-- Never import `server/` outside `src/app/api/**`. Never put an API key in client code or `EXPO_PUBLIC_*` variables.
+- Only `src/services/ai/foundationModels.ts` imports the on-device model library. Everything else uses the `OnDeviceModel` adapter or the RTK Query AI endpoints.
+- All repo code is TypeScript. No Swift, Kotlin, or JavaScript source files; native code comes only from dependencies.
+- Every AI entry point checks `selectAiAvailability` and has an unavailable state (see UX-7).
 - Every async UI path renders loading, success, and `ErrorState` with retry.
 - `switch` over a union ends with `assertNever`.
 

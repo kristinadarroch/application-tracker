@@ -15,3 +15,4 @@ Inbox Messages come from an `EmailSource` interface. The demo uses `MockEmailSou
 
 - Only the fixture messages are fixed. Triage still calls a live model, so it needs timeouts, validation, error states, and the labeled AI Replay safety net.
 - A Gmail adapter can be added later without changing triage, matching, or UI code.
+- Update (ADR 0005): triage now runs on the device, so a real inbox would no longer send email content to an AI service. The mock stays for predictability and scope.

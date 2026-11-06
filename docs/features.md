@@ -4,15 +4,15 @@ Build in tier order. Each tier ends in a working, demo-able app. Terms follow [`
 
 | Tier | Scope | Estimate | Status |
 |---|---|---|---|
-| 0 | Scaffold, tooling, design system foundation | 5 h | Not started |
+| 0 | Scaffold, tooling, design system foundation, on-device AI spike | 6.5 h | Not started |
 | 1 | Pipeline: applications CRUD, stages, persistence | 8 h | Not started |
-| 2 | AI intake (paste + share) and prep questions | 9.5 h | Not started |
-| 3 | AI mock interview | 5 h | Not started |
+| 2 | AI intake (paste + share), prep questions, AI availability gating | 8.5 h | Not started |
+| 3 | AI mock interview | 6 h | Not started |
 | 4 | Mock inbox with AI triage and next steps | 6.5 h | Not started |
 | 5 | Polish, tests, README, demo rehearsal | 4 h | Not started |
 | Stretch | Pasted interview reviews → summary · Gmail `EmailSource` | 2 h · 10 h | Not planned |
 
-Tiers 0–5 total about **38 hours**.
+Tiers 0–5 total about **39.5 hours**.
 
 ## Screens
 
@@ -40,10 +40,11 @@ flowchart LR
 - Design system tokens, `ThemeProvider`, `makeStyles`, and the components needed by tier 1: `Text`, `Stack`, `Screen`, `Button`, `IconButton`, `TextField`, `Card`, `StagePill`, `EmptyState`, `ErrorState`, `Skeleton`.
 - Gallery screen at `/dev/design-system`.
 - Redux store with typed hooks, `PersistGate`, `settings` slice (theme preference).
+- **On-device AI spike** (1.5 h): install the chosen library in the dev build and run the [spike gate](adr/0005-on-device-apple-foundation-models.md#spike-gate-tier-0). If it fails, try the fallback library; if both fail, stop and decide with the user before tier 2.
 
 **Stories:** [UX-1](user-stories.md#ux-1--choose-light-dark-or-system-theme-), [UX-6](user-stories.md#ux-6--browse-the-design-system-presenter-).
 
-**Engineering done when:** the app launches on iOS Simulator and Android Emulator, the gallery renders every component in light and dark, and CI passes.
+**Engineering done when:** the app launches on iOS Simulator and Android Emulator, the gallery renders every component in light and dark, CI passes, and the AI spike gate has a recorded pass or fail.
 
 ## Tier 1 — Pipeline
 
@@ -62,13 +63,14 @@ flowchart LR
 - Dev build with the `expo-sharing` plugin enabled (iOS share extension, Android intent filter for `text/plain` URLs).
 - `+native-intent.ts` routes incoming shares to `/intake/share`.
 - New-application screen: paste a URL or the listing text.
-- `extract-listing` endpoint: fetch URL (if given) → readability check → model extraction → **Application Draft**.
+- `OnDeviceModel` adapter (`foundationModels.ts`, `unavailableModel.ts`), `capabilities` slice, and `selectAiAvailability`.
+- `extractListing` task: fetch URL on device (if given) → readability check → trim to context budget → on-device extraction → **Application Draft**.
 - Review-draft screen: every extracted field is editable; confirm creates the application.
-- `prep-questions` endpoint and a questions screen per application, grouped by type, with "mark practiced".
+- `prepQuestions` task and a questions screen per application, grouped by type, with "mark practiced".
 
-**Stories:** [INT-1 – INT-6](user-stories.md#intake), [PREP-1 – PREP-3](user-stories.md#prep-questions).
+**Stories:** [INT-1 – INT-6](user-stories.md#intake), [PREP-1 – PREP-3](user-stories.md#prep-questions), [UX-7](user-stories.md#ux-7--know-when-ai-isnt-available-).
 
-**Engineering done when:** `baseQuery` error mapping and the `ListingExtraction` / `PrepQuestionSet` schemas have unit tests.
+**Engineering done when:** adapter error mapping, `budget.ts` trimming, and the `ListingExtraction` / `PrepQuestionSet` schemas have unit tests; prompts checked by hand against 5 sample listings; time limits set from measured latency.
 
 ## Tier 3 — Mock interview
 
@@ -79,7 +81,7 @@ flowchart LR
 
 **Stories:** [MOCK-1 – MOCK-5](user-stories.md#mock-interview).
 
-**Engineering done when:** every AI turn is validated against `MockInterviewTurn` on server and client.
+**Engineering done when:** every AI turn is validated against `MockInterviewTurn` with Zod, and a 6-turn session stays within the context budget.
 
 ## Tier 4 — Mock inbox and next steps
 
@@ -104,7 +106,7 @@ flowchart LR
 ## Stretch
 
 - **Interview review summary** ([LATER-1](user-stories.md#later-1--summarize-interview-reviews-i-found)). The user pastes interview reviews they found (e.g. from Glassdoor); AI summarizes likely questions with the source text quoted. No scraping of any site.
-- **Gmail `EmailSource`** ([LATER-2](user-stories.md#later-2--connect-my-real-gmail)). OAuth with a read-only Gmail scope for test users only. Publishing publicly would need Google's verification, and a security assessment if email data passes through the server.
+- **Gmail `EmailSource`** ([LATER-2](user-stories.md#later-2--connect-my-real-gmail)). OAuth with a read-only Gmail scope for test users only. Publishing publicly would need Google's verification. Triage runs on the device, so email content would not be sent to any AI service.
 
 ## Out of scope
 
@@ -112,3 +114,5 @@ flowchart LR
 - Accounts, sync, or a backend database. Data is local to the device.
 - Web target.
 - Voice mock interviews.
+- AI on Android (no Apple Intelligence; AI is gated off, see UX-7).
+- Cloud AI models or a backend AI proxy ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)).
