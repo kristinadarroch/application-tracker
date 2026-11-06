@@ -185,7 +185,7 @@ Memoized with `createSelector`, colocated in each feature's `selectors.ts`, and 
 
 ### On-device model
 
-AI runs on Apple's on-device foundation model through a third-party React Native library, wrapped by one adapter ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)). No server, no API key, no per-token cost, and listing and email text never leave the device.
+AI runs on Apple's on-device foundation model through a third-party React Native library, wrapped by one adapter ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)). No server, no API key, no metered per-token cost, and listing and email text never leave the device. Tokens still matter: see [Context budget](#context-budget).
 
 ```ts
 // src/services/ai/model.ts

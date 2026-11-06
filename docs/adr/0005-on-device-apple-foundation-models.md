@@ -1,14 +1,14 @@
 ---
-status: accepted
+status: accepted for on-device Apple Intelligence behind a TypeScript adapter; the specific library is proposed until the tier 0 spike passes
 ---
 
 # Run AI on-device with Apple Foundation Models through a library behind a TypeScript adapter
 
-Product AI runs on Apple's on-device foundation model (Apple Intelligence) instead of a cloud LLM, so there is no per-token cost, no server, and no API key, and listing and email text never leave the device. The app reaches the model through a third-party React Native library wrapped by one TypeScript adapter in `src/services/ai/`. All code in this repo stays TypeScript, matching the brief's "built entirely with TypeScript" requirement. Supersedes [ADR 0003](0003-ai-through-server-proxy-with-validated-drafts.md).
+Product AI runs on Apple's on-device foundation model (Apple Intelligence) instead of a cloud LLM, so there is no metered per-token cost, no server, and no API key, and listing and email text never leave the device. The model still has a token budget (its context window). The app reaches the model through a third-party React Native library wrapped by one TypeScript adapter in `src/services/ai/`. All code in this repo stays TypeScript, matching the brief's "built entirely with TypeScript" requirement. Supersedes [ADR 0003](0003-ai-through-server-proxy-with-validated-drafts.md).
 
 ## Considered options
 
-- **Cloud LLM through Expo API routes (ADR 0003).** Strongest model quality, but costs tokens and needs a deployed server and a secret.
+- **Cloud LLM through Expo API routes (ADR 0003).** Strongest model quality, but has metered per-token cost and needs a deployed server and a secret.
 - **Our own Expo module in Swift.** Full control of Apple's typed-generation APIs, but puts Swift source in this repo against the brief's TypeScript requirement. Rejected.
 - **`react-native-foundation-models` (Nitro module, published Aug 2026).** Zod-typed output, iOS 27 support, token usage, typed error codes. Chosen first, subject to the spike below.
 - **`@react-native-ai/apple` (AI SDK provider, published Feb 2026).** Zod output through the AI SDK, but built against AI SDK v6 and React Native 0.81. Fallback if the first library fails the spike.
