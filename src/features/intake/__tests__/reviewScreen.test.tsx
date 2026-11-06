@@ -1,9 +1,9 @@
-import { fireEvent, screen } from 'expo-router/testing-library';
+import { act, fireEvent, screen } from 'expo-router/testing-library';
 
 import { selectAllApplications } from '@/features/applications/model';
 import { DraftIdSchema } from '@/lib/ids';
 
-import { selectAllDrafts } from '../draftsSlice';
+import { draftRemoved, selectAllDrafts } from '../draftsSlice';
 import { draftsState, makeDraft } from '../testing/fixtures';
 import { renderIntake } from '../testing/renderIntake';
 
@@ -102,6 +102,16 @@ describe('Review a draft (INT-4)', () => {
     await renderIntake('/intake/review/draft_gone');
     expect(screen.getByText('Not found')).toBeOnTheScreen();
     expect(screen.getByText('This draft no longer exists.')).toBeOnTheScreen();
+  });
+
+  it('keeps the draft on screen when it is removed while open, instead of flashing Not found', async () => {
+    const { store } = await renderIntake(REVIEW_URL, {
+      preloadedState: { drafts: draftsState(draft) },
+    });
+    // What Confirm and Discard do just before the screen animates away.
+    await act(() => store.dispatch(draftRemoved(draft.id)));
+    expect(screen.queryByText('Not found')).toBeNull();
+    expect(screen.getByLabelText('Company')).toHaveDisplayValue('Acme Health');
   });
 });
 

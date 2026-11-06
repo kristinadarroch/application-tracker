@@ -1,0 +1,82 @@
+# The in-app part of docs/demo-script.md, in order, with the real on-device model (iOS).
+# Run it under `xcrun simctl io <udid> recordVideo` to produce the backup video; the run time is the
+# dry-run time for these steps. Human-only steps (Safari share sheet, Android, offline clip) are not here.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Open settings
+- scrollUntilVisible:
+    element: Load demo data
+- tapOn: Load demo data
+- tapOn: Back
+# 0:00 Pipeline: stages, counts, urgent badge
+- assertVisible: '.*Due tomorrow.*'
+- waitForAnimationToEnd
+# 0:45 AI intake (paste stands in for the share sheet; both land on the same draft review)
+- tapOn: Paste a listing
+- tapOn: 'Listing text Paste the job listing here'
+- inputText: 'Northwind Labs is hiring a Senior Mobile Engineer (React Native) in Denver, CO. Salary $160,000 to $190,000. You will lead our patient scheduling app. Requirements: 6+ years mobile, React Native, TypeScript, Redux, accessibility, CI/CD.'
+- tapOn: Create draft
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 45000
+- scrollUntilVisible:
+    element: Confirm
+- tapOn: Confirm
+- extendedWaitUntil:
+    visible: Details
+    timeout: 10000
+# 2:00 Prep questions and one mock-interview turn, on the application just created
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: Prep questions
+- tapOn: Prep questions
+- tapOn: Generate prep questions
+- extendedWaitUntil:
+    visible: '.*practiced.*'
+    timeout: 90000
+- tapOn: Back
+- scrollUntilVisible:
+    element: Mock interview
+- tapOn: Mock interview
+- tapOn: Start mock interview
+- extendedWaitUntil:
+    visible: Your answer
+    timeout: 90000
+- tapOn:
+    text: Your answer
+    index: 1
+- inputText: 'At my last role I led a migration of our React Native component library to TypeScript. I planned it in phases, added type tests, and we cut UI bugs by a third over two releases.'
+- tapOn: Submit answer
+- extendedWaitUntil:
+    visible: Strengths
+    timeout: 90000
+- tapOn: End
+- extendedWaitUntil:
+    visible: '.*questions answered.*'
+    timeout: 10000
+- tapOn: Back
+- tapOn: Back
+# 3:30 Inbox triage proposes a Next Step; accept it
+- tapOn: 'Inbox.*'
+- tapOn: Receive next email
+- extendedWaitUntil:
+    notVisible: '.*Analyzing.*'
+    timeout: 60000
+- waitForAnimationToEnd
+- tapOn: 'Interview invitation.*'
+- extendedWaitUntil:
+    visible: Proposed Next Step
+    timeout: 10000
+- scrollUntilVisible:
+    element: Accept
+- tapOn: Accept
+- assertVisible: '.*Next Step added.*'
+- tapOn: Back
+# 5:15 Theming
+- tapOn: 'Pipeline.*'
+- tapOn: Open settings
+- tapOn: Dark
+- waitForAnimationToEnd
+- tapOn: Back
+- takeScreenshot: e2e/artifacts/demo-end-dark

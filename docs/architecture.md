@@ -253,10 +253,20 @@ URL intake fetches the page on the device, strips it to text, and checks the res
 1. Structured output only. The provider constrains output to the task's Zod schema, and the adapter validates it again with Zod.
 2. **Flat output schemas.** Model output schemas use only top-level strings, string enums, numbers, and arrays of strings; code maps them to nested domain types. In the 2026-11-05 model checks, the only two requests that timed out were the two whose output schemas had nested objects; every flat schema finished in 1–7 s. The provider gives nested objects unnamed sub-schemas, which is the suspected cause, not a proven one.
 3. Triage receives only the user's existing applications as match candidates and must return one of those IDs or `none`. It can't invent applications.
-4. Deterministic sampling (temperature 0) for extraction and triage to reduce run-to-run drift.
-5. **Small-model compensation, in code, not prompts alone.** Extraction treats a sentence-like "company" as missing; triage fills a default Next Step title for action categories when the model omits one. Both are unit-tested.
-6. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
-7. **AI replay** (`settings.aiReplay`, dev only): replays recorded triage results for the sample inbox. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
+4. **Every request declares its output.** `GenerateRequest` requires `maxOutputTokens` and `sampling`. `repeatable` (temperature 0) for extraction, triage, and review questions; `varied` (temperature 0.7) for prep and mock-interview questions, so a retry gives new questions.
+
+   | Task | `maxOutputTokens` | Sampling | Measured (2026-11-05, iOS 27 Simulator) |
+   |---|---|---|---|
+   | Listing extraction | 400 | repeatable | 1.3–4.2 s |
+   | Email triage | 200 | repeatable | 0.9–5.6 s |
+   | Prep questions | 900 | varied | 9.7 s |
+   | First mock question | 120 | varied | 1.1 s |
+   | Mock-interview turn | 600 | varied | 4.5 s |
+   | Review questions | 300 | repeatable | not timed |
+5. **One native generation at a time.** A request that times out keeps running natively; without the queue, it blocked every request behind it. The adapter chains native calls (`nativeQueue`), and the time limit includes time spent waiting in the queue.
+6. **Small-model compensation, in code, not prompts alone.** Extraction keeps company, location, salary, and role only when they appear in the listing; triage matches an application only when the email names its company, fills a default Next Step title for action categories, and never proposes a step for a rejection. String limits are enforced in code, not in the model schema, because one violation fails the whole response. All unit-tested.
+7. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
+8. **AI replay** (`settings.aiReplay`, dev only): replays recorded triage results for the sample inbox. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
 
 ## Inbox
 

@@ -1,0 +1,28 @@
+# Short backup clip: paste a listing → on-device draft → confirm. Starts from the Pipeline tab of an
+# already-running app (no relaunch), so a recording of it stays around 20–30 s:
+#   xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-intake.mov
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow:
+    when:
+      visible: Back
+    commands:
+      - tapOn: Back
+      - waitForAnimationToEnd
+- tapOn: 'Pipeline.*'
+- tapOn: Paste a listing
+- tapOn: 'Listing text Paste the job listing here'
+- inputText: 'Globex is hiring a Staff React Native Engineer in Seattle, WA. Salary $185,000 to $215,000. Own the architecture of our field service app. Requirements: 8+ years mobile, React Native, TypeScript, Redux Toolkit, offline sync.'
+- pressKey: Enter
+- tapOn: Create draft
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 45000
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: Confirm
+- tapOn: Confirm
+- extendedWaitUntil:
+    visible: Details
+    timeout: 10000
+- waitForAnimationToEnd

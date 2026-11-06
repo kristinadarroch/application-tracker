@@ -15,8 +15,8 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 | Story | Automated (Jest) | On a real build |
 |---|---|---|
 | UX-1 theme | `settings.test.tsx` | `pipeline.yaml` (dark mode screenshot) |
-| UX-2 large text | Text wraps; no fixed heights (component tests) | Manual: largest text size, see [Accessibility](#accessibility) |
-| UX-3 screen reader | Roles, labels, "Stage: X", announced errors (component + screen tests) | Manual: VoiceOver / TalkBack |
+| UX-2 large text | Text wraps; no fixed heights (component tests); `iconScaling.test.tsx` (icons follow text size up to the label's cap) | `a11y-large-text.yaml` on both platforms, see [Accessibility](#accessibility) |
+| UX-3 screen reader | Roles, labels, "Stage: X", announced errors (component + screen tests) | **Open, manual:** VoiceOver / TalkBack pass, see [Accessibility](#accessibility) |
 | UX-4 reduce motion | `reduceMotion.test.tsx` (Skeleton stops pulsing) | — |
 | UX-5 errors | `errorBoundary.test.tsx`, ErrorState copy tests | `ai-prep.yaml` timeouts recover via Retry |
 | UX-6 gallery | Gallery renders (DS tests) | Settings → Design system gallery |
@@ -51,4 +51,25 @@ What the checks caught before passing (all fixed, each with a unit test):
 
 ## Accessibility
 
-See the results table added after the manual passes.
+### Largest text (2026-11-05, `e2e/a11y-large-text.yaml`)
+
+Screens: settings, pipeline with demo data, application detail, Next Step form, inbox, intake.
+
+| Platform | Setting | Result |
+|---|---|---|
+| iOS 27 Simulator | Larger Accessibility Sizes, largest (`AX5`) | Pass. All text wraps; nothing clipped or overlapping; long screens scroll. Screen titles, pills, and captions stop growing at 1.6×. |
+| Android 36 emulator | Font scale 2.0 | Pass. Same screens; single-line fields truncate their placeholder with an ellipsis. |
+
+Found and fixed in this pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
+
+To repeat: set the size (`xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large` or `adb shell settings put system font_scale 2.0`), run the flow with `-e PLATFORM=ios|android`, review `e2e/artifacts/a11y-*.png`, then reset (`content_size large`, `font_scale 1.0`).
+
+### Screen readers: open
+
+Not yet verified on a running build. The iOS Simulator has no VoiceOver, and an automated TalkBack attempt on the emulator produced no usable evidence (no speech output, focus stayed on a system dialog). Needs a person with a device:
+
+1. VoiceOver on an iPhone with this build: swipe through pipeline, detail, intake review, inbox detail, prep.
+2. TalkBack on the Android emulator or a phone: the same screens.
+3. Check on each: reading order matches the visual order; every control has a name and role; stage pills read "Stage: …"; selected chips read as selected; errors and banners are announced.
+
+What is covered automatically: roles, labels, selected and disabled states, and error announcements in component and screen tests.

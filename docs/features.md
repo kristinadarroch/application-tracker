@@ -4,13 +4,13 @@ Build in tier order. Each tier ends in a working, demo-able app. Terms follow [`
 
 | Tier | Scope | Estimate | Status |
 |---|---|---|---|
-| 0 | Scaffold, tooling, design system foundation, on-device AI spike | 6.5 h | Not started |
-| 1 | Pipeline: applications CRUD, stages, persistence | 8 h | Not started |
-| 2 | AI intake (paste + share), prep questions, AI availability gating | 8.5 h | Not started |
-| 3 | AI mock interview | 6 h | Not started |
-| 4 | Mock inbox with AI triage and next steps | 6.5 h | Not started |
-| 5 | Polish, tests, README, demo rehearsal | 4 h | Not started |
-| Stretch | Pasted interview reviews → summary · Gmail `EmailSource` | 2 h · 10 h | Not planned |
+| 0 | Scaffold, tooling, design system foundation, on-device AI spike | 6.5 h | Done |
+| 1 | Pipeline: applications CRUD, stages, persistence | 8 h | Done |
+| 2 | AI intake (paste + share), prep questions, AI availability gating | 8.5 h | Done (share sheet from Safari/Chrome: manual check open) |
+| 3 | AI mock interview | 6 h | Done |
+| 4 | Mock inbox with AI triage and next steps | 6.5 h | Done |
+| 5 | Polish, tests, README, demo rehearsal | 4 h | Done except the screen-reader pass and the presenter's own rehearsal |
+| Stretch | Pasted interview reviews → summary · Gmail `EmailSource` | 2 h · 10 h | Reviews done · Gmail built and tested with injected fetch; live sign-in blocked on Google OAuth client IDs |
 
 Tiers 0–5 total about **39.5 hours**.
 

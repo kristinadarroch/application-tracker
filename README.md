@@ -2,7 +2,7 @@
 
 A React Native + TypeScript app for tracking job applications from first listing to offer. AI turns messy inputs (a shared job listing, a recruiter email) into typed, validated data and helps you prepare for interviews.
 
-> **Status:** in active development. The specs in `docs/` are the source of truth; build progress is tracked in [`docs/features.md`](docs/features.md).
+> **Status:** all user stories built and tested (Jest, Maestro E2E on iOS and Android, on-device model checks). Open: screen-reader pass, live Gmail sign-in (needs OAuth client IDs). Details in [`docs/features.md`](docs/features.md) and [`docs/verification.md`](docs/verification.md).
 
 ## The brief → the architecture
 
