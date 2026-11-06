@@ -1,0 +1,29 @@
+# INT-2, INT-4, INT-6 with the real on-device model (iOS Simulator uses the Mac's Apple Intelligence).
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Paste a listing
+- assertVisible: Paste text
+# INT-2: nothing to submit yet
+- assertVisible:
+    text: Create draft
+    enabled: false
+- tapOn:
+    text: Listing text
+    index: 1
+- inputText: 'Northwind Labs is hiring a Senior Mobile Engineer (React Native) in Denver, CO. Salary $160,000 to $190,000. You will lead our patient scheduling app. Requirements: 6+ years mobile, React Native, TypeScript, Redux, accessibility, CI/CD.'
+- tapOn: Create draft
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 45000
+- takeScreenshot: e2e/artifacts/intake-01-review
+# INT-4: extracted fields are editable and nothing is saved before Confirm
+- assertVisible: '.*Northwind Labs.*'
+- scrollUntilVisible:
+    element: Confirm
+- tapOn: Confirm
+- extendedWaitUntil:
+    visible: Details
+    timeout: 10000
+- assertVisible: '.*Senior Mobile Engineer.*'
+- takeScreenshot: e2e/artifacts/intake-02-confirmed

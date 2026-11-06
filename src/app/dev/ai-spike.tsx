@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 
 import { Button, Card, Screen, Text } from '@/design-system';
 
-import { ListingExtractionSchema } from '@/features/intake/schema';
+import { ListingExtractionSchema } from '@/features/intake';
 import { onDeviceModel } from '@/services/ai/foundationModels';
 
 const SAMPLE_LISTING = `Acme Health is hiring a Senior React Native Engineer (hybrid, Austin, TX).

@@ -1,0 +1,93 @@
+# PIPE-1..6, UX-1 on a real build. No AI involved.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- assertVisible: No applications yet # PIPE-1 empty state
+
+# UX-1 / demo data
+- tapOn: Settings
+- tapOn: Load demo data
+- tapOn: Dark
+- takeScreenshot: e2e/artifacts/pipeline-01-settings-dark
+- tapOn: System
+- tapOn: Back
+
+# PIPE-1: grouped by stage, PIPE-6: urgent badge from the seeded step due tomorrow
+- assertVisible: '.*Acme Health.*'
+- assertVisible: '.*Northwind Labs.*'
+- assertVisible: '.*Globex.*'
+- assertVisible: '.*Due tomorrow.*'
+- takeScreenshot: e2e/artifacts/pipeline-02-seeded
+
+# PIPE-2: validation, then a valid manual add
+- tapOn: Add application
+- scrollUntilVisible:
+    element: Save application
+- tapOn: Save application
+- scrollUntilVisible:
+    element: Add the company
+    direction: UP
+- assertVisible: Add the company
+- assertVisible: Add the role
+- tapOn:
+    text: Company
+    index: 1
+- inputText: Initech
+- tapOn:
+    text: Role
+    index: 1
+- inputText: Staff Mobile Engineer
+- tapOn:
+    text: Listing link
+    index: 1
+- inputText: not a link
+- pressKey: Enter
+- scrollUntilVisible:
+    element: Save application
+- tapOn: Save application
+- assertVisible: Enter a link that starts with http:// or https://
+- tapOn:
+    text: Listing link
+    index: 1
+- eraseText: 20
+- pressKey: Enter
+- scrollUntilVisible:
+    element: Save application
+- tapOn: Save application
+- extendedWaitUntil:
+    visible: Details
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/pipeline-03-detail
+
+# PIPE-3: move to a new stage
+- tapOn: Applied
+- assertVisible: 'Stage: Applied'
+
+# PIPE-6: add a Next Step due today, mark it done
+- scrollUntilVisible:
+    element: Add Next Step
+- tapOn: 'e.g. Book the onsite interview'
+- inputText: Send portfolio
+- pressKey: Enter
+- tapOn: Today
+- tapOn: Add Next Step
+- assertVisible: Send portfolio
+- tapOn: Mark “Send portfolio” done
+- assertVisible: Completed
+- takeScreenshot: e2e/artifacts/pipeline-04-next-steps
+
+# PIPE-5: delete asks first
+- scrollUntilVisible:
+    element: Delete application
+- tapOn: Delete application
+- tapOn: Cancel
+- assertVisible: Delete application
+- tapOn: Delete application
+- tapOn:
+    text: Delete
+    index: 1
+- extendedWaitUntil:
+    visible: Pipeline
+    timeout: 10000
+- assertNotVisible: '.*Initech.*'
+- takeScreenshot: e2e/artifacts/pipeline-05-after-delete

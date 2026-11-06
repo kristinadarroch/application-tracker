@@ -1,1 +1,1 @@
-export { NewApplicationScreen as default } from '@/features/applications/components/NewApplicationScreen';
+export { NewApplicationScreen as default } from '@/features/applications';

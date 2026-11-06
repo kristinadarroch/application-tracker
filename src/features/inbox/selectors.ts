@@ -1,8 +1,8 @@
 import { createSelector } from '@reduxjs/toolkit';
 
-import { selectAllApplications } from '@/features/applications/selectors';
-import { selectAiAvailability } from '@/features/capabilities/slice';
-import { selectAiReplay } from '@/features/settings/slice';
+import { selectAllApplications } from '@/features/applications/model';
+import { selectAiAvailability } from '@/features/capabilities';
+import { selectAiReplay } from '@/features/settings';
 import type { MessageId } from '@/lib/ids';
 import type { AiAvailability } from '@/services/ai/model';
 import type { RootState } from '@/store/store';

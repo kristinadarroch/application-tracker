@@ -6,7 +6,7 @@ import { NextStepIdSchema } from '@/lib/ids';
 
 import { selectAllApplications } from '../selectors';
 import { applicationsState, makeApplication, makeNextStep } from '../testing/fixtures';
-import { renderApp } from '../testing/renderApp';
+import { renderApp } from '@/test/renderApp';
 
 const daysFromNow = (days: number) => toIsoDate(addDays(new Date(), days));
 

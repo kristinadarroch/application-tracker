@@ -1,1 +1,1 @@
-export { PrepHubScreen as default } from '@/features/prep/screens/PrepHubScreen';
+export { PrepHubScreen as default } from '@/features/prep';

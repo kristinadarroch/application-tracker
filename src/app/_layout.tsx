@@ -1,14 +1,18 @@
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, type ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
 import { Button, Screen, Text, ThemeProvider, useTheme } from '@/design-system';
-import { useAiAvailabilitySync } from '@/features/capabilities/useAiAvailabilitySync';
-import { selectThemePreference } from '@/features/settings/slice';
-import { useAppSelector } from '@/store/hooks';
+import { useAiAvailabilitySync } from '@/features/capabilities';
+import { selectThemePreference } from '@/features/settings';
 import { persistor, store } from '@/store/appStore';
+import { useAppSelector } from '@/store/hooks';
+
+// Keep the native splash screen up until saved data is restored, so the app never flashes a blank frame.
+void SplashScreen.preventAutoHideAsync();
 
 function ThemedApp({ children }: { children: ReactNode }) {
   const preference = useAppSelector(selectThemePreference);
@@ -34,7 +38,7 @@ function Navigator() {
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <PersistGate persistor={persistor} loading={null}>
+      <PersistGate persistor={persistor} onBeforeLift={() => SplashScreen.hideAsync()}>
         <ThemedApp>
           <Navigator />
         </ThemedApp>

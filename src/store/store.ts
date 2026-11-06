@@ -6,6 +6,7 @@ import {
   type UnknownAction,
 } from '@reduxjs/toolkit';
 
+// Slices are imported directly, not through feature barrels: barrels pull in screens that import @/store/*.
 import { applicationsSlice, type ApplicationsState } from '@/features/applications/slice';
 import { capabilitiesSlice, type CapabilitiesState } from '@/features/capabilities/slice';
 import { inboxSlice, type InboxState } from '@/features/inbox/slice';

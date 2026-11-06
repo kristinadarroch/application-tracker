@@ -3,8 +3,8 @@ import { useIncomingShare, type SharePayload } from 'expo-sharing';
 import { useEffect, useState } from 'react';
 
 import { EmptyState, Screen } from '@/design-system';
-import { ListingIntakeScreen } from '@/features/intake/components/ListingIntakeScreen';
-import { readSharedListing, type SharedListing } from '@/features/intake/sharedListing';
+import { ListingIntakeScreen } from '@/features/intake';
+import { readSharedListing, type SharedListing } from '@/features/intake';
 import { assertNever } from '@/lib/assertNever';
 
 interface ReceivedShare {

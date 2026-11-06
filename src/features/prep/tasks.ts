@@ -1,4 +1,4 @@
-import type { Application } from '@/features/applications/schema';
+import type { Application } from '@/features/applications/model';
 import type { AppError } from '@/lib/errors';
 import { createId, QuestionIdSchema, SessionIdSchema } from '@/lib/ids';
 import { err, ok, type Result } from '@/lib/result';

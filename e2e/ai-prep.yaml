@@ -1,0 +1,43 @@
+# PREP-1, PREP-2, MOCK-1, MOCK-2, MOCK-5 with the real on-device model.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Settings
+- tapOn: Load demo data
+- tapOn: Back
+- tapOn: '.*Acme Health.*'
+- tapOn: Prep questions
+- tapOn: Generate prep questions
+- extendedWaitUntil:
+    visible: '.*practiced.*'
+    timeout: 90000
+- takeScreenshot: e2e/artifacts/prep-01-questions
+# PREP-2: mark the first behavioral question practiced
+- tapOn:
+    checked: false
+    index: 0
+- assertVisible: '1 / .* practiced'
+- tapOn: Back
+# MOCK-1 / MOCK-2
+- tapOn: Mock interview
+- tapOn: Start mock interview
+- extendedWaitUntil:
+    visible: Your answer
+    timeout: 90000
+- takeScreenshot: e2e/artifacts/prep-02-first-question
+- tapOn:
+    text: Your answer
+    index: 1
+- inputText: 'At my last role I led a migration of our React Native component library to TypeScript. I planned it in phases, added type tests, and we cut UI bugs by a third over two releases.'
+- tapOn: Submit answer
+- extendedWaitUntil:
+    visible: Strengths
+    timeout: 90000
+- assertVisible: Gaps
+- takeScreenshot: e2e/artifacts/prep-03-feedback
+# MOCK-5
+- tapOn: End
+- extendedWaitUntil:
+    visible: '.*questions answered.*'
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/prep-04-summary

@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { ErrorState, Screen } from '@/design-system';
-import { MessageDetailScreen } from '@/features/inbox/components/MessageDetailScreen';
+import { MessageDetailScreen } from '@/features/inbox';
 import { MessageIdSchema } from '@/lib/ids';
 
 export default function MessageRoute() {

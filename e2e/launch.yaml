@@ -1,0 +1,22 @@
+# Fresh install state, then load the JS bundle from the running Metro server (dev client).
+appId: dev.kristinadarroch.applicationtracker
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- openLink: exp+application-tracker://?__expo_url=http%3A%2F%2Flocalhost%3A8081&__expo_disable_fab=1&__expo_disable_onboarding=1
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: Pipeline
+    timeout: 60000
+# A dev client may show its developer menu on first launch; close it.
+- runFlow:
+    when:
+      visible: Go home
+    commands:
+      - tapOn:
+          point: 90%,49%

@@ -1,1 +1,1 @@
-export { SessionSummaryScreen as default } from '@/features/prep/screens/SessionSummaryScreen';
+export { SessionSummaryScreen as default } from '@/features/prep';

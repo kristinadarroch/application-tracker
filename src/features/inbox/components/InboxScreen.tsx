@@ -1,7 +1,7 @@
 import { FlatList } from 'react-native';
 
 import { Badge, Banner, Button, EmptyState, makeStyles, Screen, Stack } from '@/design-system';
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import { selectAiAvailability } from '@/features/capabilities';
 import { describeError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';

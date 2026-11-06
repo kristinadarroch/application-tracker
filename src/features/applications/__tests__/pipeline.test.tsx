@@ -4,7 +4,7 @@ import { addDays, toIsoDate } from '@/lib/dates';
 import { ApplicationIdSchema, NextStepIdSchema } from '@/lib/ids';
 
 import { applicationsState, makeApplication, makeNextStep } from '../testing/fixtures';
-import { renderApp } from '../testing/renderApp';
+import { renderApp } from '@/test/renderApp';
 
 const daysFromNow = (days: number) => toIsoDate(addDays(new Date(), days));
 

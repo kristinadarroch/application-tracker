@@ -1,0 +1,4 @@
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- takeScreenshot: e2e/artifacts/01-pipeline-empty

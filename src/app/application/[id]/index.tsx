@@ -1,1 +1,1 @@
-export { ApplicationDetailScreen as default } from '@/features/applications/components/ApplicationDetailScreen';
+export { ApplicationDetailScreen as default } from '@/features/applications';

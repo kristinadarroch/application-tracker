@@ -5,7 +5,7 @@ import {
   type PayloadAction,
 } from '@reduxjs/toolkit';
 
-import { applicationRemoved } from '@/features/applications/slice';
+import { applicationRemoved } from '@/features/applications/model';
 import type { ApplicationId, QuestionId, SessionId } from '@/lib/ids';
 
 import type { AnswerFeedback, MockInterviewSession, PrepQuestion, PrepQuestionSet } from './schema';

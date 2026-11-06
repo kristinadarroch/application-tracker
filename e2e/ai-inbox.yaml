@@ -1,0 +1,29 @@
+# INBX-1, INBX-2, INBX-3, INBX-6 with the real on-device model.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Settings
+- tapOn: Load demo data
+- tapOn: Back
+- tapOn: Inbox
+- assertVisible: No messages yet
+# INBX-6: deliver the first sample email (Acme Health interview invite)
+- tapOn: Receive next email
+- extendedWaitUntil:
+    notVisible: '.*Analyzing.*'
+    timeout: 60000
+- takeScreenshot: e2e/artifacts/inbox-01-triaged
+- tapOn: '.*Acme Health.*'
+# INBX-2: proposal linked to the application, accept adds the Next Step
+- assertVisible: '.*Next Step proposed.*'
+- takeScreenshot: e2e/artifacts/inbox-02-proposal
+- scrollUntilVisible:
+    element: Accept
+- tapOn: Accept
+- assertVisible: '.*Next Step added.*'
+- tapOn: Back
+- tapOn: Pipeline
+- tapOn: '.*Acme Health.*'
+- scrollUntilVisible:
+    element: Add Next Step
+- takeScreenshot: e2e/artifacts/inbox-03-step-on-application

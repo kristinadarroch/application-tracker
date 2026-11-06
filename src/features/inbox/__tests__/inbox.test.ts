@@ -1,5 +1,5 @@
-import { applicationAdded, applicationRemoved } from '@/features/applications/slice';
-import { settingsSlice } from '@/features/settings/slice';
+import { applicationAdded, applicationRemoved } from '@/features/applications/model';
+import { settingsSlice } from '@/features/settings';
 import { ApplicationIdSchema, MessageIdSchema, type ApplicationId } from '@/lib/ids';
 import { err, ok } from '@/lib/result';
 import { makeStore } from '@/store/store';

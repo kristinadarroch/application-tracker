@@ -1,7 +1,7 @@
 import { createSelector } from '@reduxjs/toolkit';
 
-import { selectAllApplications } from '@/features/applications/selectors';
-import type { Application } from '@/features/applications/schema';
+import { selectAllApplications } from '@/features/applications/model';
+import type { Application } from '@/features/applications/model';
 import type { ApplicationId, SessionId } from '@/lib/ids';
 import type { RootState } from '@/store/store';
 

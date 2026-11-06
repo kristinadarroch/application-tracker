@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import { selectAiAvailability } from '@/features/capabilities';
 import { assertNever } from '@/lib/assertNever';
 import { describeError, type AiUnavailableReason, type AppError } from '@/lib/errors';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';

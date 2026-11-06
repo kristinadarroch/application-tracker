@@ -1,6 +1,6 @@
 import { fireEvent, screen } from 'expo-router/testing-library';
 
-import { selectAllApplications } from '@/features/applications/selectors';
+import { selectAllApplications } from '@/features/applications/model';
 import { DraftIdSchema } from '@/lib/ids';
 
 import { selectAllDrafts } from '../draftsSlice';

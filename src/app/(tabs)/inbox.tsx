@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 
-import { InboxScreen } from '@/features/inbox/components/InboxScreen';
+import { InboxScreen } from '@/features/inbox';
 
 export default function InboxRoute() {
   return (

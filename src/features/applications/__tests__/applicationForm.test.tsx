@@ -2,7 +2,7 @@ import { fireEvent, screen } from 'expo-router/testing-library';
 
 import { selectAllApplications } from '../selectors';
 import { applicationsState, makeApplication } from '../testing/fixtures';
-import { renderApp } from '../testing/renderApp';
+import { renderApp } from '@/test/renderApp';
 
 describe('Add an application (PIPE-2)', () => {
   it('shows an error on each missing required field and saves nothing', async () => {

@@ -4,7 +4,7 @@ import { screen, waitFor, within } from 'expo-router/testing-library';
 import { persistReducer, persistStore } from 'redux-persist';
 import { z } from 'zod';
 
-import { themePreferenceChanged } from '@/features/settings/slice';
+import { themePreferenceChanged } from '@/features/settings';
 import { addDays, toIsoDate } from '@/lib/dates';
 import { ApplicationIdSchema, NextStepIdSchema } from '@/lib/ids';
 import { persistConfig } from '@/store/persistConfig';
@@ -12,7 +12,7 @@ import { rootReducer } from '@/store/store';
 
 import { ApplicationSchema } from '../schema';
 import { applicationAdded, nextStepAdded, stageChanged } from '../slice';
-import { renderApp } from '../testing/renderApp';
+import { renderApp } from '@/test/renderApp';
 
 /** redux-persist stores each whitelisted slice as a JSON string under one key. */
 const StoredRootSchema = z.object({ applications: z.string(), settings: z.string() });

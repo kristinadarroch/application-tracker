@@ -1,6 +1,5 @@
-import { selectApplicationById } from '@/features/applications/selectors';
-import { nextStepAdded } from '@/features/applications/slice';
-import { selectAiReplay } from '@/features/settings/slice';
+import { selectApplicationById, nextStepAdded } from '@/features/applications/model';
+import { selectAiReplay } from '@/features/settings';
 import type { IsoDate } from '@/lib/dates';
 import type { AppError } from '@/lib/errors';
 import { createId, NextStepIdSchema, type ApplicationId, type MessageId } from '@/lib/ids';

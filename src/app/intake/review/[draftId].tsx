@@ -1,8 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Button, ErrorState, Screen } from '@/design-system';
-import { DraftReview } from '@/features/intake/components/DraftReview';
-import { selectDraftById } from '@/features/intake/draftsSlice';
+import { DraftReview, selectDraftById } from '@/features/intake';
 import { DraftIdSchema } from '@/lib/ids';
 import { useAppSelector } from '@/store/hooks';
 

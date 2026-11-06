@@ -11,8 +11,8 @@ import {
   Stack,
   Text,
 } from '@/design-system';
-import type { Application } from '@/features/applications/schema';
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import type { Application } from '@/features/applications/model';
+import { selectAiAvailability } from '@/features/capabilities';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
@@ -85,8 +85,8 @@ function NoQuestionSet({ application }: { application: Application }) {
   const ai = useAppSelector(selectAiAvailability);
   const generate = useGeneratePrepQuestions(application);
   if (generate.pending) return <LoadingQuestions />;
-  // Availability is checked synchronously at launch, so `null` only lasts a moment.
-  if (ai === null) return null;
+  // Availability is checked synchronously at launch, so this placeholder only shows for a moment.
+  if (ai === null) return <LoadingQuestions />;
   if (ai.status === 'unavailable')
     return <AiUnavailableNotice reason={ai.reason} variant="empty" />;
   if (generate.error !== undefined) {

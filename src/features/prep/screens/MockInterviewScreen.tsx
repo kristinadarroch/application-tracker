@@ -8,12 +8,13 @@ import {
   ErrorState,
   makeStyles,
   Screen,
+  Skeleton,
   Stack,
   Text,
   TextField,
 } from '@/design-system';
-import type { Application } from '@/features/applications/schema';
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import type { Application } from '@/features/applications/model';
+import { selectAiAvailability } from '@/features/capabilities';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
@@ -79,7 +80,8 @@ function MockInterview({ application }: { application: Application }) {
 function StartSession({ application }: { application: Application }) {
   const ai = useAppSelector(selectAiAvailability);
   const start = useStartMockInterview(application);
-  if (ai === null) return null;
+  // Availability is checked synchronously at launch, so this placeholder only shows for a moment.
+  if (ai === null) return <Skeleton width="100%" height={160} radius="lg" />;
   if (ai.status === 'unavailable')
     return <AiUnavailableNotice reason={ai.reason} variant="empty" />;
   if (start.error !== undefined && !start.pending) {

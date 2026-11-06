@@ -1,5 +1,5 @@
-import { ListingIntakeScreen } from '@/features/intake/components/ListingIntakeScreen';
-import type { IntakeInput } from '@/features/intake/hooks/useListingIntake';
+import { ListingIntakeScreen } from '@/features/intake';
+import type { IntakeInput } from '@/features/intake';
 
 const EMPTY_INPUT: IntakeInput = { mode: 'text', text: '', url: '' };
 

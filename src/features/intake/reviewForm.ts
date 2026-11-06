@@ -4,7 +4,7 @@ import {
   ApplicationInputSchema,
   type ApplicationFormValues,
   type ApplicationInput,
-} from '@/features/applications/schema';
+} from '@/features/applications/model';
 import type { DraftId } from '@/lib/ids';
 import { err, ok, type Result } from '@/lib/result';
 

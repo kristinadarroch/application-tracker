@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { Banner, Button, Screen, Stack, Text, TextField } from '@/design-system';
-import { applicationAdded } from '@/features/applications/slice';
+import { applicationAdded } from '@/features/applications/model';
 import { ApplicationIdSchema, createId } from '@/lib/ids';
 import { useAppDispatch } from '@/store/hooks';
 

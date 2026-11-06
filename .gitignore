@@ -48,3 +48,4 @@ example
 
 # Tests
 coverage/
+e2e/artifacts/

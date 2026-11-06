@@ -1,1 +1,1 @@
-export { PrepQuestionsScreen as default } from '@/features/prep/screens/PrepQuestionsScreen';
+export { PrepQuestionsScreen as default } from '@/features/prep';

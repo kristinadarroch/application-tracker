@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Button, Card, Chip, Stack, Text, TextField } from '@/design-system';
-import { NextStepInputSchema, type NextStepInput } from '@/features/applications/schema';
+import { NextStepInputSchema, type NextStepInput } from '@/features/applications/model';
 import { addDays, formatDueDate, toIsoDate } from '@/lib/dates';
 import type { ApplicationId } from '@/lib/ids';
 

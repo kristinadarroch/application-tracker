@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, SectionList, View } from 'react-native';
 
 import { Button, EmptyState, IconButton, makeStyles, Screen, Stack } from '@/design-system';
-import { DraftsBanner } from '@/features/intake/components/DraftsBanner';
+import { DraftsBanner } from '@/features/intake';
 import { STAGES, type Stage } from '@/lib/stage';
 import { useAppSelector } from '@/store/hooks';
 

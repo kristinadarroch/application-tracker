@@ -4,8 +4,8 @@ import { Provider } from 'react-redux';
 import type { z } from 'zod';
 
 import { ThemeProvider } from '@/design-system';
-import type { Application } from '@/features/applications/schema';
-import { applicationsAdapter } from '@/features/applications/slice';
+import type { Application } from '@/features/applications/model';
+import { applicationsAdapter } from '@/features/applications/model';
 import { ApplicationIdSchema } from '@/lib/ids';
 import type { AppError } from '@/lib/errors';
 import type { Result } from '@/lib/result';

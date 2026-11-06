@@ -2,8 +2,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { Banner, Button, Card, ErrorState, Screen, Stack, Text, TextField } from '@/design-system';
-import type { Application } from '@/features/applications/schema';
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import type { Application } from '@/features/applications/model';
+import { selectAiAvailability } from '@/features/capabilities';
 import { createId, QuestionIdSchema } from '@/lib/ids';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 

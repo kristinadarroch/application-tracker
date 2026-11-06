@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Banner, Button, Card, ErrorState, Screen, Skeleton, Stack, Text } from '@/design-system';
-import { selectAiAvailability } from '@/features/capabilities/slice';
+import { selectAiAvailability } from '@/features/capabilities';
 import { assertNever } from '@/lib/assertNever';
 import { describeError, type AppError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';

@@ -1,8 +1,8 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
 
-import type { Application } from '@/features/applications/schema';
-import { selectApplicationById } from '@/features/applications/selectors';
+import type { Application } from '@/features/applications/model';
+import { selectApplicationById } from '@/features/applications/model';
 import type { AppError } from '@/lib/errors';
 import { ApplicationIdSchema } from '@/lib/ids';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';

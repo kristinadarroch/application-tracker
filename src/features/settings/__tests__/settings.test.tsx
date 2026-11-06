@@ -1,7 +1,7 @@
 import { fireEvent, screen } from 'expo-router/testing-library';
 
-import { selectAllApplications } from '@/features/applications/selectors';
-import { renderApp } from '@/features/applications/testing/renderApp';
+import { selectAllApplications } from '@/features/applications/model';
+import { renderApp } from '@/test/renderApp';
 
 import { selectAiReplay, selectThemePreference } from '../slice';
 

@@ -1,4 +1,4 @@
-import { applicationRemoved } from '@/features/applications/slice';
+import { applicationRemoved } from '@/features/applications/model';
 import { ApplicationIdSchema, QuestionIdSchema, SessionIdSchema } from '@/lib/ids';
 import { makeStore } from '@/store/store';
 
