@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { IsoDateSchema } from '@/lib/dates';
+import { endOfDueDate, IsoDateSchema, toIsoDate } from '@/lib/dates';
 import { ApplicationIdSchema, MessageIdSchema, NextStepIdSchema } from '@/lib/ids';
 import { StageSchema } from '@/lib/stage';
 
@@ -49,7 +49,7 @@ export const ApplicationInputSchema = z.object({
     'Enter a link that starts with http:// or https://',
   ),
   stage: StageSchema,
-  notes: z.string(),
+  notes: z.string().trim(),
   requirements: z.array(z.string()),
 });
 export type ApplicationFormValues = z.input<typeof ApplicationInputSchema>;
@@ -57,6 +57,10 @@ export type ApplicationInput = z.output<typeof ApplicationInputSchema>;
 
 export const NextStepInputSchema = z.object({
   title: z.string().trim().min(1, 'Add a title'),
-  dueDate: IsoDateSchema,
+  /** The regex alone accepts dates like 2026-02-31; round-tripping through `Date` rejects them. */
+  dueDate: IsoDateSchema.refine(
+    (value) => toIsoDate(endOfDueDate(value)) === value,
+    'Enter a real date',
+  ),
 });
 export type NextStepInput = z.infer<typeof NextStepInputSchema>;

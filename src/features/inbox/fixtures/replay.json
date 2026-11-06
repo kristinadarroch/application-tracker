@@ -1,0 +1,52 @@
+{
+  "msg_fixture_acme_invite": {
+    "matchedCompany": "Acme Health",
+    "category": "interview_invite",
+    "confidence": "high",
+    "nextStepTitle": "Book technical interview",
+    "dueInDays": 2
+  },
+  "msg_fixture_newsletter": {
+    "matchedCompany": "none",
+    "category": "unrelated",
+    "confidence": "high"
+  },
+  "msg_fixture_northwind_schedule": {
+    "matchedCompany": "Northwind Labs",
+    "category": "scheduling",
+    "confidence": "high",
+    "nextStepTitle": "Schedule intro call with hiring manager",
+    "dueInDays": 3
+  },
+  "msg_fixture_initech_rejection": {
+    "matchedCompany": "none",
+    "category": "rejection",
+    "confidence": "high"
+  },
+  "msg_fixture_recruiter_followup": {
+    "matchedCompany": "Globex",
+    "category": "recruiter_followup",
+    "confidence": "low",
+    "nextStepTitle": "Send resume and call times to recruiter",
+    "dueInDays": 2
+  },
+  "msg_fixture_receipt": {
+    "matchedCompany": "none",
+    "category": "unrelated",
+    "confidence": "high"
+  },
+  "msg_fixture_northwind_takehome": {
+    "matchedCompany": "Northwind Labs",
+    "category": "take_home",
+    "confidence": "high",
+    "nextStepTitle": "Submit take-home assignment",
+    "dueInDays": 5
+  },
+  "msg_fixture_acme_offer": {
+    "matchedCompany": "Acme Health",
+    "category": "offer",
+    "confidence": "high",
+    "nextStepTitle": "Respond to offer",
+    "dueInDays": 4
+  }
+}

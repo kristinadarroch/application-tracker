@@ -4,11 +4,14 @@ import { useColorScheme, View } from 'react-native';
 
 import {
   Badge,
+  Banner,
   Button,
+  Chip,
   Card,
   EmptyState,
   ErrorState,
   IconButton,
+  ListItem,
   makeStyles,
   Screen,
   Skeleton,
@@ -19,6 +22,7 @@ import {
   ThemeProvider,
   useTheme,
   type BadgeTone,
+  type BannerTone,
   type ButtonVariant,
   type ColorScheme,
   type IconButtonVariant,
@@ -40,6 +44,7 @@ const TEXT_COLORS: TextColor[] = ['primary', 'secondary', 'tertiary', 'link'];
 const BUTTON_VARIANTS: ButtonVariant[] = ['primary', 'secondary', 'ghost', 'destructive'];
 const ICON_VARIANTS: IconButtonVariant[] = ['primary', 'secondary', 'ghost'];
 const BADGE_TONES: BadgeTone[] = ['neutral', 'info', 'success', 'warning', 'danger'];
+const BANNER_TONES: BannerTone[] = ['neutral', 'info', 'success', 'warning', 'danger'];
 
 const noop = () => undefined;
 
@@ -183,6 +188,7 @@ function ScaleTokens() {
 
 function Components() {
   const [text, setText] = useState('');
+  const [chip, setChip] = useState('Today');
   return (
     <>
       <Section title="Button">
@@ -243,6 +249,42 @@ function Components() {
           {BADGE_TONES.map((tone) => (
             <Badge key={tone} tone={tone} label={tone} />
           ))}
+        </Stack>
+      </Section>
+      <Section title="ListItem">
+        <Card>
+          <ListItem title="Acme Health" subtitle="Senior React Native Engineer" onPress={noop} />
+          <ListItem
+            title="Northwind Labs"
+            subtitle="Frontend Engineer (React)"
+            trailing={<StagePill stage="applied" />}
+            onPress={noop}
+          />
+          <ListItem title="Static row" subtitle="Not pressable" />
+        </Card>
+      </Section>
+      <Section title="Banner">
+        {BANNER_TONES.map((tone) => (
+          <Banner
+            key={tone}
+            tone={tone}
+            title={`${tone} banner`}
+            body="Supporting text explains what happened."
+            {...(tone === 'danger' ? { action: { label: 'Try again', onPress: noop } } : {})}
+          />
+        ))}
+      </Section>
+      <Section title="Chip">
+        <Stack direction="row" gap={2} wrap="wrap">
+          {['Today', 'Tomorrow', 'Next week'].map((label) => (
+            <Chip
+              key={label}
+              label={label}
+              selected={chip === label}
+              onPress={() => setChip(label)}
+            />
+          ))}
+          <Chip label="Offer" icon="trophy-outline" onPress={noop} />
         </Stack>
       </Section>
       <Section title="Skeleton">

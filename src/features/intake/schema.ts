@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { DraftIdSchema } from '@/lib/ids';
+
 /**
  * What the on-device model extracts from a job listing.
  * Optional fields use `.optional()` because the model can't emit `null` for required fields.
@@ -13,3 +15,29 @@ export const ListingExtractionSchema = z.object({
 });
 
 export type ListingExtraction = z.infer<typeof ListingExtractionSchema>;
+
+/** How the Job Listing reached the app. */
+export const DraftSourceSchema = z.enum(['pasted_text', 'pasted_url', 'shared']);
+export type DraftSource = z.infer<typeof DraftSourceSchema>;
+
+/** AI-extracted Application details that the user has not yet confirmed (INT-4). */
+export const ApplicationDraftSchema = z.object({
+  id: DraftIdSchema,
+  source: DraftSourceSchema,
+  listingUrl: z.string().optional(),
+  /** Exactly what was sent to the model, after cleanup and trimming. */
+  sourceText: z.string(),
+  /** Starts as the model's output; the review screen saves the user's edits here. */
+  extraction: ListingExtractionSchema,
+  /** The user's own notes, typed during review. */
+  notes: z.string(),
+  /** The listing was cut to fit the model's context window (INT-5). */
+  trimmed: z.boolean(),
+  createdAt: z.string(),
+});
+export type ApplicationDraft = z.infer<typeof ApplicationDraftSchema>;
+
+/** What the user asks intake to read: listing text, or a link to fetch first. */
+export type ListingRequest =
+  | { kind: 'text'; text: string; source: DraftSource; listingUrl?: string }
+  | { kind: 'url'; url: string; source: DraftSource };

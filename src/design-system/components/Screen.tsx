@@ -3,11 +3,14 @@ import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { makeStyles } from '../theme/makeStyles';
+import { IconButton } from './IconButton';
 import { Text } from './Text';
 
 export interface ScreenProps {
   title?: string;
   headerRight?: ReactNode;
+  /** Renders a "Back" button at the start of the header row. */
+  onBack?: () => void;
   scroll?: boolean;
   children: ReactNode;
 }
@@ -29,12 +32,15 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /** Safe-area aware screen shell. The title is rendered as a header for screen readers. */
-export function Screen({ title, headerRight, scroll = false, children }: ScreenProps) {
+export function Screen({ title, headerRight, onBack, scroll = false, children }: ScreenProps) {
   const styles = useStyles();
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      {title !== undefined || headerRight !== undefined ? (
+      {title !== undefined || headerRight !== undefined || onBack !== undefined ? (
         <View style={styles.header}>
+          {onBack !== undefined ? (
+            <IconButton icon="chevron-back" accessibilityLabel="Back" onPress={onBack} />
+          ) : null}
           <View style={styles.titleWrap}>
             {title !== undefined ? <Text variant="title">{title}</Text> : null}
           </View>

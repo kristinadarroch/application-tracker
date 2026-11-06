@@ -2,7 +2,7 @@
 
 A React Native + TypeScript app for tracking job applications from first listing to offer. AI turns messy inputs (a shared job listing, a recruiter email) into typed, validated data and helps you prepare for interviews.
 
-> **Status:** spec phase. No app code yet. The specs in `docs/` are the source of truth for the build.
+> **Status:** in active development. The specs in `docs/` are the source of truth; build progress is tracked in [`docs/features.md`](docs/features.md).
 
 ## The brief → the architecture
 
@@ -36,8 +36,33 @@ Share a job listing into the app (or paste it). AI extracts the company, role, l
 
 ## Stack
 
-Expo SDK 58 (dev build) · TypeScript (strict) · Expo Router · Redux Toolkit + RTK Query · redux-persist + AsyncStorage · Zod · Apple Foundation Models on-device (iOS) through a community library behind a TypeScript adapter · Jest + React Native Testing Library
+Expo SDK 58 (dev build) · React Native 0.88 · TypeScript 6 (strict) · Expo Router · Redux Toolkit + RTK Query · redux-persist + AsyncStorage · Zod · Apple Foundation Models on-device through `@react-native-ai/apple` behind a TypeScript adapter · Jest + React Native Testing Library
 
 ## Getting started
 
-Setup steps will be added with the scaffold (tier 0 in [`docs/features.md`](docs/features.md)).
+### Requirements
+
+| Tool | Version used |
+|---|---|
+| Node | 24 |
+| Xcode | 27 (iOS 27 Simulator) |
+| Android Studio | SDK 36 emulator, JDK 17 |
+| Mac | Apple silicon with Apple Intelligence turned on (the iOS Simulator uses the Mac's on-device model) |
+
+### Run
+
+1. `npm install`
+2. `npm run ios` — builds the dev client and opens the iOS Simulator (first build takes about 6 minutes).
+3. `npm run android` — builds the dev client for the Android emulator (first build takes about 10 minutes). AI features are switched off on Android by design.
+4. `npm start` — starts Metro for later sessions once a dev build is installed.
+5. In the app: **Settings → Load demo data** (development builds only) adds three sample applications for the demo.
+
+This app uses native modules (share extension, on-device AI), so it needs a development build; Expo Go can't run it.
+
+### Check
+
+`npm run check` runs the typecheck, ESLint, and Jest. CI runs the same plus a Prettier check on every push.
+
+### Optional: Gmail
+
+The inbox runs on sample emails by default ([ADR 0002](docs/adr/0002-mock-email-source-behind-interface.md)). To try a real inbox, create Google OAuth client IDs (iOS and Android) with the `gmail.readonly` scope, add yourself as a test user, and set `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` and `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` in `.env.local` before building.

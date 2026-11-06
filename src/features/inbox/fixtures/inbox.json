@@ -1,0 +1,66 @@
+[
+  {
+    "id": "msg_fixture_acme_invite",
+    "from": "priya.shah@acmehealth.com",
+    "fromName": "Priya Shah",
+    "subject": "Interview invitation: Senior React Native Engineer",
+    "receivedAt": "2026-11-02T15:04:00.000Z",
+    "bodyText": "Hi,\n\nThanks for applying to the Senior React Native Engineer role at Acme Health. The team enjoyed your application and we'd like to invite you to a 45-minute technical interview with our mobile lead.\n\nPlease book a slot in the next couple of days using the link below so we can keep things moving:\nhttps://calendly.com/acmehealth-mobile/technical-interview\n\nThe interview covers React Native architecture, TypeScript, and a short pairing exercise. No preparation needed beyond your usual setup.\n\nBest,\nPriya Shah\nTalent Partner, Acme Health"
+  },
+  {
+    "id": "msg_fixture_newsletter",
+    "from": "digest@devweekly.io",
+    "fromName": "Dev Weekly",
+    "subject": "Dev Weekly #212: React Compiler in production, Expo SDK news",
+    "receivedAt": "2026-11-02T17:30:00.000Z",
+    "bodyText": "This week in mobile and web:\n\n- How three teams rolled out the React Compiler\n- What's new in the latest Expo SDK\n- A deep dive into Hermes memory profiling\n\nSponsored: Ship faster with CloudCI.\n\nYou're receiving this because you subscribed at devweekly.io. Unsubscribe anytime."
+  },
+  {
+    "id": "msg_fixture_northwind_schedule",
+    "from": "recruiting@northwindlabs.com",
+    "fromName": "Northwind Labs Recruiting",
+    "subject": "Next steps for Frontend Engineer (React)",
+    "receivedAt": "2026-11-03T09:12:00.000Z",
+    "bodyText": "Hello,\n\nThank you for applying for the Frontend Engineer (React) position at Northwind Labs. We'd like to set up a 30-minute introductory call with our hiring manager, Marcus.\n\nPlease choose a time that works for you within the next 3 days: https://northwindlabs.com/schedule/fe-intro\n\nLooking forward to speaking with you,\nJordan Lee\nNorthwind Labs Recruiting"
+  },
+  {
+    "id": "msg_fixture_initech_rejection",
+    "from": "no-reply@initech.com",
+    "fromName": "Initech Careers",
+    "subject": "Your application to Initech",
+    "receivedAt": "2026-11-03T14:45:00.000Z",
+    "bodyText": "Dear candidate,\n\nThank you for your interest in the Software Engineer, Mobile position at Initech. After careful review, we have decided to move forward with other candidates whose experience more closely matches our current needs.\n\nWe appreciate the time you invested and encourage you to apply for future openings.\n\nKind regards,\nInitech Talent Acquisition"
+  },
+  {
+    "id": "msg_fixture_recruiter_followup",
+    "from": "dana.ruiz@talentbridge.io",
+    "fromName": "Dana Ruiz",
+    "subject": "Following up on the NYC mobile role",
+    "receivedAt": "2026-11-04T10:20:00.000Z",
+    "bodyText": "Hi there,\n\nFollowing up on my note from last week about the mobile engineering role with my client, a media company in New York. They're keen to move quickly and the hiring manager liked your React Native background.\n\nCould you send me your updated resume and a couple of times for a quick call this week?\n\nThanks,\nDana Ruiz\nSenior Recruiter, TalentBridge"
+  },
+  {
+    "id": "msg_fixture_receipt",
+    "from": "receipts@bluebottle-coffee.com",
+    "fromName": "Bluebottle Coffee",
+    "subject": "Your receipt from Bluebottle Coffee",
+    "receivedAt": "2026-11-04T12:02:00.000Z",
+    "bodyText": "Thanks for your order!\n\n1 x Oat latte (large)  $6.25\n1 x Almond croissant  $4.50\nTax  $0.89\nTotal  $11.64\n\nPaid with Visa ending 4242. Questions? Reply to this email."
+  },
+  {
+    "id": "msg_fixture_northwind_takehome",
+    "from": "jordan.lee@northwindlabs.com",
+    "fromName": "Jordan Lee",
+    "subject": "Northwind Labs take-home assignment",
+    "receivedAt": "2026-11-04T16:40:00.000Z",
+    "bodyText": "Hi,\n\nGreat speaking with you! As discussed, the next step for the Frontend Engineer (React) role is a short take-home assignment: build a small React app that searches and filters a product catalog.\n\nThe brief and starter repo are here: https://github.com/northwindlabs/fe-take-home\n\nPlease submit your solution within 5 days. Plan for about 3 hours of work.\n\nBest,\nJordan Lee\nNorthwind Labs"
+  },
+  {
+    "id": "msg_fixture_acme_offer",
+    "from": "priya.shah@acmehealth.com",
+    "fromName": "Priya Shah",
+    "subject": "Offer: Senior React Native Engineer at Acme Health",
+    "receivedAt": "2026-11-05T11:15:00.000Z",
+    "bodyText": "Hi,\n\nCongratulations! Following your final interviews, we're delighted to offer you the Senior React Native Engineer position at Acme Health.\n\nThe written offer letter with salary, equity, and benefits details is attached. Please review it and let us know your decision within 4 days. Happy to set up a call with the hiring manager if you have questions.\n\nWarmly,\nPriya Shah\nTalent Partner, Acme Health"
+  }
+]

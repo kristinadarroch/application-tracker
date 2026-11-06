@@ -1,10 +1,14 @@
-import { EmptyState, Screen } from '@/design-system';
+import { router } from 'expo-router';
 
-/** Placeholder owned by the inbox feature (INBX-1). */
-export default function InboxScreen() {
+import { InboxScreen } from '@/features/inbox/components/InboxScreen';
+
+export default function InboxRoute() {
   return (
-    <Screen title="Inbox">
-      <EmptyState icon="mail-outline" title="Inbox" body="Coming in tier 4." />
-    </Screen>
+    <InboxScreen
+      onOpenMessage={(messageId) =>
+        router.push({ pathname: '/inbox/[messageId]', params: { messageId } })
+      }
+      onOpenGmailSettings={() => router.push('/inbox/connect-gmail')}
+    />
   );
 }

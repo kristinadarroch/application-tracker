@@ -1,15 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { combineSlices, configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import {
-  FLUSH,
-  PAUSE,
-  PERSIST,
-  persistReducer,
-  persistStore,
-  PURGE,
-  REGISTER,
-  REHYDRATE,
-} from 'redux-persist';
+  combineSlices,
+  configureStore,
+  type EnhancedStore,
+  type ThunkDispatch,
+  type UnknownAction,
+} from '@reduxjs/toolkit';
 
 import { applicationsSlice, type ApplicationsState } from '@/features/applications/slice';
 import { capabilitiesSlice, type CapabilitiesState } from '@/features/capabilities/slice';
@@ -39,37 +34,25 @@ export const rootReducer = combineSlices(
   aiApi,
 );
 
-const persistedReducer = persistReducer<RootState>(
-  {
-    key: 'root',
-    version: 1,
-    storage: AsyncStorage,
-    // `capabilities` is re-checked at launch and `aiApi` is a request cache: neither is restored.
-    whitelist: [
-      settingsSlice.reducerPath,
-      applicationsSlice.reducerPath,
-      draftsSlice.reducerPath,
-      inboxSlice.reducerPath,
-      prepSlice.reducerPath,
-    ],
-  },
-  rootReducer,
-);
+/** Slices restored on launch. `capabilities` is re-checked and `aiApi` is a request cache. */
+export const PERSISTED_SLICES = [
+  settingsSlice.reducerPath,
+  applicationsSlice.reducerPath,
+  draftsSlice.reducerPath,
+  inboxSlice.reducerPath,
+  prepSlice.reducerPath,
+];
 
-export const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefault) =>
-    getDefault({
-      // redux-persist dispatches non-serializable actions by design.
-      serializableCheck: { ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER] },
-    }).concat(aiApi.middleware),
-});
-export const persistor = persistStore(store);
+/** Dispatch with thunk support (RTK's default middleware). */
+export type AppDispatch = ThunkDispatch<RootState, unknown, UnknownAction>;
 
-/** Store type returned by `makeStore`, for tests and previews. */
-export type TestStore = EnhancedStore<RootState>;
+/** Store shape for tests and previews. */
+export type TestStore = Omit<EnhancedStore<RootState>, 'dispatch'> & { dispatch: AppDispatch };
 
-/** Unpersisted store for tests and previews. */
+/**
+ * Unpersisted store for tests and previews. The app's persisted singleton lives in
+ * `appStore.ts`, so importing this module never starts redux-persist.
+ */
 export function makeStore(preloadedState?: Partial<RootState>): TestStore {
   return configureStore({
     reducer: rootReducer,
@@ -77,6 +60,3 @@ export function makeStore(preloadedState?: Partial<RootState>): TestStore {
     middleware: (getDefault) => getDefault().concat(aiApi.middleware),
   });
 }
-
-export type AppStore = typeof store;
-export type AppDispatch = AppStore['dispatch'];

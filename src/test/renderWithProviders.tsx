@@ -10,8 +10,11 @@ interface Options extends Omit<RenderOptions, 'wrapper'> {
   store?: TestStore;
 }
 
-/** Renders with a fresh, unpersisted store and the light theme. Returns the store for assertions. */
-export function renderWithProviders(ui: ReactElement, options: Options = {}) {
+/**
+ * Renders with a fresh, unpersisted store and the light theme. RNTL 14's `render`
+ * is async, so callers `await renderWithProviders(...)`. Returns the store for assertions.
+ */
+export async function renderWithProviders(ui: ReactElement, options: Options = {}) {
   const { preloadedState, store = makeStore(preloadedState), ...renderOptions } = options;
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -20,5 +23,6 @@ export function renderWithProviders(ui: ReactElement, options: Options = {}) {
       </Provider>
     );
   }
-  return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
+  const result = await render(ui, { wrapper: Wrapper, ...renderOptions });
+  return { store, ...result };
 }

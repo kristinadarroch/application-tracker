@@ -72,6 +72,9 @@
       "/node_modules/",
       "/ios/",
       "/android/"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-native-ai)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|immer|react-redux|@reduxjs/toolkit|redux|reselect|redux-thunk|redux-persist|ai|@ai-sdk/.*|standard-navigation)"
     ]
   }
 }

@@ -64,8 +64,22 @@ export const selectUpcomingNextSteps = createSelector(
   },
 );
 
-/** Applications that have at least one urgent open Next Step (warning badge on the pipeline card). */
-export const selectUrgentApplicationIds = createSelector(
+/** Soonest urgent open Next Step per application; drives the pipeline card's warning badge (PIPE-6). */
+export const selectUrgentNextStepByApplication = createSelector(
   [selectUpcomingNextSteps],
-  (upcoming) => new Set(upcoming.filter((item) => item.urgent).map((item) => item.applicationId)),
+  (upcoming): ReadonlyMap<ApplicationId, NextStep> => {
+    const byApplication = new Map<ApplicationId, NextStep>();
+    for (const item of upcoming) {
+      if (item.urgent && !byApplication.has(item.applicationId)) {
+        byApplication.set(item.applicationId, item.step);
+      }
+    }
+    return byApplication;
+  },
+);
+
+/** Applications that have at least one urgent open Next Step. */
+export const selectUrgentApplicationIds = createSelector(
+  [selectUrgentNextStepByApplication],
+  (byApplication): ReadonlySet<ApplicationId> => new Set(byApplication.keys()),
 );

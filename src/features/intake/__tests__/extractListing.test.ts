@@ -1,0 +1,148 @@
+import { err, ok } from '@/lib/result';
+
+import { extractListing } from '../extractListing';
+import { createFakeModel } from '../testing/fakeModel';
+import { ACME_EXTRACTION, LISTING_PAGE_HTML, LISTING_TEXT } from '../testing/fixtures';
+
+const NOW = new Date('2026-11-05T12:00:00.000Z');
+
+describe('extractListing', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('turns pasted text into an Application Draft (INT-2)', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok({ ...ACME_EXTRACTION, company: '  Acme Health ', location: '' });
+
+    const result = await extractListing(
+      model,
+      { kind: 'text', text: LISTING_TEXT, source: 'pasted_text' },
+      { now: NOW },
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        status: 'drafted',
+        draft: {
+          id: expect.stringMatching(/^draft_/),
+          source: 'pasted_text',
+          sourceText: LISTING_TEXT,
+          extraction: {
+            company: 'Acme Health',
+            role: 'Senior React Native Engineer',
+            salary: '$150,000 - $180,000',
+            requirements: ['5+ years React Native', 'TypeScript', 'Redux Toolkit'],
+          },
+          notes: '',
+          trimmed: false,
+          createdAt: NOW.toISOString(),
+        },
+      },
+    });
+    expect(model.prompts[0]).toContain('Acme Health is hiring');
+  });
+
+  it('keeps a link that came with pasted text', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok(ACME_EXTRACTION);
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: LISTING_TEXT,
+      source: 'pasted_text',
+      listingUrl: 'https://acme.example/jobs/42',
+    });
+    expect(result.ok && result.value.status === 'drafted' && result.value.draft.listingUrl).toBe(
+      'https://acme.example/jobs/42',
+    );
+  });
+
+  it('fetches a link, sends the page text, and stores the link (INT-3)', async () => {
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(LISTING_PAGE_HTML, { headers: { 'content-type': 'text/html' } }),
+      );
+    const model = createFakeModel();
+    model.nextResult = ok(ACME_EXTRACTION);
+
+    const result = await extractListing(model, {
+      kind: 'url',
+      url: 'https://acme.example/jobs/42',
+      source: 'shared',
+    });
+
+    expect(result.ok && result.value.status === 'drafted' && result.value.draft).toMatchObject({
+      source: 'shared',
+      listingUrl: 'https://acme.example/jobs/42',
+    });
+    expect(model.prompts[0]).toContain('5+ years of React Native');
+    expect(model.prompts[0]).not.toContain('All jobs');
+  });
+
+  it('does not call the model when the page can’t be read', async () => {
+    jest.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Network request failed'));
+    const model = createFakeModel();
+
+    const result = await extractListing(model, {
+      kind: 'url',
+      url: 'https://acme.example/jobs/42',
+      source: 'pasted_url',
+    });
+
+    expect(result).toEqual({ ok: false, error: { kind: 'network' } });
+    expect(model.prompts).toHaveLength(0);
+  });
+
+  it('reports a missing company or role instead of making a draft', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok({ ...ACME_EXTRACTION, company: '   ' });
+
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: 'We are hiring a Senior React Native Engineer.',
+      source: 'pasted_text',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        status: 'missing_company_or_role',
+        extraction: expect.objectContaining({ company: '', role: 'Senior React Native Engineer' }),
+        sourceText: 'We are hiring a Senior React Native Engineer.',
+      },
+    });
+  });
+
+  it('passes model errors through unchanged', async () => {
+    const model = createFakeModel();
+    model.nextResult = err({ kind: 'invalid_response', issues: ['company: expected string'] });
+
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: LISTING_TEXT,
+      source: 'pasted_text',
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      error: { kind: 'invalid_response', issues: ['company: expected string'] },
+    });
+  });
+
+  it('trims a listing that doesn’t fit the context window and marks the draft (INT-5)', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok(ACME_EXTRACTION);
+    const longListing = `${LISTING_TEXT}\n${'Responsibilities include shipping features. '.repeat(400)}`;
+
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: longListing,
+      source: 'pasted_text',
+    });
+
+    if (!result.ok || result.value.status !== 'drafted') throw new Error('expected a draft');
+    expect(result.value.draft.trimmed).toBe(true);
+    expect(result.value.draft.sourceText.length).toBeLessThan(longListing.length);
+    expect(result.value.draft.sourceText.startsWith('Acme Health is hiring')).toBe(true);
+  });
+});
