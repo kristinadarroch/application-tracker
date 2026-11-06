@@ -2,10 +2,10 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- tapOn: Settings
+- tapOn: Open settings
 - tapOn: Load demo data
 - tapOn: Back
-- tapOn: Inbox
+- tapOn: 'Inbox.*'
 - assertVisible: No messages yet
 # INBX-6: deliver the first sample email (Acme Health interview invite)
 - tapOn: Receive next email
@@ -13,16 +13,20 @@ appId: dev.kristinadarroch.applicationtracker
     notVisible: '.*Analyzing.*'
     timeout: 60000
 - takeScreenshot: e2e/artifacts/inbox-01-triaged
-- tapOn: '.*Acme Health.*'
+- waitForAnimationToEnd
+- tapOn: 'Interview invitation.*'
 # INBX-2: proposal linked to the application, accept adds the Next Step
-- assertVisible: '.*Next Step proposed.*'
+- extendedWaitUntil:
+    visible: Proposed Next Step
+    timeout: 10000
+- assertVisible: '.*Acme Health.*'
 - takeScreenshot: e2e/artifacts/inbox-02-proposal
 - scrollUntilVisible:
     element: Accept
 - tapOn: Accept
 - assertVisible: '.*Next Step added.*'
 - tapOn: Back
-- tapOn: Pipeline
+- tapOn: 'Pipeline.*'
 - tapOn: '.*Acme Health.*'
 - scrollUntilVisible:
     element: Add Next Step

@@ -2,7 +2,7 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- tapOn: Settings
+- tapOn: Open settings
 - assertVisible: AI isn’t available
 - tapOn: Load demo data
 - tapOn: Back
@@ -23,13 +23,13 @@ appId: dev.kristinadarroch.applicationtracker
 
 # Inbox: tag manually instead of analysis
 - tapOn: Back
-- tapOn: Inbox
+- tapOn: 'Inbox.*'
 - tapOn: Receive next email
 - assertVisible: '.*Tag manually.*'
 - takeScreenshot: e2e/artifacts/android-03-inbox
 
 # Prep: reason instead of Generate, existing data still viewable
-- tapOn: Prep
+- tapOn: 'Prep.*'
 - tapOn: '.*Acme Health.*'
 - assertVisible: '.*Apple Intelligence.*'
 - assertNotVisible: Generate prep questions

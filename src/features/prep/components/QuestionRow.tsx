@@ -31,6 +31,7 @@ export function QuestionRow({ question, onToggle }: QuestionRowProps) {
   const practiced = question.practiced;
   return (
     <Pressable
+      testID="prep-question"
       accessibilityRole="checkbox"
       accessibilityLabel={question.text}
       accessibilityState={{ checked: practiced }}

@@ -10,13 +10,49 @@ appId: dev.kristinadarroch.applicationtracker
       visible: Open
     commands:
       - tapOn: Open
+# Android's dev launcher can ignore the link and list servers instead; pick the local one.
+- runFlow:
+    when:
+      visible: DEVELOPMENT SERVERS
+    commands:
+      - tapOn: '.*:8081.*'
 - extendedWaitUntil:
-    visible: Pipeline
+    visible: 'Pipeline|Continue|Go home'
     timeout: 60000
-# A dev client may show its developer menu on first launch; close it.
+# The developer menu slides in after the app renders; let it finish before checking for it.
+- waitForAnimationToEnd:
+    timeout: 5000
+# A dev client may show its developer menu on first launch (onboarding on Android); close it.
+- runFlow:
+    when:
+      visible: Continue
+    commands:
+      - tapOn: Continue
+      # Continue swaps the onboarding sheet for the full developer menu.
+      - waitForAnimationToEnd:
+          timeout: 5000
 - runFlow:
     when:
       visible: Go home
+      platform: iOS
     commands:
       - tapOn:
           point: 90%,49%
+- runFlow:
+    when:
+      visible: Go home
+      platform: Android
+    commands:
+      - tapOn: Close
+- extendedWaitUntil:
+    visible: Pipeline
+    timeout: 15000
+# Android's dev client draws a floating menu button over the top-right header action; drag it down.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - swipe:
+          start: 90%,7%
+          end: 90%,62%
+          duration: 600

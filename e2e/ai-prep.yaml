@@ -2,7 +2,7 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- tapOn: Settings
+- tapOn: Open settings
 - tapOn: Load demo data
 - tapOn: Back
 - tapOn: '.*Acme Health.*'
@@ -15,9 +15,10 @@ appId: dev.kristinadarroch.applicationtracker
     timeout: 90000
 - takeScreenshot: e2e/artifacts/prep-01-questions
 # PREP-2: mark the first behavioral question practiced
+- waitForAnimationToEnd
 - tapOn:
-    text: '.+'
-    below: Behavioral
+    id: prep-question
+    index: 0
 - assertVisible: '1 / .* practiced'
 - tapOn: Back
 # MOCK-1 / MOCK-2

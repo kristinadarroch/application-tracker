@@ -5,7 +5,7 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible: No applications yet # PIPE-1 empty state
 
 # UX-1 / demo data
-- tapOn: Settings
+- tapOn: Open settings
 - tapOn: Load demo data
 - tapOn: Dark
 - takeScreenshot: e2e/artifacts/pipeline-01-settings-dark

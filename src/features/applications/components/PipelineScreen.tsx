@@ -56,7 +56,7 @@ export function PipelineScreen() {
       />
       <IconButton
         icon="settings-outline"
-        accessibilityLabel="Settings"
+        accessibilityLabel="Open settings"
         onPress={() => router.push('/settings')}
       />
     </Stack>

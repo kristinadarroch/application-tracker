@@ -1,7 +1,7 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- tapOn: Settings
+- tapOn: Open settings
 - scrollUntilVisible:
     element: 'AI spike.*'
 - tapOn: 'AI spike.*'

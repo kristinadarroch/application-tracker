@@ -8,7 +8,7 @@ import { selectAiReplay, selectThemePreference } from '../slice';
 describe('Settings', () => {
   it('opens from the pipeline header', async () => {
     const { getPathname } = await renderApp('/');
-    await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Open settings' }));
     expect(getPathname()).toBe('/settings');
   });
 
