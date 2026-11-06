@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text as RNText } from 'react-native';
 
 import { makeStyles } from '../theme/makeStyles';
+import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import type { IconName } from './icons';
 
@@ -44,6 +45,7 @@ export function Chip({ label, selected = false, onPress, icon, accessibilityHint
   const styles = useStyles();
   const theme = useTheme();
   const fg = selected ? theme.color.action.primary.fg : theme.color.text.primary;
+  const iconSize = useScaledIconSize(16, 'bodySmall');
   // A checkmark marks selection without relying on color alone when no icon is given.
   const iconName = icon ?? (selected ? 'checkmark' : undefined);
   return (
@@ -59,7 +61,7 @@ export function Chip({ label, selected = false, onPress, icon, accessibilityHint
         pressed ? (selected ? styles.selectedPressed : styles.pressed) : null,
       ]}
     >
-      {iconName !== undefined ? <Ionicons name={iconName} size={16} color={fg} /> : null}
+      {iconName !== undefined ? <Ionicons name={iconName} size={iconSize} color={fg} /> : null}
       <RNText
         style={selected ? styles.selectedLabel : styles.label}
         maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodySmall}

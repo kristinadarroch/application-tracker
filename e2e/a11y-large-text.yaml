@@ -1,0 +1,67 @@
+# UX-2: key screens at the largest text size. Set the size before running:
+#   iOS:     xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large
+#   Android: adb shell settings put system font_scale 2.0
+# Review the screenshots for clipped or overlapping text.
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- openLink: applicationtracker://settings
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: Settings
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 5000
+# Opening a link can bring the developer menu back; close it before judging layout.
+- runFlow:
+    when:
+      visible: Close
+    commands:
+      - tapOn: Close
+      - waitForAnimationToEnd:
+          timeout: 5000
+- assertNotVisible: Close
+- assertVisible: Theme
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-settings
+- scrollUntilVisible:
+    element: Load demo data
+    timeout: 60000
+    visibilityPercentage: 50
+- tapOn: Load demo data
+- tapOn: Back
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline
+- scrollUntilVisible:
+    element: '.*Acme Health.*'
+    timeout: 60000
+    visibilityPercentage: 30
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline-card-badge
+- tapOn: '.*Acme Health.*'
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-detail
+- scrollUntilVisible:
+    element: Add Next Step
+    timeout: 60000
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-next-steps
+- openLink: applicationtracker://inbox
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: 'Receive next email|No messages yet'
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-inbox
+- openLink: applicationtracker://intake/new
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: Paste text
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-intake

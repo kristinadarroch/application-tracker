@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text as RNText, View } from 'react-native
 import { assertNever } from '@/lib/assertNever';
 
 import { makeStyles } from '../theme/makeStyles';
+import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import type { Theme } from '../theme/theme';
 import type { IconName } from './icons';
@@ -90,6 +91,7 @@ export function Button({
   const styles = useStyles();
   const theme = useTheme();
   const fg = foregroundColor(theme, variant);
+  const iconSize = useScaledIconSize(18, 'bodyStrong');
   const inactive = disabled || loading;
   return (
     <Pressable
@@ -108,7 +110,7 @@ export function Button({
       ]}
     >
       <View style={[styles.content, loading ? styles.hidden : null]}>
-        {icon !== undefined ? <Ionicons name={icon} size={18} color={fg} /> : null}
+        {icon !== undefined ? <Ionicons name={icon} size={iconSize} color={fg} /> : null}
         <RNText
           style={[styles.label, styles[`${variant}Label`]]}
           maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodyStrong}

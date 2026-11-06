@@ -31,19 +31,24 @@ appId: dev.kristinadarroch.applicationtracker
       # Continue swaps the onboarding sheet for the full developer menu.
       - waitForAnimationToEnd:
           timeout: 5000
+# The developer menu's close button is labelled "Close" on both platforms (text wrapping at large
+# sizes breaks matching on its other labels).
 - runFlow:
     when:
-      visible: Go home
-      platform: iOS
+      visible: Close
     commands:
-      - tapOn:
-          point: 90%,49%
+      - tapOn: Close
+      - waitForAnimationToEnd:
+          timeout: 5000
+# On Android at large font scales the close button can be laid out off-screen; Back also dismisses it.
 - runFlow:
     when:
       visible: Go home
       platform: Android
     commands:
-      - tapOn: Close
+      - pressKey: back
+      - waitForAnimationToEnd:
+          timeout: 5000
 - extendedWaitUntil:
     visible: Pipeline
     timeout: 15000
@@ -56,3 +61,5 @@ appId: dev.kristinadarroch.applicationtracker
           start: 90%,7%
           end: 90%,62%
           duration: 600
+- waitForAnimationToEnd:
+    timeout: 5000

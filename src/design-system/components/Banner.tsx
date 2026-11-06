@@ -5,6 +5,7 @@ import { AccessibilityInfo, Text as RNText, View } from 'react-native';
 import { assertNever } from '@/lib/assertNever';
 
 import { makeStyles } from '../theme/makeStyles';
+import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import type { Theme } from '../theme/theme';
 import { Button } from './Button';
@@ -75,6 +76,7 @@ const useStyles = makeStyles((t) => ({
 export function Banner({ tone, title, body, action }: BannerProps) {
   const styles = useStyles();
   const theme = useTheme();
+  const iconSize = useScaledIconSize(20, 'bodyStrong');
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(title);
@@ -87,7 +89,7 @@ export function Banner({ tone, title, body, action }: BannerProps) {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Ionicons name={TONE_ICONS[tone]} size={20} color={iconColor(theme, tone)} />
+        <Ionicons name={TONE_ICONS[tone]} size={iconSize} color={iconColor(theme, tone)} />
       </View>
       <View style={styles.content}>
         <RNText

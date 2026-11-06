@@ -4,6 +4,7 @@ import { Text as RNText, View } from 'react-native';
 import { STAGE_LABELS, type Stage } from '@/lib/stage';
 
 import { makeStyles } from '../theme/makeStyles';
+import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import { STAGE_ICONS } from './icons';
 
@@ -41,6 +42,7 @@ export function StagePill({ stage }: StagePillProps) {
   const styles = useStyles();
   const theme = useTheme();
   const label = STAGE_LABELS[stage];
+  const iconSize = useScaledIconSize(14, 'caption');
   return (
     <View
       accessible
@@ -48,7 +50,7 @@ export function StagePill({ stage }: StagePillProps) {
       accessibilityLabel={`Stage: ${label}`}
       style={[styles.pill, styles[stage]]}
     >
-      <Ionicons name={STAGE_ICONS[stage]} size={14} color={theme.color.stage[stage].fg} />
+      <Ionicons name={STAGE_ICONS[stage]} size={iconSize} color={theme.color.stage[stage].fg} />
       <RNText
         style={[styles.label, styles[`${stage}Fg`]]}
         maxFontSizeMultiplier={theme.maxFontSizeMultiplier.caption}
