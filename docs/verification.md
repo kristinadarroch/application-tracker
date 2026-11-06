@@ -10,7 +10,7 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
-## Latest end-to-end results (2026-11-06, app code at `8b0091d`)
+## Latest end-to-end results (2026-11-06, app code at `8b0091d`, flows at `e7b1e13`)
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
@@ -19,8 +19,8 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 | `ai-prep.yaml` | Failed once (the End tap didn't register right after feedback rendered); flow now waits for the UI to settle, then 2 / 2 pass | — |
 | `ai-inbox.yaml` | Pass | — |
 | `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5) | Pass (font scale 2.0) |
-| `demo.yaml` | Pass, 4 consecutive runs | — |
+| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, run just before the icon-scaling change in `2bd0c9f`) |
+| `demo.yaml` | 4 passes across flow revisions; the current flow passed once | — |
 | `ai-checks.yaml` | 2 / 2 runs, every group "0 failed" | — |
 
 ## Story coverage

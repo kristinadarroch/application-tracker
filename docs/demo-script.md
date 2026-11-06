@@ -31,7 +31,7 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 
 | Date | Result | Wall time (incl. app launch) |
 |---|---|---|
-| 2026-11-06 | Pass, 4 consecutive runs | 106 s, 149 s (first run after a simulator reboot), 109 s; the 4th was not timed separately |
+| 2026-11-06 | 4 passes across flow revisions; the current flow (waits before tapping End) passed once | 106 s, 149 s (first run after a simulator reboot), 109 s; the 4th was not timed separately |
 
 The recorded run (`backup-demo.mov`) is 77 s from demo data loaded to dark mode; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed.
 
