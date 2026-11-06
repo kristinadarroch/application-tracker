@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { combineSlices, configureStore } from '@reduxjs/toolkit';
+import { combineSlices, configureStore, type EnhancedStore } from '@reduxjs/toolkit';
 import {
   FLUSH,
   PAUSE,
@@ -66,8 +66,11 @@ export const store = configureStore({
 });
 export const persistor = persistStore(store);
 
+/** Store type returned by `makeStore`, for tests and previews. */
+export type TestStore = EnhancedStore<RootState>;
+
 /** Unpersisted store for tests and previews. */
-export function makeStore(preloadedState?: Partial<RootState>) {
+export function makeStore(preloadedState?: Partial<RootState>): TestStore {
   return configureStore({
     reducer: rootReducer,
     ...(preloadedState === undefined ? {} : { preloadedState }),
