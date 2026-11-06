@@ -129,42 +129,46 @@ describe('answerMockInterviewTurn', () => {
 });
 
 describe('findReviewQuestions', () => {
-  const reviews = `Three rounds. They asked me to “design an offline sync queue”.
+  const reviews = `Three rounds. They asked me to “design an offline sync queue. Keep it simple.”
 The manager asked how I handle disagreements with designers.`;
 
-  it('pairs questions with quotes and drops missing or invented quotes (LATER-1)', async () => {
+  it('asks the model for questions only and quotes the review text in code (LATER-1)', async () => {
     fakeGenerate.mockResolvedValueOnce(
       ok({
         questions: [
           'Design an offline sync queue.',
           'How do you handle disagreements with designers?',
           'Reverse a linked list.',
-          'Why do you want to work here?',
-        ],
-        quotes: [
-          'asked me to "design an offline sync queue"',
-          'how I handle disagreements',
-          'reverse a linked list on a whiteboard',
         ],
       }),
     );
 
     const result = await findReviewQuestions({ application, reviews });
 
+    expect(fakeGenerate.mock.calls[0]?.[0].prompt).toContain(
+      'The manager asked how I handle disagreements with designers.',
+    );
     expect(result).toEqual(
       ok({
         questions: [
           {
             question: 'Design an offline sync queue.',
-            quote: 'asked me to "design an offline sync queue"',
+            quote: 'They asked me to “design an offline sync queue. Keep it simple.”',
           },
           {
             question: 'How do you handle disagreements with designers?',
-            quote: 'how I handle disagreements',
+            quote: 'The manager asked how I handle disagreements with designers.',
           },
         ],
         trimmed: false,
       }),
+    );
+  });
+
+  it('returns an empty list, not an error, when the model finds no questions', async () => {
+    fakeGenerate.mockResolvedValueOnce(ok({ questions: [] }));
+    expect(await findReviewQuestions({ application, reviews })).toEqual(
+      ok({ questions: [], trimmed: false }),
     );
   });
 });

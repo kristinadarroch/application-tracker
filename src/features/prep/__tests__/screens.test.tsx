@@ -269,12 +269,7 @@ describe('Mock interview screen', () => {
 describe('Interview reviews screen (LATER-1)', () => {
   it('needs pasted text, then shows each question with its quote and adds it to prep questions', async () => {
     const store = makePrepStore();
-    fakeGenerate.mockResolvedValueOnce(
-      ok({
-        questions: ['Design an offline sync queue.'],
-        quotes: ['design an offline sync queue'],
-      }),
-    );
+    fakeGenerate.mockResolvedValueOnce(ok({ questions: ['Design an offline sync queue.'] }));
     await renderPrepRoute(`/prep/${application.id}/reviews`, store);
 
     expect(screen.getByRole('button', { name: 'Find likely questions' })).toBeDisabled();
@@ -286,7 +281,9 @@ describe('Interview reviews screen (LATER-1)', () => {
     await press('Find likely questions');
 
     expect(await screen.findByText('Design an offline sync queue.')).toBeOnTheScreen();
-    expect(screen.getByText('“design an offline sync queue”')).toBeOnTheScreen();
+    expect(
+      screen.getByText('“Round two: they asked me to design an offline sync queue.”'),
+    ).toBeOnTheScreen();
 
     await press('Add to prep questions');
 
@@ -294,6 +291,20 @@ describe('Interview reviews screen (LATER-1)', () => {
     expect(selectQuestionSet(store.getState(), application.id)?.questions).toEqual([
       expect.objectContaining({ type: 'role_specific', text: 'Design an offline sync queue.' }),
     ]);
+  });
+
+  it('shows an empty state when the reviews mention no questions', async () => {
+    fakeGenerate.mockResolvedValueOnce(ok({ questions: [] }));
+    await renderPrepRoute(`/prep/${application.id}/reviews`, makePrepStore());
+
+    await fireEvent.changeText(
+      screen.getByLabelText('Paste interview reviews'),
+      'Friendly team, slow process.',
+    );
+    await press('Find likely questions');
+
+    expect(await screen.findByText('No questions found')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Add to prep questions' })).not.toBeOnTheScreen();
   });
 });
 

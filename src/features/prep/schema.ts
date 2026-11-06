@@ -100,8 +100,7 @@ export const MockInterviewTurnOutputSchema = z.object({
   nextQuestion: z.string(),
 });
 
-/** Paired by index: `quotes[i]` is the review text that `questions[i]` came from. */
+/** Questions only: quotes are attached in code (`quoteReviewQuestions`), never generated. */
 export const ReviewQuestionsOutputSchema = z.object({
   questions: z.array(z.string()).max(8),
-  quotes: z.array(z.string()).max(8),
 });

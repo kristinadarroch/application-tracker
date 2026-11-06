@@ -8,6 +8,6 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: 'AI spike.*'
 - tapOn: Run all checks
 - extendedWaitUntil:
-    visible: '.*interview reviews.*'
+    visible: All checks done
     timeout: 900000
 - takeScreenshot: e2e/artifacts/ai-checks

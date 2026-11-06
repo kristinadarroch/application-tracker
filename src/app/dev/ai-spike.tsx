@@ -62,18 +62,27 @@ interface Check {
  */
 export default function AiChecksScreen() {
   const [checks, setChecks] = useState<Check[]>([]);
-  const [running, setRunning] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'running' | 'done'>('idle');
 
   const run = useCallback(async () => {
-    setRunning(true);
+    setStatus('running');
     const results: Check[] = [];
-    const record = async (name: string, task: () => Promise<unknown>) => {
+    /** Times one check. A thrown error is recorded as that check's outcome and the rest still run. */
+    const record = async <T,>(name: string, task: () => Promise<T>): Promise<T | undefined> => {
       const started = Date.now();
-      const outcome = JSON.stringify(await task());
+      let value: T | undefined;
+      let outcome: string;
+      try {
+        value = await task();
+        outcome = JSON.stringify(value);
+      } catch (error) {
+        outcome = `threw: ${error instanceof Error ? error.message : String(error)}`;
+      }
       const check = { name, outcome, ms: Date.now() - started };
       results.push(check);
       console.log('[ai-checks]', JSON.stringify(check));
       setChecks([...results]);
+      return value;
     };
 
     await record('availability', async () => onDeviceModel.availability());
@@ -99,9 +108,8 @@ export default function AiChecksScreen() {
       const result = await generatePrepQuestions(DEMO_APPLICATION);
       return result.ok ? result.value.questions.map((q) => `${q.type}: ${q.text}`) : result.error;
     });
-    const first = await startMockInterview(DEMO_APPLICATION);
-    await record('mock first question', async () => first);
-    if (first.ok) {
+    const first = await record('mock first question', () => startMockInterview(DEMO_APPLICATION));
+    if (first?.ok === true) {
       await record('mock turn', async () =>
         answerMockInterviewTurn({
           application: DEMO_APPLICATION,
@@ -115,14 +123,15 @@ export default function AiChecksScreen() {
     await record('interview reviews', async () =>
       findReviewQuestions({ application: DEMO_APPLICATION, reviews: SAMPLE_REVIEWS }),
     );
-    setRunning(false);
+    setStatus('done');
   }, []);
 
   if (!__DEV__) return <Redirect href="/" />;
 
   return (
     <Screen title="On-device model checks" scroll>
-      <Button label="Run all checks" onPress={run} loading={running} />
+      <Button label="Run all checks" onPress={run} loading={status === 'running'} />
+      {status === 'done' ? <Text variant="heading">All checks done</Text> : null}
       {checks.map((check) => (
         <Card key={check.name}>
           <Text variant="heading">{`${check.name} · ${check.ms} ms`}</Text>

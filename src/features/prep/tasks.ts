@@ -17,6 +17,7 @@ import {
   type PrepQuestionSet,
   type ReviewQuestion,
 } from './schema';
+import { quoteReviewQuestions } from './quotes';
 
 /** Prep and mock interview generate more text than extraction, so they get a longer limit. */
 export const PREP_AI_TIMEOUT_MS = 45_000;
@@ -44,8 +45,8 @@ Give feedback on the candidate's answer to the current question: up to 3 strengt
 Then ask the next interview question. Do not repeat earlier questions.
 Be specific and brief.`;
 
-const REVIEWS_INSTRUCTIONS = `Read interview reviews a job seeker pasted. List the questions candidates say they were asked, up to 8.
-For each question, put a short exact quote from the reviews that mentions it in "quotes", in the same order. Do not invent questions or quotes.`;
+const REVIEWS_INSTRUCTIONS = `List the interview questions candidates say they were asked, as short questions, up to 8.
+Use only questions mentioned in the reviews.`;
 
 /** Compact description of an application. Requirements are capped and notes trimmed to fit the context budget. */
 export function applicationSummary(application: Application): string {
@@ -180,16 +181,11 @@ export interface ReviewQuestions {
   trimmed: boolean;
 }
 
-/** Case, whitespace, and quote-mark differences don't make a quote "made up". */
-function normalizeForQuote(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[“”"‘’'`]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/** LATER-1: likely questions from pasted reviews. Questions whose quote isn't in the pasted text are dropped. */
+/**
+ * LATER-1: likely questions from pasted reviews. The model only lists questions; quoting is done in
+ * code (copying exact quotes made the on-device model time out), so every quote is real review text.
+ * Questions with no supporting sentence are dropped; an empty list is a valid result.
+ */
 export async function findReviewQuestions({
   application,
   reviews,
@@ -203,21 +199,8 @@ export async function findReviewQuestions({
     deterministic: true,
   });
   if (!result.ok) return result;
-  const haystack = normalizeForQuote(source.text);
-  const { questions: rawQuestions, quotes } = result.value;
-  // Paired by index; a question without a matching quote from the pasted text is dropped.
-  const questions: ReviewQuestion[] = rawQuestions.flatMap((raw, index) => {
-    const question = raw.trim();
-    const quote = quotes[index]?.trim() ?? '';
-    return question.length > 0 && quote.length > 0 && haystack.includes(normalizeForQuote(quote))
-      ? [{ question, quote }]
-      : [];
+  return ok({
+    questions: quoteReviewQuestions(result.value.questions, source.text),
+    trimmed: source.trimmed,
   });
-  if (questions.length === 0) {
-    return err({
-      kind: 'invalid_response',
-      issues: ['No questions with a quote from the pasted text.'],
-    });
-  }
-  return ok({ questions, trimmed: source.trimmed });
 }

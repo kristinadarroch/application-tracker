@@ -1,7 +1,17 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 
-import { Banner, Button, Card, ErrorState, Screen, Stack, Text, TextField } from '@/design-system';
+import {
+  Banner,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Screen,
+  Stack,
+  Text,
+  TextField,
+} from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
 import { createId, QuestionIdSchema } from '@/lib/ids';
@@ -62,14 +72,22 @@ function InterviewReviews({ application }: { application: Application }) {
           {result.data.trimmed ? (
             <Banner tone="info" title="Only the first part of the pasted text was read." />
           ) : null}
-          {result.data.questions.map((question) => (
-            <ReviewQuestionCard
-              // A new result remounts the cards, so "Added" never carries over.
-              key={`${result.requestId ?? ''}-${question.question}`}
-              application={application}
-              question={question}
+          {result.data.questions.length === 0 ? (
+            <EmptyState
+              icon="document-text-outline"
+              title="No questions found"
+              body="These reviews don’t mention specific interview questions. Paste reviews that describe what candidates were asked."
             />
-          ))}
+          ) : (
+            result.data.questions.map((question) => (
+              <ReviewQuestionCard
+                // A new result remounts the cards, so "Added" never carries over.
+                key={`${result.requestId ?? ''}-${question.question}`}
+                application={application}
+                question={question}
+              />
+            ))
+          )}
         </Stack>
       ) : null}
     </Screen>
