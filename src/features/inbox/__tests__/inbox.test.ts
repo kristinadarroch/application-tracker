@@ -92,7 +92,8 @@ describe('Triage', () => {
       expect.objectContaining({
         prompt: expect.stringContaining(`id: ${acmeId} | Acme Health`),
         timeoutMs: 20_000,
-        deterministic: true,
+        maxOutputTokens: 200,
+        sampling: 'repeatable',
       }),
     );
     expect(selectTriage(store.getState(), inviteId)).toMatchObject({
@@ -113,6 +114,7 @@ describe('Triage', () => {
     expect(selectTriage(store.getState(), inviteId)).toEqual({
       status: 'failed',
       error: { kind: 'timeout', afterMs: 20_000 },
+      startedAt: expect.any(Number),
     });
   });
 

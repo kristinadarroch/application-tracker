@@ -1,13 +1,18 @@
-# Prompt checks: every AI task against fixed samples on the real on-device model. Results go to Metro as `[ai-checks]` lines.
+# Prompt and reliability checks on the real on-device model. Each group runs in a fresh launch and must report 0 failed.
 appId: dev.kristinadarroch.applicationtracker
 ---
-- runFlow: launch.yaml
-- tapOn: Settings
-- scrollUntilVisible:
-    element: 'AI spike.*'
-- tapOn: 'AI spike.*'
-- tapOn: Run all checks
-- extendedWaitUntil:
-    visible: All checks done
-    timeout: 900000
-- takeScreenshot: e2e/artifacts/ai-checks
+- runFlow:
+    file: ai-checks-group.yaml
+    env:
+      GROUP_BUTTON: Check listings
+      GROUP: listings
+- runFlow:
+    file: ai-checks-group.yaml
+    env:
+      GROUP_BUTTON: Check triage
+      GROUP: triage
+- runFlow:
+    file: ai-checks-group.yaml
+    env:
+      GROUP_BUTTON: Check prep
+      GROUP: prep

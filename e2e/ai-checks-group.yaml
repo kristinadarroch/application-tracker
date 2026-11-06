@@ -1,0 +1,13 @@
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Settings
+- scrollUntilVisible:
+    element: 'AI spike.*'
+- tapOn: 'AI spike.*'
+- tapOn: ${GROUP_BUTTON}
+- extendedWaitUntil:
+    visible: '${GROUP} done.*'
+    timeout: 600000
+- takeScreenshot: e2e/artifacts/ai-checks-${GROUP}
+- assertVisible: '${GROUP} done · 0 failed'

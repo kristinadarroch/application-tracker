@@ -63,7 +63,7 @@ describe('generatePrepQuestions', () => {
     expect(request?.prompt).toContain('Role: Senior React Native Engineer');
     expect(request?.prompt).toContain('- Requirement 8');
     expect(request?.prompt).not.toContain('Requirement 9');
-    expect(request?.timeoutMs).toBe(45_000);
+    expect(request).toMatchObject({ timeoutMs: 45_000, maxOutputTokens: 900, sampling: 'varied' });
   });
 
   it('passes model errors through and rejects an empty set', async () => {

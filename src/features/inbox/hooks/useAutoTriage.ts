@@ -1,18 +1,36 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
-import { selectMessagesToTriage } from '../selectors';
-import { startTriage } from '../thunks';
+import { selectLatestTimeoutStart, selectMessagesToTriage } from '../selectors';
+import { triageNextMessage } from '../thunks';
+
+export interface AutoTriage {
+  /** Stopped after a time-out; waiting messages stay untouched until `resume`. */
+  paused: boolean;
+  /** Messages still waiting for Triage. */
+  waiting: number;
+  resume: () => void;
+}
 
 /**
- * Starts Triage for every message that hasn't been triaged yet, whenever Triage can run
- * (on-device AI available, or an AI Replay recording exists). Never runs when it can't (UX-7).
+ * Triages waiting messages one at a time, whenever Triage can run (on-device AI available,
+ * or an AI Replay recording exists); never when it can't (UX-7). A time-out means the model
+ * is stuck and everything queued behind it would time out too, so the queue pauses until resumed.
  */
-export function useAutoTriage(): void {
+export function useAutoTriage(): AutoTriage {
   const dispatch = useAppDispatch();
   const toTriage = useAppSelector(selectMessagesToTriage);
+  const latestTimeout = useAppSelector(selectLatestTimeoutStart);
+  // Time-outs already present when the inbox opened, or acknowledged by "Analyze remaining", don't pause.
+  const [acknowledgedTimeout, setAcknowledgedTimeout] = useState(latestTimeout);
+  const paused =
+    latestTimeout !== null && (acknowledgedTimeout === null || latestTimeout > acknowledgedTimeout);
+
+  // Re-runs whenever a Triage settles (the waiting list changes); the thunk skips while one runs.
   useEffect(() => {
-    for (const message of toTriage) void dispatch(startTriage(message.id));
-  }, [dispatch, toTriage]);
+    if (!paused && toTriage.length > 0) void dispatch(triageNextMessage());
+  }, [dispatch, paused, toTriage]);
+
+  return { paused, waiting: toTriage.length, resume: () => setAcknowledgedTimeout(latestTimeout) };
 }

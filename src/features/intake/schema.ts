@@ -10,7 +10,7 @@ export const ListingExtractionSchema = z.object({
   company: z
     .string()
     .describe(
-      'The employer’s proper name exactly as written, e.g. Acme Health; empty string if the text never names the employer',
+      'The employer’s proper name exactly as written in the text; empty string if the text never names the employer',
     ),
   role: z.string().describe('The job title exactly as written; empty string if none'),
   location: z.string().optional().describe('City, region, or Remote'),

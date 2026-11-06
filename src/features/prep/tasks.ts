@@ -77,6 +77,8 @@ export async function generatePrepQuestions(
     prompt: applicationSummary(application),
     schema: PrepQuestionsOutputSchema,
     timeoutMs: PREP_AI_TIMEOUT_MS,
+    maxOutputTokens: 900,
+    sampling: 'varied',
   });
   if (!result.ok) return result;
   const questions: PrepQuestion[] = PREP_QUESTION_TYPES.flatMap((type) =>
@@ -102,6 +104,8 @@ export async function startMockInterview(
     prompt: applicationSummary(application),
     schema: MockInterviewFirstQuestionOutputSchema,
     timeoutMs: PREP_AI_TIMEOUT_MS,
+    maxOutputTokens: 120,
+    sampling: 'varied',
   });
   if (!result.ok) return result;
   const question = result.value.question.trim();
@@ -153,6 +157,8 @@ export async function answerMockInterviewTurn({
     prompt,
     schema: MockInterviewTurnOutputSchema,
     timeoutMs: PREP_AI_TIMEOUT_MS,
+    maxOutputTokens: 600,
+    sampling: 'varied',
   });
   if (!result.ok) return result;
   const nextQuestion = result.value.nextQuestion.trim();
@@ -196,7 +202,8 @@ export async function findReviewQuestions({
     prompt: `Reviews for ${application.role} at ${application.company}:\n${source.text}`,
     schema: ReviewQuestionsOutputSchema,
     timeoutMs: PREP_AI_TIMEOUT_MS,
-    deterministic: true,
+    maxOutputTokens: 300,
+    sampling: 'repeatable',
   });
   if (!result.ok) return result;
   return ok({

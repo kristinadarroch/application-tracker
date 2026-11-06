@@ -1,6 +1,6 @@
 import { err, ok } from '@/lib/result';
 
-import { extractListing, withoutImplausibleNames } from '../extractListing';
+import { extractListing, withGroundedFacts, withoutImplausibleNames } from '../extractListing';
 import { createFakeModel } from '../testing/fakeModel';
 import { ACME_EXTRACTION, LISTING_PAGE_HTML, LISTING_TEXT } from '../testing/fixtures';
 
@@ -12,6 +12,7 @@ describe('extractListing', () => {
   it('turns pasted text into an Application Draft (INT-2)', async () => {
     const model = createFakeModel();
     model.nextResult = ok({ ...ACME_EXTRACTION, company: '  Acme Health ', location: '' });
+    const generate = jest.spyOn(model, 'generate');
 
     const result = await extractListing(
       model,
@@ -40,6 +41,9 @@ describe('extractListing', () => {
       },
     });
     expect(model.prompts[0]).toContain('Acme Health is hiring');
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({ timeoutMs: 20_000, maxOutputTokens: 400, sampling: 'repeatable' }),
+    );
   });
 
   it('keeps a link that came with pasted text', async () => {
@@ -197,6 +201,77 @@ describe('withoutImplausibleNames', () => {
       value: {
         status: 'missing_company_or_role',
         extraction: { company: '', role: '', requirements: [] },
+        sourceText: NO_EMPLOYER_TEXT,
+      },
+    });
+  });
+});
+
+describe('withGroundedFacts', () => {
+  it('keeps company, location, and salary that appear in the text, ignoring case and punctuation', () => {
+    const grounded = withGroundedFacts(
+      {
+        company: 'ACME HEALTH',
+        role: 'Senior React Native Engineer',
+        location: 'Austin TX',
+        salary: '$150,000-$180,000',
+        requirements: [],
+      },
+      LISTING_TEXT,
+    );
+    expect(grounded).toEqual({
+      company: 'ACME HEALTH',
+      role: 'Senior React Native Engineer',
+      location: 'Austin TX',
+      salary: '$150,000-$180,000',
+      requirements: [],
+    });
+  });
+
+  it('blanks invented values that the text never states', () => {
+    const grounded = withGroundedFacts(
+      {
+        company: 'Acme Tech',
+        role: 'Mobile Developer',
+        location: 'Remote',
+        salary: 'No salary range stated',
+        requirements: [],
+      },
+      NO_EMPLOYER_TEXT,
+    );
+    expect(grounded).toEqual({ company: '', role: 'Mobile Developer', requirements: [] });
+  });
+
+  it('matches whole words only and needs a digit in the salary', () => {
+    const text = 'Northwind Laboratories pays competitively. Based in Portland.';
+    expect(
+      withGroundedFacts(
+        { company: 'Northwind Lab', role: 'Engineer', salary: 'competitively', requirements: [] },
+        text,
+      ),
+    ).toEqual({ company: '', role: 'Engineer', requirements: [] });
+  });
+
+  it('sends an invented employer to the missing-fields outcome (INT-2)', async () => {
+    const model = createFakeModel();
+    model.nextResult = ok({
+      company: 'Acme Tech',
+      role: 'Mobile Developer',
+      salary: 'No salary range stated',
+      requirements: [],
+    });
+
+    const result = await extractListing(model, {
+      kind: 'text',
+      text: NO_EMPLOYER_TEXT,
+      source: 'pasted_text',
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        status: 'missing_company_or_role',
+        extraction: { company: '', role: 'Mobile Developer', requirements: [] },
         sourceText: NO_EMPLOYER_TEXT,
       },
     });

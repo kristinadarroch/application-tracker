@@ -9,6 +9,14 @@ import { BUDGET_CONTEXT_TOKENS, type AiAvailability, type OnDeviceModel } from '
 import { isTimedOut, withTimeout } from './withTimeout';
 
 const MIN_IOS_MAJOR = 26;
+
+/**
+ * One native generation at a time. A request that hits its time limit keeps running natively,
+ * so the next request waits for the real native promise, not the caller's timeout. Without this,
+ * a slow request plus new ones piles work onto the model and every later request times out.
+ */
+let nativeQueue: Promise<unknown> = Promise.resolve();
+
 /** Apple Intelligence through `@react-native-ai/apple` (AI SDK provider, iOS 26+). */
 export const onDeviceModel: OnDeviceModel = {
   availability(): AiAvailability {
@@ -22,24 +30,27 @@ export const onDeviceModel: OnDeviceModel = {
     return { status: 'available', contextTokens: BUDGET_CONTEXT_TOKENS };
   },
 
-  async generate({ instructions, prompt, schema, timeoutMs, deterministic }) {
+  async generate({ instructions, prompt, schema, timeoutMs, maxOutputTokens, sampling }) {
     const current = this.availability();
     if (current.status === 'unavailable') {
       return err({ kind: 'ai_unavailable', reason: current.reason });
     }
     try {
       // Each call is a fresh on-device session, so context never accumulates.
-      const response = await withTimeout(
+      const native = nativeQueue.then(() =>
         generateText({
           model: apple(),
           system: instructions,
           prompt,
           output: Output.object({ schema }),
           maxRetries: 0,
-          ...(deterministic ? { temperature: 0 } : {}),
+          maxOutputTokens,
+          ...(sampling === 'repeatable' ? { temperature: 0 } : { temperature: 0.7, topP: 0.9 }),
         }),
-        timeoutMs,
       );
+      nativeQueue = native.catch(() => undefined);
+      // The time limit covers waiting in the queue too: it is how long the user waits.
+      const response = await withTimeout(native, timeoutMs);
       if (isTimedOut(response)) return err({ kind: 'timeout', afterMs: timeoutMs });
       // Parse again with Zod so the app never trusts a dependency's output.
       const parsed = schema.safeParse(response.output);

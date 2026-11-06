@@ -9,7 +9,9 @@ import type { AppDispatch, RootState } from '@/store/store';
 import type { EmailSource, EmailSourceError } from './emailSource';
 import {
   selectInboxMessages,
+  selectIsTriageRunning,
   selectMessageById,
+  selectMessagesToTriage,
   selectTriage,
   selectTriageCandidates,
 } from './selectors';
@@ -34,6 +36,20 @@ export function startTriage(messageId: MessageId): Thunk<Promise<void>> {
     await request;
     // The outcome now lives in `inbox.triage`; drop the request cache entry.
     request.reset();
+  };
+}
+
+/**
+ * Starts Triage for the next waiting message, unless one is already running. The on-device
+ * model runs one generation at a time, so queued requests would only burn their time limits.
+ * Reads fresh state, so calling it again while a request is in flight is a no-op.
+ */
+export function triageNextMessage(): Thunk<Promise<void>> {
+  return async (dispatch, getState) => {
+    const state = getState();
+    if (selectIsTriageRunning(state)) return;
+    const next = selectMessagesToTriage(state)[0];
+    if (next !== undefined) await dispatch(startTriage(next.id));
   };
 }
 

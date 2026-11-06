@@ -100,12 +100,13 @@ export const inboxSlice = createSlice({
       })
       .addMatcher(matchRejected, (state, action) => {
         const id = action.meta.arg.originalArgs.message.id;
-        if (state.triage[id]?.status !== 'pending') return;
+        const current = state.triage[id];
+        if (current?.status !== 'pending') return;
         const error: AppError = action.payload ?? {
           kind: 'ai_failed',
           code: action.error.message ?? 'unknown',
         };
-        state.triage[id] = { status: 'failed', error };
+        state.triage[id] = { status: 'failed', error, startedAt: current.startedAt };
       });
   },
 });

@@ -50,7 +50,7 @@ export function MessageRow({ message, triage, canTriage, onOpen, onRetry }: Mess
 function TriageStatus({ triage, canTriage, onOpen, onRetry }: Omit<MessageRowProps, 'message'>) {
   if (triage === undefined || (triage.status === 'failed' && !canTriage)) {
     return canTriage ? (
-      <Badge tone="info" label="Analyzing…" />
+      <Badge tone="neutral" label="Waiting to analyze" />
     ) : (
       <Button label="Tag manually" variant="secondary" icon="pricetag-outline" onPress={onOpen} />
     );

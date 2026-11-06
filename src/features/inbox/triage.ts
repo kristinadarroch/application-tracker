@@ -20,6 +20,9 @@ import {
 /** Shared rules: 20 s for extraction and triage. */
 export const TRIAGE_TIMEOUT_MS = 20_000;
 
+/** The structured answer is a handful of short fields; the cap stops a runaway generation from blocking the queue. */
+const TRIAGE_MAX_OUTPUT_TOKENS = 200;
+
 /** The model's answer for "this email isn't about any of my applications". */
 export const NO_MATCH = 'none';
 
@@ -139,7 +142,8 @@ export async function triageWithModel(
     prompt: buildTriagePrompt(message, candidates),
     schema: TriageOutputSchema,
     timeoutMs: TRIAGE_TIMEOUT_MS,
-    deterministic: true,
+    maxOutputTokens: TRIAGE_MAX_OUTPUT_TOKENS,
+    sampling: 'repeatable',
   });
   if (!generated.ok) return generated;
   return toTriageResult(generated.value, candidates, message.receivedAt);

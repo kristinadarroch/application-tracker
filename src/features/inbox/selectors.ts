@@ -62,3 +62,22 @@ export const selectMessagesToTriage = createSelector(
       );
     }),
 );
+
+/** A Triage request started in this launch is still running. */
+export const selectIsTriageRunning = (state: RootState): boolean =>
+  Object.values(state.inbox.triage).some(
+    (triage) => triage?.status === 'pending' && triage.startedAt >= LAUNCHED_AT,
+  );
+
+/**
+ * Start time of the most recent Triage that timed out, or `null`. Auto-triage pauses after a
+ * newer one than it has already acknowledged.
+ */
+export const selectLatestTimeoutStart = (state: RootState): number | null => {
+  let latest: number | null = null;
+  for (const triage of Object.values(state.inbox.triage)) {
+    if (triage?.status !== 'failed' || triage.error.kind !== 'timeout') continue;
+    if (latest === null || triage.startedAt > latest) latest = triage.startedAt;
+  }
+  return latest;
+};

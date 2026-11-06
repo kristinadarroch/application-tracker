@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 
 import { applicationAdded } from '@/features/applications/model';
 import { settingsSlice } from '@/features/settings';
@@ -93,7 +93,7 @@ describe('Inbox tab', () => {
       .map((row) => row.props.accessibilityLabel as string);
     expect(subjects[0]).toMatch(/^Dev Weekly #212.*, Dev Weekly ·/);
     expect(subjects[1]).toMatch(/^Interview invitation.*, Priya Shah ·/);
-    expect(await screen.findAllByText('Unrelated')).toHaveLength(2);
+    await waitFor(() => expect(screen.getAllByText('Unrelated')).toHaveLength(2));
     expect(mockGenerate).toHaveBeenCalledTimes(2);
   });
 
@@ -142,6 +142,61 @@ describe('Inbox tab', () => {
     expect(await screen.findByText('Replayed')).toBeOnTheScreen();
     expect(screen.getByText('Interview invite')).toBeOnTheScreen();
     expect(mockGenerate).not.toHaveBeenCalled();
+  });
+});
+
+describe('automatic Triage queue', () => {
+  /** Each model call waits until the test settles it, like the one-at-a-time on-device model. */
+  function deferredModel() {
+    const pending: ((value: unknown) => void)[] = [];
+    mockGenerate.mockImplementation(() => {
+      const { promise, resolve } = Promise.withResolvers<unknown>();
+      pending.push(resolve);
+      return promise;
+    });
+    return {
+      settle: async (index: number, value: unknown) => {
+        await act(async () => pending[index]!(value));
+      },
+    };
+  }
+
+  it('sends one request at a time', async () => {
+    const model = deferredModel();
+    await renderInbox(setup({ received: 3 }));
+
+    expect(mockGenerate).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText('Waiting to analyze')).toHaveLength(2);
+
+    await model.settle(0, UNRELATED);
+    await waitFor(() => expect(mockGenerate).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Unrelated')).toBeOnTheScreen();
+    await waitFor(() => expect(screen.getAllByText('Waiting to analyze')).toHaveLength(1));
+    await model.settle(1, UNRELATED);
+    await waitFor(() => expect(mockGenerate).toHaveBeenCalledTimes(3));
+    await model.settle(2, UNRELATED);
+    await waitFor(() => expect(screen.getAllByText('Unrelated')).toHaveLength(3));
+  });
+
+  it('pauses after a time-out and resumes with "Analyze remaining"', async () => {
+    const model = deferredModel();
+    await renderInbox(setup({ received: 3 }));
+
+    await model.settle(0, err({ kind: 'timeout', afterMs: 20_000 }));
+
+    expect(await screen.findByText('Analysis paused')).toBeOnTheScreen();
+    expect(mockGenerate).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByText('Waiting to analyze')).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Retry' })).toHaveLength(1);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Analyze remaining' }));
+
+    await waitFor(() => expect(mockGenerate).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText('Analysis paused')).toBeNull();
+    await model.settle(1, UNRELATED);
+    await waitFor(() => expect(mockGenerate).toHaveBeenCalledTimes(3));
+    await model.settle(2, UNRELATED);
+    await waitFor(() => expect(screen.getAllByText('Unrelated')).toHaveLength(2));
   });
 });
 

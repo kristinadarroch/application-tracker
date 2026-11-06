@@ -13,16 +13,20 @@ import {
 } from './schema';
 
 export const EXTRACTION_TIMEOUT_MS = 20_000;
+/** A filled ListingExtraction is well under 300 tokens; the cap stops runaway generation. */
+const EXTRACTION_MAX_OUTPUT_TOKENS = 400;
 
 /** Tokens kept free for the instructions, the output schema, and the model's answer. */
 const RESERVED_TOKENS = 900;
 
+// No example names: the model copies them into listings that don't name an employer.
 export const EXTRACTION_INSTRUCTIONS = [
   'You read one job listing and extract its details.',
-  'Use only facts stated in the listing text. Never guess.',
+  'Use only facts stated in the listing text. Never guess or invent.',
   'Leave a field as an empty string when the listing does not state it.',
-  'company is the employer’s proper name exactly as written, e.g. Acme Health. It is never a sentence or a phrase like "We’re looking for". If the text never names the employer, company is an empty string.',
-  'role is the job title exactly as written, e.g. Senior React Native Engineer. If there is no job title, role is an empty string.',
+  'company is the employer’s proper name, copied exactly from the text. It is never a sentence or a phrase about the reader. If the text never names the employer, company is an empty string.',
+  'role is the job title, copied exactly from the text. If there is no job title, role is an empty string.',
+  'salary is a pay amount copied from the text. If no amount is stated, salary is an empty string.',
   'requirements are up to 8 short phrases taken from the listing.',
 ].join('\n');
 
@@ -50,6 +54,39 @@ export function withoutImplausibleNames(extraction: ListingExtraction): ListingE
     ...extraction,
     company: implausibleCompany ? '' : company,
     role: LOWERCASE_SINGLE_WORD.test(role) ? '' : role,
+  };
+}
+
+/** Anything that isn't a letter or digit (Latin letters with accents count as letters). */
+const NON_WORD = /[^a-z0-9\u00c0-\u024f]+/g;
+
+function normalizeForMatch(value: string): string {
+  return value.toLowerCase().replace(NON_WORD, ' ').trim();
+}
+
+/**
+ * Keeps company, location, and salary only when they appear in the listing text, compared
+ * as whole words ignoring case and punctuation; a salary also needs a digit. The small
+ * on-device model sometimes invents values for a listing that doesn't state them (company
+ * "Acme Tech", salary "No salary range stated"). Blanking an invented company sends the user
+ * to "Couldn't find the company or role" (INT-2). Role isn't checked: titles are often
+ * reworded slightly, and the sentence-shape guard covers copied prose.
+ */
+export function withGroundedFacts(
+  extraction: ListingExtraction,
+  sourceText: string,
+): ListingExtraction {
+  const source = ` ${normalizeForMatch(sourceText)} `;
+  const appearsInSource = (value: string) => {
+    const normalized = normalizeForMatch(value);
+    return normalized.length > 0 && source.includes(` ${normalized} `);
+  };
+  const { location, salary, ...rest } = extraction;
+  return {
+    ...rest,
+    company: appearsInSource(extraction.company) ? extraction.company : '',
+    ...(location !== undefined && appearsInSource(location) ? { location } : {}),
+    ...(salary !== undefined && /\d/.test(salary) && appearsInSource(salary) ? { salary } : {}),
   };
 }
 
@@ -114,11 +151,15 @@ export async function extractListing(
     prompt: `Job listing:\n${text}`,
     schema: ListingExtractionSchema,
     timeoutMs: EXTRACTION_TIMEOUT_MS,
-    deterministic: true,
+    maxOutputTokens: EXTRACTION_MAX_OUTPUT_TOKENS,
+    sampling: 'repeatable',
   });
   if (!result.ok) return err(result.error);
 
-  const extraction = withoutImplausibleNames(cleanExtraction(result.value));
+  const extraction = withGroundedFacts(
+    withoutImplausibleNames(cleanExtraction(result.value)),
+    text,
+  );
   if (extraction.company.length === 0 || extraction.role.length === 0) {
     return ok({ status: 'missing_company_or_role', extraction, sourceText: text });
   }

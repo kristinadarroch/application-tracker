@@ -59,7 +59,7 @@ export type ProposalDecision = 'open' | 'accepted' | 'dismissed';
 export type TriageState =
   | { status: 'pending'; startedAt: number }
   | { status: 'done'; result: TriageResult; replayed: boolean; decision: ProposalDecision }
-  | { status: 'failed'; error: AppError }
+  | { status: 'failed'; error: AppError; startedAt: number }
   | { status: 'manual' };
 
 /** An application the model may match a message to. */

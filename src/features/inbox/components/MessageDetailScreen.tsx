@@ -150,18 +150,30 @@ function TriagePanel({
       onPress={onTagManually}
     />
   );
-  if (triage === undefined || triage.status === 'pending') {
+  if (triage === undefined) {
     return (
-      <Card accessibilityLabel="Analyzing message">
-        <Stack gap={2}>
-          <Text color="secondary">Analyzing…</Text>
-          <Skeleton width="70%" height={16} />
-          <Skeleton width="45%" height={16} />
+      <Card>
+        <Stack gap={3}>
+          <Text color="secondary">Waiting to analyze. Messages are analyzed one at a time.</Text>
+          <Stack direction="row" gap={2} wrap="wrap">
+            <Button label="Analyze now" icon="sparkles-outline" onPress={onRetry} />
+            {tagButton}
+          </Stack>
         </Stack>
       </Card>
     );
   }
   switch (triage.status) {
+    case 'pending':
+      return (
+        <Card accessibilityLabel="Analyzing message">
+          <Stack gap={2}>
+            <Text color="secondary">Analyzing…</Text>
+            <Skeleton width="70%" height={16} />
+            <Skeleton width="45%" height={16} />
+          </Stack>
+        </Card>
+      );
     case 'failed':
       return (
         <Card>
