@@ -26,7 +26,7 @@ Entries where a proposal (from AI or from me) was accepted with changes, correct
 
 | Date | Area | Proposed | Decision | Why |
 |---|---|---|---|---|
-| 2026-11-05 | Design system | Color palette with claimed AA contrast | Accepted after verification | Ratios computed with a WCAG luminance script; all text pairs ≥ 4.5:1 (lowest 4.97) |
+| 2026-11-05 | Design system | Color palette with claimed AA contrast | Accepted after verification | Ratios computed with a WCAG luminance script; every specified text/background pair ≥ 4.5:1 (lowest 4.97). Arbitrary palette combinations not checked |
 | 2026-11-05 | Inbox demo | "Mock inbox gives the same result every demo" | Corrected | Only the fixtures are fixed; triage still calls a live model, so it needs timeouts, error states, and labeled AI Replay |
 | 2026-11-05 | Gmail | "Real Gmail requires Google's security review" | Corrected | Verification applies to publishing a public app with restricted scopes; a test-user demo doesn't need it. Mock chosen for predictability and privacy, not because Gmail was impossible |
 | 2026-11-05 | Listing intake | "Greenhouse, Lever, and Ashby pages fetch fine" | Corrected | Any page can block, require JavaScript, or change. Paste-first intake for every job board |

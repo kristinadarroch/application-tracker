@@ -92,7 +92,7 @@ Feedback hues use four steps (`100`, `300`, `700`, `900`):
 
 ### Contrast (WCAG 2.x, checked)
 
-All text pairs meet AA (≥ 4.5:1). Ratios below were computed from the hex values above.
+Every text/background pair specified below meets AA (≥ 4.5:1). Ratios were computed from the hex values above. Other combinations of palette colors are not covered and must not be used for text until they are added here.
 
 | Pair | Light | Dark |
 |---|---|---|
