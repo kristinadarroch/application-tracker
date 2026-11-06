@@ -121,7 +121,7 @@ flowchart LR
 
 ## Out of scope
 
-- Scraping Glassdoor or any site that forbids it.
+- Automated collection from Glassdoor or other review sites (no supported integration identified).
 - Accounts, sync, or a backend database. Data is local to the device.
 - Web target.
 - Voice mock interviews.

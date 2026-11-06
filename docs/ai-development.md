@@ -31,7 +31,7 @@ Entries where a proposal (from AI or from me) was accepted with changes, correct
 | 2026-11-05 | Gmail | "Real Gmail requires Google's security review" | Corrected | Verification applies to publishing a public app with restricted scopes; a test-user demo doesn't need it. Mock chosen for predictability and privacy, not because Gmail was impossible |
 | 2026-11-05 | Listing intake | "Greenhouse, Lever, and Ashby pages fetch fine" | Corrected | Any page can block, require JavaScript, or change. Paste-first intake for every job board |
 | 2026-11-05 | Share intake | Use third-party `expo-share-intent` | Replaced | Expo SDK 58 `expo-sharing` now receives shares (experimental). See [ADR 0001](adr/0001-official-expo-sharing-for-share-intake.md) |
-| 2026-11-05 | Interview research | (Mine) Pull interview questions from Glassdoor | Rejected after AI flagged it | No usable public API found; scraping breaks their terms of service. Replaced with user-pasted reviews (stretch) |
+| 2026-11-05 | Interview research | (Mine) Pull interview questions from Glassdoor | Rejected after AI flagged it | No supported integration identified; omitted for reliability and scope. Replaced with user-pasted reviews (stretch) |
 
 ## Entry template
 
