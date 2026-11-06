@@ -208,6 +208,23 @@ describe('withoutImplausibleNames', () => {
 });
 
 describe('withGroundedFacts', () => {
+  it('blanks a role the listing never states, so a named company alone is not a draft', () => {
+    const grounded = withGroundedFacts(
+      { company: 'Acme Health', role: 'Mobile Developer', requirements: [] },
+      'Acme Health is growing fast. Join our team and help patients book care.',
+    );
+    expect(grounded.company).toBe('Acme Health');
+    expect(grounded.role).toBe('');
+  });
+
+  it('keeps a lightly reworded role whose words come from the listing', () => {
+    const grounded = withGroundedFacts(
+      { company: 'Northwind Labs', role: 'Senior Mobile Engineer, React Native', requirements: [] },
+      'Northwind Labs is hiring a Senior Mobile Engineer (React Native) in Denver.',
+    );
+    expect(grounded.role).toBe('Senior Mobile Engineer, React Native');
+  });
+
   it('keeps company, location, and salary that appear in the text, ignoring case and punctuation', () => {
     const grounded = withGroundedFacts(
       {
@@ -239,7 +256,7 @@ describe('withGroundedFacts', () => {
       },
       NO_EMPLOYER_TEXT,
     );
-    expect(grounded).toEqual({ company: '', role: 'Mobile Developer', requirements: [] });
+    expect(grounded).toEqual({ company: '', role: '', requirements: [] });
   });
 
   it('matches whole words only and needs a digit in the salary', () => {
@@ -249,7 +266,7 @@ describe('withGroundedFacts', () => {
         { company: 'Northwind Lab', role: 'Engineer', salary: 'competitively', requirements: [] },
         text,
       ),
-    ).toEqual({ company: '', role: 'Engineer', requirements: [] });
+    ).toEqual({ company: '', role: '', requirements: [] });
   });
 
   it('sends an invented employer to the missing-fields outcome (INT-2)', async () => {
@@ -271,7 +288,7 @@ describe('withGroundedFacts', () => {
       ok: true,
       value: {
         status: 'missing_company_or_role',
-        extraction: { company: '', role: 'Mobile Developer', requirements: [] },
+        extraction: { company: '', role: '', requirements: [] },
         sourceText: NO_EMPLOYER_TEXT,
       },
     });

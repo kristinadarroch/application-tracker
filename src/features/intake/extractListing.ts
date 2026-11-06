@@ -64,13 +64,17 @@ function normalizeForMatch(value: string): string {
   return value.toLowerCase().replace(NON_WORD, ' ').trim();
 }
 
+/** Share of a role's words that must appear in the listing for the role to count as grounded. */
+const MIN_ROLE_WORD_COVERAGE = 0.75;
+
 /**
  * Keeps company, location, and salary only when they appear in the listing text, compared
  * as whole words ignoring case and punctuation; a salary also needs a digit. The small
  * on-device model sometimes invents values for a listing that doesn't state them (company
- * "Acme Tech", salary "No salary range stated"). Blanking an invented company sends the user
- * to "Couldn't find the company or role" (INT-2). Role isn't checked: titles are often
- * reworded slightly, and the sentence-shape guard covers copied prose.
+ * "Acme Tech", salary "No salary range stated"). A role is kept when at least 75% of its words
+ * appear in the text, which allows light rewording ("Senior Mobile Engineer, React Native")
+ * but not an invented title. Blanking a company or role sends the user to "Couldn't find the
+ * company or role" (INT-2): a manual entry is safer than invented data.
  */
 export function withGroundedFacts(
   extraction: ListingExtraction,
@@ -81,10 +85,17 @@ export function withGroundedFacts(
     const normalized = normalizeForMatch(value);
     return normalized.length > 0 && source.includes(` ${normalized} `);
   };
+  const roleWords = normalizeForMatch(extraction.role)
+    .split(' ')
+    .filter((word) => word.length > 0);
+  const groundedRoleWords = roleWords.filter((word) => source.includes(` ${word} `));
+  const roleIsGrounded =
+    roleWords.length > 0 && groundedRoleWords.length / roleWords.length >= MIN_ROLE_WORD_COVERAGE;
   const { location, salary, ...rest } = extraction;
   return {
     ...rest,
     company: appearsInSource(extraction.company) ? extraction.company : '',
+    role: roleIsGrounded ? extraction.role : '',
     ...(location !== undefined && appearsInSource(location) ? { location } : {}),
     ...(salary !== undefined && /\d/.test(salary) && appearsInSource(salary) ? { salary } : {}),
   };
