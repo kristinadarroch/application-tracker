@@ -19,7 +19,7 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 | `ai-prep.yaml` | Failed once (the End tap didn't register right after feedback rendered); flow now waits for the UI to settle, then 2 / 2 pass | — |
 | `ai-inbox.yaml` | Pass | — |
 | `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, run just before the icon-scaling change in `2bd0c9f`) |
+| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, app code at `a5c8c91`) |
 | `demo.yaml` | 4 passes across flow revisions; the current flow passed once | — |
 | `ai-checks.yaml` | 2 / 2 runs, every group "0 failed" | — |
 
@@ -64,7 +64,7 @@ What the checks caught before passing (all fixed, each with a unit test):
 
 ## Accessibility
 
-### Largest text (2026-11-05, `e2e/a11y-large-text.yaml`)
+### Largest text (2026-11-06, `e2e/a11y-large-text.yaml`)
 
 Screens: settings, pipeline with demo data, application detail, Next Step form, inbox, intake.
 

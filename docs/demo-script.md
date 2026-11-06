@@ -38,12 +38,18 @@ The recorded run (`backup-demo.mov`) is 77 s from demo data loaded to dark mode;
 Re-record the backup videos (iOS Simulator, Metro running):
 
 ```sh
-xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-demo.mov &   # Ctrl-C after the flow
+# Full demo. recordVideo writes the file when it receives SIGINT.
+xcrun simctl io <udid> recordVideo --codec h264 --force e2e/artifacts/backup-demo.mov & REC=$!
 maestro --device <udid> test e2e/demo.yaml
-# 20–30 s intake clip from an app already open on the Pipeline:
-xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-intake.mov &
+kill -INT $REC; wait $REC
+
+# 20–30 s intake clip, from an app already open on the Pipeline (trim the idle start if needed).
+xcrun simctl io <udid> recordVideo --codec h264 --force e2e/artifacts/backup-intake.mov & REC=$!
 maestro --device <udid> test e2e/clip-intake.yaml
+kill -INT $REC; wait $REC
 ```
+
+If `recordVideo` reports "Host recording is already in progress", an earlier recorder was killed without SIGINT; shut down and boot the simulator to clear it.
 
 ## Code walkthrough (5 minutes)
 

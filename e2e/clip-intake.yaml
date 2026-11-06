@@ -1,6 +1,5 @@
-# Short backup clip: paste a listing → on-device draft → confirm. Starts from the Pipeline tab of an
-# already-running app (no relaunch), so a recording of it stays around 20–30 s:
-#   xcrun simctl io <udid> recordVideo --codec h264 e2e/artifacts/backup-intake.mov
+# Short backup clip: paste a listing → on-device draft → confirm. Starts from an already-running app
+# (no relaunch). Recording commands and trimming: docs/demo-script.md#dry-run.
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow:
