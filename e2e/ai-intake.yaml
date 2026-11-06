@@ -2,8 +2,11 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- tapOn: Paste a listing
-- assertVisible: Paste text
+- tapOn: Add from a link
+# The link field comes first; a pasted link starts reading on its own (unit-tested, needs the
+# network). This flow pastes the listing text so it runs offline.
+- assertVisible: Job link
+- tapOn: Paste text
 # INT-2: nothing to submit yet
 - assertVisible:
     text: Create draft

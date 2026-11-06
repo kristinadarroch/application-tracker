@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { Banner, Button, Screen, Stack, Text, TextField } from '@/design-system';
-import { applicationAdded } from '@/features/applications/model';
+import { applicationAdded, applicationSaved } from '@/features/applications/model';
 import { ApplicationIdSchema, createId } from '@/lib/ids';
 import { useAppDispatch } from '@/store/hooks';
 
@@ -57,6 +57,7 @@ export function DraftReview({ draft }: DraftReviewProps) {
     }
     const id = createId(ApplicationIdSchema, 'app');
     dispatch(applicationAdded({ id, input: result.value, now: new Date().toISOString() }));
+    dispatch(applicationSaved({ id }));
     dispatch(draftRemoved(draft.id));
     router.replace({ pathname: '/application/[id]', params: { id } });
   };

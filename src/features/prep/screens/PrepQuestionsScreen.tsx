@@ -1,16 +1,8 @@
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { Alert, View } from 'react-native';
 
-import {
-  Button,
-  EmptyState,
-  ErrorState,
-  ListItem,
-  Screen,
-  Skeleton,
-  Stack,
-  Text,
-} from '@/design-system';
+import { Button, ErrorState, ListItem, Screen, Skeleton, Stack, Text } from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -81,25 +73,28 @@ function LoadingQuestions() {
   );
 }
 
+/**
+ * No questions yet: they generate on their own, from the job's role, requirements, and notes
+ * (PREP-1). Usually already running, started in the background when the job was saved.
+ */
 function NoQuestionSet({ application }: { application: Application }) {
   const ai = useAppSelector(selectAiAvailability);
   const generate = useGeneratePrepQuestions(application);
-  if (generate.pending) return <LoadingQuestions />;
-  // Availability is checked synchronously at launch, so this placeholder only shows for a moment.
-  if (ai === null) return <LoadingQuestions />;
-  if (ai.status === 'unavailable')
+  const shouldStart =
+    ai?.status === 'available' && !generate.pending && generate.error === undefined;
+  const { run } = generate;
+
+  useEffect(() => {
+    if (shouldStart) void run();
+  }, [run, shouldStart]);
+
+  if (ai?.status === 'unavailable')
     return <AiUnavailableNotice reason={ai.reason} variant="empty" />;
   if (generate.error !== undefined) {
     return <ErrorState error={generate.error} onRetry={generate.run} />;
   }
-  return (
-    <EmptyState
-      icon="school-outline"
-      title="No prep questions yet"
-      body={`Get likely interview questions for ${application.role} at ${application.company}.`}
-      action={{ label: 'Generate prep questions', onPress: generate.run }}
-    />
-  );
+  // Waiting for availability (a moment at launch) or for the questions themselves.
+  return <LoadingQuestions />;
 }
 
 function QuestionSet({ application, set }: { application: Application; set: PrepQuestionSet }) {

@@ -10,10 +10,22 @@ appId: dev.kristinadarroch.applicationtracker
 - takeScreenshot: e2e/artifacts/android-01-pipeline
 
 # Intake: manual path with the pasted text kept
-- tapOn: Paste a listing
+- tapOn: Add from a link
 - assertVisible: AI isn’t available
+- tapOn: Paste text
 - tapOn: 'Listing text.*'
+# A fresh emulator's keyboard may open its "Try out your stylus" tour over the app.
+- runFlow:
+    when:
+      visible: Try out your stylus
+    commands:
+      - tapOn: Cancel
+      - tapOn: 'Listing text.*'
 - inputText: 'Initech is hiring a Staff Mobile Engineer.'
+# Tapping outside the field closes the keyboard (hideKeyboard sends Back, which can close the screen).
+- tapOn: AI isn’t available
+- scrollUntilVisible:
+    element: Continue manually
 - tapOn: Continue manually
 - extendedWaitUntil:
     visible: AI wasn’t used
@@ -28,9 +40,9 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible: '.*Tag manually.*'
 - takeScreenshot: e2e/artifacts/android-03-inbox
 
-# Prep: reason instead of Generate, existing data still viewable
+# Prep: the reason instead of generating, and nothing loads forever
 - tapOn: 'Prep.*'
 - tapOn: '.*Acme Health.*'
 - assertVisible: '.*Apple Intelligence.*'
-- assertNotVisible: Generate prep questions
+- assertNotVisible: Generating prep questions
 - takeScreenshot: e2e/artifacts/android-04-prep

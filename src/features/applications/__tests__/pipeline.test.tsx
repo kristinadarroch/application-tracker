@@ -9,13 +9,13 @@ import { renderApp } from '@/test/renderApp';
 const daysFromNow = (days: number) => toIsoDate(addDays(new Date(), days));
 
 describe('Pipeline (PIPE-1)', () => {
-  it('shows an empty state with Add application and Paste a listing', async () => {
+  it('shows an empty state led by Add from a link, with Add application as the manual path', async () => {
     const { getPathname } = await renderApp('/');
     expect(screen.getByText('No applications yet')).toBeOnTheScreen();
     expect(screen.getAllByRole('button', { name: 'Add application' }).length).toBeGreaterThan(0);
 
-    const pasteButtons = screen.getAllByRole('button', { name: 'Paste a listing' });
-    await fireEvent.press(pasteButtons[pasteButtons.length - 1]!);
+    const linkButtons = screen.getAllByRole('button', { name: 'Add from a link' });
+    await fireEvent.press(linkButtons[linkButtons.length - 1]!);
     expect(getPathname()).toBe('/intake/new');
   });
 

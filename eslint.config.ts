@@ -67,8 +67,11 @@ export default defineConfig([
   })),
   {
     // The store imports slice files directly: barrels pull in screens, which import the store.
+    // `prep/autoPrep` registers the store's listeners and imports no screens.
     files: ['src/store/**'],
-    rules: { 'no-restricted-imports': restrictedImports('[^/]+/slice|intake/draftsSlice') },
+    rules: {
+      'no-restricted-imports': restrictedImports('[^/]+/slice|intake/draftsSlice|prep/autoPrep'),
+    },
   },
   {
     // The design system and the AI adapter are the only places allowed to reach their internals.

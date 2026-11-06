@@ -12,8 +12,9 @@ appId: dev.kristinadarroch.applicationtracker
 # 0:00 Pipeline: stages, counts, urgent badge
 - assertVisible: '.*Due tomorrow.*'
 - waitForAnimationToEnd
-# 0:45 AI intake (paste stands in for the share sheet; both land on the same draft review)
-- tapOn: Paste a listing
+# 0:45 AI intake (pasted text stands in for the share sheet; both land on the same draft review)
+- tapOn: Add from a link
+- tapOn: Paste text
 - tapOn: 'Listing text Paste the job listing here'
 - inputText: 'Northwind Labs is hiring a Senior Mobile Engineer (React Native) in Denver, CO. Salary $160,000 to $190,000. You will lead our patient scheduling app. Requirements: 6+ years mobile, React Native, TypeScript, Redux, accessibility, CI/CD.'
 - tapOn: Create draft
@@ -26,12 +27,11 @@ appId: dev.kristinadarroch.applicationtracker
 - extendedWaitUntil:
     visible: Details
     timeout: 10000
-# 2:00 Prep questions and one mock-interview turn, on the application just created
+# 2:00 Prep questions (already generating since Confirm) and one mock-interview turn
 - waitForAnimationToEnd
 - scrollUntilVisible:
     element: Prep questions
 - tapOn: Prep questions
-- tapOn: Generate prep questions
 - extendedWaitUntil:
     visible: '.*practiced.*'
     timeout: 90000
@@ -39,7 +39,6 @@ appId: dev.kristinadarroch.applicationtracker
 - scrollUntilVisible:
     element: Mock interview
 - tapOn: Mock interview
-- tapOn: Start mock interview
 - extendedWaitUntil:
     visible: Your answer
     timeout: 90000
@@ -71,6 +70,13 @@ appId: dev.kristinadarroch.applicationtracker
 - extendedWaitUntil:
     visible: Proposed Next Step
     timeout: 10000
+# INBX-4: when the model is unsure of the match, Accept stays disabled until an application is
+# chosen. (Saving a second "Senior … React Native" job earlier in the demo makes this likely.)
+- runFlow:
+    when:
+      visible: Which application is this about?
+    commands:
+      - tapOn: Acme Health — Senior React Native Engineer
 - scrollUntilVisible:
     element: Accept
 - tapOn: Accept

@@ -9,7 +9,8 @@ appId: dev.kristinadarroch.applicationtracker
       - tapOn: Back
       - waitForAnimationToEnd
 - tapOn: 'Pipeline.*'
-- tapOn: Paste a listing
+- tapOn: Add from a link
+- tapOn: Paste text
 - tapOn: 'Listing text Paste the job listing here'
 - inputText: 'Globex is hiring a Staff React Native Engineer in Seattle, WA. Salary $185,000 to $215,000. Own the architecture of our field service app. Requirements: 8+ years mobile, React Native, TypeScript, Redux Toolkit, offline sync.'
 - pressKey: Enter

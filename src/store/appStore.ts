@@ -13,7 +13,7 @@ import {
 import { aiApi } from '@/services/ai/aiApi';
 
 import { persistConfig } from './persistConfig';
-import { rootReducer } from './store';
+import { createAppListeners, rootReducer } from './store';
 
 /** redux-persist dispatches non-serializable actions by design. */
 export const PERSIST_ACTIONS = [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER];
@@ -22,7 +22,9 @@ export const PERSIST_ACTIONS = [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTE
 export const store = configureStore({
   reducer: persistReducer(persistConfig, rootReducer),
   middleware: (getDefault) =>
-    getDefault({ serializableCheck: { ignoredActions: PERSIST_ACTIONS } }).concat(aiApi.middleware),
+    getDefault({ serializableCheck: { ignoredActions: PERSIST_ACTIONS } })
+      .prepend(createAppListeners())
+      .concat(aiApi.middleware),
 });
 
 export const persistor = persistStore(store);

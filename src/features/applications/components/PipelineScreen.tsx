@@ -45,8 +45,8 @@ export function PipelineScreen() {
   const actions = (
     <Stack direction="row" gap={1}>
       <IconButton
-        icon="clipboard-outline"
-        accessibilityLabel="Paste a listing"
+        icon="link-outline"
+        accessibilityLabel="Add from a link"
         onPress={() => router.push('/intake/new')}
       />
       <IconButton
@@ -70,15 +70,15 @@ export function PipelineScreen() {
           <EmptyState
             icon="albums-outline"
             title="No applications yet"
-            body="Add a role you found anywhere, or paste a job listing and review what AI fills in."
-            action={{ label: 'Add application', onPress: () => router.push('/application/new') }}
+            body="Add a job from its link and review what AI fills in, or add one by hand."
+            action={{ label: 'Add from a link', onPress: () => router.push('/intake/new') }}
           />
           <Stack align="center">
             <Button
-              label="Paste a listing"
-              icon="clipboard-outline"
+              label="Add application"
+              icon="add"
               variant="secondary"
-              onPress={() => router.push('/intake/new')}
+              onPress={() => router.push('/application/new')}
             />
           </Stack>
         </ScrollView>

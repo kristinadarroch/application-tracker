@@ -44,7 +44,7 @@ describe('Share a listing from my browser (INT-1)', () => {
     const { getPathname } = await renderIntake('/intake/share');
 
     expect(screen.getByText('Shared listing')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Listing link')).toHaveDisplayValue(LINK);
+    expect(screen.getByLabelText('Job link')).toHaveDisplayValue(LINK);
     expect(screen.getByRole('button', { name: 'Create draft' })).toBeBusy();
     expect(mockClearSharedPayloads).toHaveBeenCalled();
 
@@ -55,12 +55,12 @@ describe('Share a listing from my browser (INT-1)', () => {
     expect(getPathname()).toMatch(/^\/intake\/review\//);
   });
 
-  it('says the content can’t be imported and links to paste instead', async () => {
+  it('says the content can’t be imported and links to adding from a link instead', async () => {
     mockSharedPayloads = [{ shareType: 'image', value: 'file:///photo.jpg' }];
     const { getPathname } = await renderIntake('/intake/share');
 
     expect(screen.getByText('This can’t be imported')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Paste a listing' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Add from a link' }));
     expect(getPathname()).toBe('/intake/new');
   });
 

@@ -12,17 +12,17 @@ E2E and model checks need a dev build installed and Metro running (`npm start`).
 
 ## Latest end-to-end results (2026-11-06)
 
-Most flows ran on app code at `8b0091d` (flows at `e7b1e13`). After that, only the intake extraction cleanup, the review-screen id check, and the dev check screen changed; `ai-intake.yaml` and `ai-checks.yaml` were rerun on that final code.
+All rows below ran on the final app code (AI runs from the saved job: link-first intake, prep questions in the background and on open, mock interview starting on open), except the large-text pass.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
-| `pipeline.yaml` | Pass | Pass (after a flow fix: scroll the link field out from under the keyboard) |
-| `ai-intake.yaml` | Pass (rerun after the trailing-separator fix) | — (AI is iOS only) |
-| `ai-prep.yaml` | Failed once (the End tap didn't register right after feedback rendered); flow now waits for the UI to settle, then 2 / 2 pass | — |
+| `pipeline.yaml` | Pass, after a flow fix (wait for the form before scrolling) | Pass |
+| `ai-intake.yaml` | Pass (opens on the link field, then uses Paste text) | — (AI is iOS only) |
+| `ai-prep.yaml` | Pass with no Generate or Start tap. An earlier attempt stopped at launch: Maestro's own hierarchy request failed (`kAXErrorInvalidUIElement`) and hung; the rerun passed | — |
 | `ai-inbox.yaml` | Pass | — |
-| `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, app code at `a5c8c91`) |
-| `demo.yaml` | 4 passes across flow revisions; the current flow passed once | — |
+| `android-ai-off.yaml` | — | Pass, after two flow fixes for the emulator keyboard (its stylus tour, and closing it by tapping outside) |
+| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, at `a5c8c91`) |
+| `demo.yaml` | Failed once: the model marked the Acme invite an unsure match (correct INBX-4 behavior: Accept waits for a choice). The flow now picks the application when asked; the rerun passed in 113 s and is the backup video | — |
 | `ai-checks.yaml` | Stricter checks (below): 2 / 2 consecutive runs, every group "0 failed", after one fix | — |
 
 ## Story coverage
@@ -39,9 +39,9 @@ Most flows ran on app code at `8b0091d` (flows at `e7b1e13`). After that, only t
 | PIPE-1–6 | `pipeline`, `applicationForm`, `applicationDetail`, selector and slice tests | `pipeline.yaml` |
 | PIPE-7 persistence | `persistence.test.tsx` (real redux-persist config), `persistConfig.test.ts` (migration) | Data survives relaunch (manual) |
 | INT-1 share sheet | `shareScreen`, `routing` tests | Manual: share from Safari / Chrome |
-| INT-2–6 | `intakeScreen`, `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml`, model checks (listings) |
-| PREP-1–3 | Prep slice, task, and screen tests | `ai-prep.yaml`, model checks (prep) |
-| MOCK-1–5 | Prep session tests (transcript restore, answer kept on failure) | `ai-prep.yaml`, model checks (mock turn) |
+| INT-2–6 | `intakeScreen` (link field first; a pasted link loads and drafts with no tap), `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml` (pasted text; a live link needs the network), model checks (listings) |
+| PREP-1–3 | Prep slice, task, and screen tests; `autoPrep.test.ts` (generates when a job is saved, not for demo data or without AI); questions generate on open, failures show Retry without retrying on their own | `ai-prep.yaml`, `demo.yaml` (no Generate tap), model checks (prep) |
+| MOCK-1–5 | Prep session tests (first question on open, only once; transcript restore; answer kept on failure; ending doesn't start a new session) | `ai-prep.yaml` (no Start tap), model checks (mock turn) |
 | INBX-1–6 | Inbox slice, triage, screen, replay tests | `ai-inbox.yaml`, model checks (triage) |
 | LATER-1 reviews | `quotes.test.ts`, task + screen tests | Model checks (interview reviews) |
 | LATER-2 Gmail | Paging, decoding, HTML fallback, 401/offline/503 with injected fetch | **Blocked:** live sign-in needs Google OAuth client IDs (see README) |

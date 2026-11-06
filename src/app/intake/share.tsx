@@ -42,7 +42,7 @@ export default function ShareRoute() {
   }, [sharedPayloads, clearSharedPayloads]);
 
   const { listing, count } = received;
-  const pasteInstead = { label: 'Paste a listing', onPress: () => router.replace('/intake/new') };
+  const pasteInstead = { label: 'Add from a link', onPress: () => router.replace('/intake/new') };
   switch (listing.kind) {
     case 'url':
       return (
@@ -81,7 +81,7 @@ export default function ShareRoute() {
           <EmptyState
             icon="share-outline"
             title="Nothing to import"
-            body="Nothing was shared with the app. Paste a listing’s text or link instead."
+            body="Nothing was shared with the app. Add the job from its link instead."
             action={pasteInstead}
           />
         </Screen>

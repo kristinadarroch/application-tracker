@@ -20,7 +20,13 @@ appId: dev.kristinadarroch.applicationtracker
 - takeScreenshot: e2e/artifacts/pipeline-02-seeded
 
 # PIPE-2: validation, then a valid manual add
-- tapOn: Add application
+- waitForAnimationToEnd
+- tapOn:
+    text: Add application
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: Company
+    timeout: 10000
 - scrollUntilVisible:
     element: Save application
 - tapOn: Save application

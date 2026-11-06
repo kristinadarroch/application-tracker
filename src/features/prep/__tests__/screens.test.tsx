@@ -3,6 +3,7 @@ import { Alert, type AlertButton } from 'react-native';
 
 import { ApplicationIdSchema, QuestionIdSchema, SessionIdSchema } from '@/lib/ids';
 import { err, ok } from '@/lib/result';
+import type { TestStore } from '@/store/store';
 
 import type { MockInterviewSession, PrepQuestionSet } from '../schema';
 import { selectQuestionSet } from '../selectors';
@@ -60,11 +61,11 @@ async function press(name: string | RegExp) {
 }
 
 describe('Prep questions screen', () => {
-  it('generates questions grouped by type and tracks practice progress (PREP-1, PREP-2)', async () => {
+  it('generates questions on open, grouped by type, and tracks practice progress (PREP-1, PREP-2)', async () => {
     fakeGenerate.mockResolvedValueOnce(ok(generatedQuestions));
     await renderPrepRoute(PREP_URL, makePrepStore());
 
-    await press('Generate prep questions');
+    expect(screen.queryByRole('button', { name: 'Generate prep questions' })).toBeNull();
 
     expect(await screen.findByText('0 / 4 practiced')).toBeOnTheScreen();
     for (const header of ['Behavioral', 'Technical', 'Role-specific', 'Questions to ask them']) {
@@ -77,6 +78,19 @@ describe('Prep questions screen', () => {
 
     expect(question).toBeChecked();
     expect(screen.getByText('1 / 4 practiced')).toBeOnTheScreen();
+  });
+
+  it('shows Retry when generating on open fails, without retrying on its own (PREP-3)', async () => {
+    fakeGenerate.mockResolvedValueOnce(err({ kind: 'timeout', afterMs: 45_000 }));
+    await renderPrepRoute(PREP_URL, makePrepStore());
+
+    expect(await screen.findByText('That took too long')).toBeOnTheScreen();
+    expect(fakeGenerate).toHaveBeenCalledTimes(1);
+
+    fakeGenerate.mockResolvedValueOnce(ok(generatedQuestions));
+    await press('Retry');
+    expect(await screen.findByText('0 / 4 practiced')).toBeOnTheScreen();
+    expect(fakeGenerate).toHaveBeenCalledTimes(2);
   });
 
   it('asks before replacing an existing set (PREP-1)', async () => {
@@ -164,7 +178,7 @@ describe('Prep questions screen', () => {
     await renderPrepRoute(
       PREP_URL,
       makePrepStore({
-        prep: prepState(undefined, [
+        prep: prepState(existingSet, [
           ended('ses_old', '2026-10-01T10:00:00.000Z'),
           ended('ses_new', '2026-11-01T10:00:00.000Z'),
         ]),
@@ -188,21 +202,29 @@ describe('Mock interview screen', () => {
     strongerAnswer: 'I shipped a telehealth app used by 40k patients…',
   };
 
-  async function answerFirstQuestion() {
+  /** Opening the screen asks the first question on its own; this answers it. */
+  async function answerFirstQuestion(store: TestStore) {
     fakeGenerate
       .mockResolvedValueOnce(ok({ question: firstQuestion }))
       .mockResolvedValueOnce(ok({ ...feedback, nextQuestion: secondQuestion }));
-    await press('Start mock interview');
+    await renderPrepRoute(MOCK_URL, store);
     expect(await screen.findByText(firstQuestion)).toBeOnTheScreen();
     await fireEvent.changeText(screen.getByLabelText('Your answer'), firstAnswer);
     await press('Submit answer');
     expect(await screen.findByText(secondQuestion)).toBeOnTheScreen();
   }
 
-  it('asks a first question, then shows feedback and the next question (MOCK-1, MOCK-2)', async () => {
+  it('asks the first question on open, with no Start step, and only once (MOCK-1)', async () => {
+    fakeGenerate.mockResolvedValueOnce(ok({ question: firstQuestion }));
     await renderPrepRoute(MOCK_URL, makePrepStore());
 
-    await answerFirstQuestion();
+    expect(screen.queryByRole('button', { name: 'Start mock interview' })).toBeNull();
+    expect(await screen.findByText(firstQuestion)).toBeOnTheScreen();
+    expect(fakeGenerate).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks a first question, then shows feedback and the next question (MOCK-1, MOCK-2)', async () => {
+    await answerFirstQuestion(makePrepStore());
 
     expect(fakeGenerate.mock.calls[0]?.[0].prompt).toContain('Role: Senior React Native Engineer');
     expect(screen.getByText(firstAnswer)).toBeOnTheScreen();
@@ -214,8 +236,7 @@ describe('Mock interview screen', () => {
 
   it('keeps the typed answer after a failed turn, sends no earlier answers, and restores everything on return (MOCK-3, MOCK-4)', async () => {
     const store = makePrepStore();
-    await renderPrepRoute(MOCK_URL, store);
-    await answerFirstQuestion();
+    await answerFirstQuestion(store);
 
     fakeGenerate.mockResolvedValueOnce(err({ kind: 'timeout', afterMs: 45_000 }));
     await fireEvent.changeText(screen.getByLabelText('Your answer'), 'I memoize rows.');
@@ -241,9 +262,10 @@ describe('Mock interview screen', () => {
     expect(screen.getByLabelText('Your answer')).toHaveDisplayValue('I memoize rows.');
   });
 
-  it('ends the session and shows a summary of strengths and gaps (MOCK-5)', async () => {
-    await renderPrepRoute(MOCK_URL, makePrepStore());
-    await answerFirstQuestion();
+  it('ends the session and shows a summary of strengths and gaps, without starting another (MOCK-5)', async () => {
+    const store = makePrepStore();
+    await answerFirstQuestion(store);
+    const callsBeforeEnd = fakeGenerate.mock.calls.length;
 
     await press('End');
 
@@ -251,9 +273,11 @@ describe('Mock interview screen', () => {
     expect(screen.getByText(/1 of 2 questions answered/)).toBeOnTheScreen();
     expect(screen.getAllByText('• Concrete example').length).toBeGreaterThan(0);
     expect(screen.getAllByText('• No metrics on impact').length).toBeGreaterThan(0);
+    expect(fakeGenerate).toHaveBeenCalledTimes(callsBeforeEnd);
+    expect(store.getState().prep.sessions.ids).toHaveLength(1);
   });
 
-  it('shows why AI is unavailable instead of Start (UX-7)', async () => {
+  it('shows why AI is unavailable instead of starting (UX-7)', async () => {
     await renderPrepRoute(
       MOCK_URL,
       makePrepStore({ ai: { status: 'unavailable', reason: 'os_too_old' } }),
@@ -262,7 +286,8 @@ describe('Mock interview screen', () => {
     expect(
       screen.getByText('AI features need iOS 26 or later. Update iOS to use them.'),
     ).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Start mock interview' })).not.toBeOnTheScreen();
+    expect(screen.queryByLabelText('Getting your first question')).toBeNull();
+    expect(fakeGenerate).not.toHaveBeenCalled();
   });
 });
 

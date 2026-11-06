@@ -13,7 +13,10 @@ export interface ListingIntakeScreenProps {
   autoSubmit: boolean;
 }
 
-/** Paste text or a link, read it on the device, and open the draft for review (INT-1 – INT-3, INT-5, UX-7). */
+/**
+ * Add a job from its link (the default) or pasted text, read it on the device, and open the draft
+ * for review (INT-1 – INT-3, INT-5, UX-7). A pasted link starts reading on its own.
+ */
 export function ListingIntakeScreen({
   title,
   initial,
@@ -49,20 +52,31 @@ export function ListingIntakeScreen({
 
       <Stack direction="row" gap={2} wrap="wrap">
         <Chip
+          label="From a link"
+          icon="link-outline"
+          selected={intake.mode === 'url'}
+          onPress={() => intake.changeMode('url')}
+        />
+        <Chip
           label="Paste text"
           icon="document-text-outline"
           selected={intake.mode === 'text'}
           onPress={() => intake.changeMode('text')}
         />
-        <Chip
-          label="Paste link"
-          icon="link-outline"
-          selected={intake.mode === 'url'}
-          onPress={() => intake.changeMode('url')}
-        />
       </Stack>
 
-      {intake.mode === 'text' ? (
+      {intake.mode === 'url' ? (
+        <TextField
+          label="Job link"
+          value={intake.url}
+          onChangeText={intake.changeUrl}
+          placeholder="https://"
+          keyboardType="url"
+          autoCapitalize="none"
+          helperText="Paste the job’s link and the app reads the page. Sharing a job from Safari or Chrome skips this screen."
+          {...(intake.urlError === undefined ? {} : { error: intake.urlError })}
+        />
+      ) : (
         <TextField
           label="Listing text"
           value={intake.text}
@@ -72,16 +86,6 @@ export function ListingIntakeScreen({
           {...(intake.keptLink === undefined
             ? {}
             : { helperText: `The link ${intake.keptLink} will be saved with this listing.` })}
-        />
-      ) : (
-        <TextField
-          label="Listing link"
-          value={intake.url}
-          onChangeText={intake.changeUrl}
-          placeholder="https://"
-          keyboardType="url"
-          autoCapitalize="none"
-          {...(intake.urlError === undefined ? {} : { error: intake.urlError })}
         />
       )}
 

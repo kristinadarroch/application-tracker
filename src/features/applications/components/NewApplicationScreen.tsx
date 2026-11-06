@@ -7,7 +7,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { ApplicationPrefillSchema, formStateFromPrefill } from '../form';
 import { useGoBack } from '../hooks/useGoBack';
 import type { ApplicationInput } from '../schema';
-import { applicationAdded } from '../slice';
+import { applicationAdded, applicationSaved } from '../slice';
 import { ApplicationForm } from './ApplicationForm';
 
 /** Manual entry (PIPE-2). Intake opens it prefilled, with `aiNote` when AI wasn't used (UX-7). */
@@ -20,6 +20,7 @@ export function NewApplicationScreen() {
   const save = (input: ApplicationInput) => {
     const id = createId(ApplicationIdSchema, 'app');
     dispatch(applicationAdded({ id, input, now: new Date().toISOString() }));
+    dispatch(applicationSaved({ id }));
     router.replace({ pathname: '/application/[id]', params: { id } });
   };
 

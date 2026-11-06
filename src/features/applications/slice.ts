@@ -1,4 +1,5 @@
 import {
+  createAction,
   createEntityAdapter,
   createSlice,
   type EntityState,
@@ -108,3 +109,10 @@ export const {
   nextStepToggled,
   nextStepRemoved,
 } = applicationsSlice.actions;
+
+/**
+ * The user saved a new application from a form (manual entry or a confirmed draft). Other features
+ * start follow-up work on it, such as prep questions. Demo data doesn't send it, so loading samples
+ * never queues on-device AI work.
+ */
+export const applicationSaved = createAction<{ id: ApplicationId }>('applications/saved');

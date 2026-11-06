@@ -220,6 +220,15 @@ export function useListingIntake(
       setUrl(next);
       setUrlError(undefined);
       clearOutcome();
+      // A whole link pasted into the empty field starts reading at once: no extra tap (INT-3).
+      const request =
+        url.trim().length === 0 && aiUnavailable === undefined && status.kind !== 'reading'
+          ? toListingRequest({ mode: 'url', text, url: next }, origin)
+          : undefined;
+      if (request !== undefined) {
+        setStatus({ kind: 'reading' });
+        run(request);
+      }
     },
     submit,
     editText: () => {

@@ -103,7 +103,7 @@ As a job seeker on a device without Apple Intelligence, I want to know why AI fe
 As a job seeker, I want my applications grouped by stage, so that I can see where everything stands at a glance.
 
 - **When** I open the Pipeline tab, **then** applications are grouped in stage order (Saved, Applied, Interviewing, Offer, Rejected, Withdrawn), with a count per stage.
-- **Given** no applications, **then** I see an empty state with "Add application" and "Paste a listing" actions.
+- **Given** no applications, **then** I see an empty state led by "Add from a link", with "Add application" for entering one by hand.
 - **Given** a stage has no applications, **then** that group shows its count of 0 and takes minimal space.
 
 ### PIPE-2 · Add an application by hand
@@ -159,21 +159,22 @@ As a job seeker, I want my data saved on my device, so that nothing is lost when
 As a job seeker, I want to share a job listing straight from my browser, so that saving a role takes one tap.
 
 - **Given** I'm viewing a listing in Safari (iOS) or Chrome (Android), **when** I share it to Application Tracker, **then** the app opens on the share-received screen with the URL filled in.
-- **When** the shared content isn't a URL or text, **then** I see "This can't be imported" and a link to paste instead.
+- **When** the shared content isn't a URL or text, **then** I see "This can't be imported" and a link to add the job from its link instead.
 
 ### INT-2 · Paste a listing's text
 
-As a job seeker, I want to paste a listing's text, so that I can import roles from any site.
+As a job seeker, I want to paste a listing's text when I have no link, so that I can import roles from any site.
 
-- **When** I paste listing text and submit, **then** I get an Application Draft with company and role filled in.
+- **When** I choose "Paste text", paste listing text, and submit, **then** I get an Application Draft with company and role filled in.
 - **Given** the text box is empty or only whitespace, **then** Submit is disabled and nothing is sent.
 - **When** the AI can't find a company or role in the text, **then** I see "Couldn't find the company or role" with "Edit text" and "Fill in manually", and my text is kept.
 
-### INT-3 · Paste a listing URL
+### INT-3 · Add a job from its link ★
 
-As a job seeker, I want to paste a link instead of copying the whole listing, so that intake is fast.
+As a job seeker, I want to give the app a job's link and have it fill in the rest, so that I never copy a whole listing.
 
-- **When** I submit a readable URL, **then** I get an Application Draft with the listing link stored.
+- **When** I open "Add from a link", **then** the link field is shown first; pasting text is the fallback.
+- **When** I paste a whole link into the empty field, **then** the app starts loading and reading the page without another tap, and I get an Application Draft with the listing link stored.
 - **Given** the page is blocked, empty, behind a login, or needs JavaScript, **then** I see "Couldn't read this page" and the screen switches to paste mode with the URL kept.
 
 ### INT-4 · Review a draft before saving ★
@@ -209,9 +210,10 @@ As a job seeker, I want unconfirmed drafts kept, so that I can finish reviewing 
 
 As a job seeker, I want likely interview questions for a specific role, so that I can prepare for what I'll actually be asked.
 
-- **When** I tap "Generate prep questions", **then** I get questions grouped as behavioral, technical, role-specific, and questions to ask them.
+- **When** I open prep questions for an application that has none, **then** they generate on their own, with no button to tap, grouped as behavioral, technical, role-specific, and questions to ask them.
+- **When** I save a new application (by hand or by confirming a draft) and AI is available, **then** its questions start generating in the background, so they are ready or nearly ready when I open Prep. Loading demo data does not start this.
 - **Then** the role-specific questions mention the application's role or listed requirements.
-- **When** I generate again, **then** I'm asked whether to replace the existing set first.
+- **When** I regenerate, **then** I'm asked whether to replace the existing set first.
 
 ### PREP-2 · Track what I've practiced
 
@@ -224,7 +226,7 @@ As a job seeker, I want to mark questions as practiced, so that I can see my pro
 
 As a job seeker, I want a clear retry when generation fails, so that I'm not stuck.
 
-- **When** generation fails or times out, **then** I see the error with Retry, and any existing question set stays as it was.
+- **When** generation fails or times out, **then** I see the error with Retry, and any existing question set stays as it was. A failure is not retried on its own.
 
 ---
 
@@ -234,7 +236,8 @@ As a job seeker, I want a clear retry when generation fails, so that I'm not stu
 
 As a job seeker, I want to practice an interview for a specific application, so that practice matches the real thing.
 
-- **When** I start a session, **then** the AI asks a first question about this application's role.
+- **When** I open the mock interview and no session is active, **then** the AI asks a first question about this application's role, with no Start step. An active session resumes instead.
+- **When** I end a session, **then** no new session starts while the screen closes.
 - **Given** two applications with different roles, **then** their first questions differ in a way that reflects each role (checked by hand).
 
 ### MOCK-2 · Get feedback on each answer ★

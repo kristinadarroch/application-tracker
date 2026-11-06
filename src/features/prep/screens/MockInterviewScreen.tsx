@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 import {
   Button,
@@ -42,8 +42,12 @@ function MockInterview({ application }: { application: Application }) {
   const styles = useStyles();
   const dispatch = useAppDispatch();
   const session = useAppSelector((state) => selectActiveSession(state, application.id));
+  // Ending clears the active session while this screen animates away; without this flag the
+  // empty screen would immediately start a new session in the background.
+  const [ending, setEnding] = useState(false);
 
   const end = (active: MockInterviewSession) => {
+    setEnding(true);
     dispatch(sessionEnded({ sessionId: active.id, now: new Date().toISOString() }));
     router.replace({
       pathname: '/prep/[applicationId]/session/[sessionId]',
@@ -67,22 +71,28 @@ function MockInterview({ application }: { application: Application }) {
         }
       >
         <Text color="secondary">{`${application.role} · ${application.company}`}</Text>
-        {session === undefined ? (
-          <StartSession application={application} />
-        ) : (
+        {session !== undefined ? (
           <ActiveSession application={application} session={session} />
+        ) : ending ? null : (
+          <StartSession application={application} />
         )}
       </Screen>
     </KeyboardAvoidingView>
   );
 }
 
+/** MOCK-1: no Start step; opening the screen asks the first question for this job. */
 function StartSession({ application }: { application: Application }) {
   const ai = useAppSelector(selectAiAvailability);
   const start = useStartMockInterview(application);
-  // Availability is checked synchronously at launch, so this placeholder only shows for a moment.
-  if (ai === null) return <Skeleton width="100%" height={160} radius="lg" />;
-  if (ai.status === 'unavailable')
+  const shouldStart = ai?.status === 'available' && !start.pending && start.error === undefined;
+  const { run } = start;
+
+  useEffect(() => {
+    if (shouldStart) void run();
+  }, [run, shouldStart]);
+
+  if (ai?.status === 'unavailable')
     return <AiUnavailableNotice reason={ai.reason} variant="empty" />;
   if (start.error !== undefined && !start.pending) {
     return <ErrorState error={start.error} onRetry={start.run} />;
@@ -93,12 +103,16 @@ function StartSession({ application }: { application: Application }) {
       <Text color="secondary">
         {`Answer questions for ${application.role} at ${application.company} and get feedback after each answer. You can leave and come back anytime.`}
       </Text>
-      <Button
-        label="Start mock interview"
-        icon="play"
-        loading={start.pending}
-        onPress={start.run}
-      />
+      <View
+        accessible
+        accessibilityLabel="Getting your first question"
+        accessibilityState={{ busy: true }}
+      >
+        <Stack gap={2}>
+          <Skeleton width="90%" height={18} />
+          <Skeleton width="70%" height={18} />
+        </Stack>
+      </View>
     </Card>
   );
 }

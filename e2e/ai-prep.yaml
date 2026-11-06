@@ -8,8 +8,8 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: '.*Acme Health.*'
 - scrollUntilVisible:
     element: Prep questions
+# PREP-1: questions generate on their own when the screen opens; no Generate step
 - tapOn: Prep questions
-- tapOn: Generate prep questions
 - extendedWaitUntil:
     visible: '.*practiced.*'
     timeout: 90000
@@ -24,8 +24,8 @@ appId: dev.kristinadarroch.applicationtracker
 # MOCK-1 / MOCK-2
 - scrollUntilVisible:
     element: Mock interview
+# MOCK-1: the first question is asked on open; no Start step
 - tapOn: Mock interview
-- tapOn: Start mock interview
 - extendedWaitUntil:
     visible: Your answer
     timeout: 90000

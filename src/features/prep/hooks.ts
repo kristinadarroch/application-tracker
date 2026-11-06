@@ -14,7 +14,13 @@ import {
   useStartMockInterviewMutation,
 } from './api';
 import type { MockInterviewSession } from './schema';
-import { questionSetReplaced, sessionStarted, turnAnswered, turnFeedbackReceived } from './slice';
+import { turnAnswered, turnFeedbackReceived } from './slice';
+import {
+  generatePrepQuestionsFor,
+  mockStartCacheKey,
+  prepQuestionsCacheKey,
+  startMockInterviewFor,
+} from './thunks';
 
 export interface AiAction<Args extends unknown[]> {
   run: (...args: Args) => Promise<void>;
@@ -24,30 +30,31 @@ export interface AiAction<Args extends unknown[]> {
 
 /**
  * PREP-1/PREP-3: the set in the store is replaced only on success, so a failure leaves it as it was.
- * The request state is keyed by application, so it survives leaving and returning to the screen.
+ * The request state is keyed by application, so it survives leaving and returning to the screen,
+ * and a background request started when the job was saved shows here as pending.
  */
 export function useGeneratePrepQuestions(application: Application): AiAction<[]> {
   const dispatch = useAppDispatch();
-  const [trigger, state] = useGeneratePrepQuestionsMutation({
-    fixedCacheKey: `prep-questions-${application.id}`,
+  const [, state] = useGeneratePrepQuestionsMutation({
+    fixedCacheKey: prepQuestionsCacheKey(application.id),
   });
-  const run = useCallback(async () => {
-    const result = await trigger(application);
-    if (result.data !== undefined) dispatch(questionSetReplaced(result.data));
-  }, [application, dispatch, trigger]);
+  const run = useCallback(
+    () => dispatch(generatePrepQuestionsFor(application)),
+    [application, dispatch],
+  );
   return { run, pending: state.isLoading, error: toAppError(state.error) };
 }
 
 /** MOCK-1: asks the opening question, then records the new active session. */
 export function useStartMockInterview(application: Application): AiAction<[]> {
   const dispatch = useAppDispatch();
-  const [trigger, state] = useStartMockInterviewMutation({
-    fixedCacheKey: `mock-start-${application.id}`,
+  const [, state] = useStartMockInterviewMutation({
+    fixedCacheKey: mockStartCacheKey(application.id),
   });
-  const run = useCallback(async () => {
-    const result = await trigger(application);
-    if (result.data !== undefined) dispatch(sessionStarted(result.data));
-  }, [application, dispatch, trigger]);
+  const run = useCallback(
+    () => dispatch(startMockInterviewFor(application)),
+    [application, dispatch],
+  );
   return { run, pending: state.isLoading, error: toAppError(state.error) };
 }
 

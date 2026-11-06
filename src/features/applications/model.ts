@@ -8,5 +8,11 @@
  */
 export { ApplicationInputSchema, NextStepInputSchema } from './schema';
 export type { Application, ApplicationFormValues, ApplicationInput, NextStepInput } from './schema';
-export { applicationAdded, applicationRemoved, applicationsAdapter, nextStepAdded } from './slice';
+export {
+  applicationAdded,
+  applicationRemoved,
+  applicationSaved,
+  applicationsAdapter,
+  nextStepAdded,
+} from './slice';
 export { selectAllApplications, selectApplicationById } from './selectors';
