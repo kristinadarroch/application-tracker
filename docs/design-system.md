@@ -345,7 +345,7 @@ Each component has a typed props interface, string-union variants, accessibility
 | `StageProgress` | `stage`, `accent` | Four stage markers; reached segments solid, unreached dotted; closed applications end in a bar or exit mark. Decorative (the row label carries the stage) |
 | `StageProgressLegend` | — | SAVED · APPLIED · INTERVIEW · OFFER captions aligned with `StageProgress` |
 | `StageStep` | `stage`, `state`, `accent`, `label`, `meta?`, `tag?`, `onPress?`, `accessibilityLabel?`, `selected?`, `last?`, `children?` | When pressable: a button named `accessibilityLabel ?? label` with `accessibilityState.selected` |
-| `SpotlightCard` | `eyebrow`, `count?`, `accent?: { index, letter }`, `title`, `subtitle?`, `urgentLabel?`, `action?: { label, onPress }`, `onDone?`, `onDoneLabel?` | Dark panel; urgency is shown as text (`urgentLabel`), not just yellow; badge decorative |
+| `SpotlightCard` | `eyebrow`, `count?`, `accent?: { index, letter }`, `title`, `subtitle?`, `body?`, `urgentLabel?`, `action?: { label, onPress }`, `secondaryAction?: { label, onPress }`, `onDone?`, `onDoneLabel?` | Dark panel; urgency is shown as text (`urgentLabel`), not just yellow; badge decorative; `body` is a plain line under the subtitle; `secondaryAction` is a second button without the arrow |
 | `ProposalCard` | `eyebrow`, `onDevice?`, `children` | Dashed border + hatched fill; container label starts "Proposal, not saved" |
 | `StatTile` | `icon`, `value`, `label` | Big number + caption on a white card |
 | `ProgressSteps` | `total`, `done` | Announces "6 of 20 practiced" |

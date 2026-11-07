@@ -15,7 +15,7 @@ The brief asks for three things in the interview: a live demo, a code walkthroug
 
 | Time | Show | Requirement it proves |
 |---|---|---|
-| 0:00 | Pipeline tab: stages, counts, urgent next-step badge | RN + TypeScript, Redux selectors |
+| 0:00 | Pipeline tab opens on **Next interview**: Acme's prep progress with **Practice questions** and **Mock interview**; below it Up next (urgent next step) and Your applications by stage | RN + TypeScript, Redux selectors |
 | 0:45 | Share the listing from Safari → app opens and reads the page → draft review → confirm (or **Add from a link** and paste the URL: it starts reading by itself) | AI intake, human-in-the-loop drafts |
 | 2:00 | The application just confirmed → Prep questions are already generating (started on Confirm) → Mock interview asks its first question on open → one answer with feedback | AI prep, no extra taps |
 | 3:30 | Inbox → "Receive next email" → triage proposes a next step → accept | Email Source interface, triage, Redux |
