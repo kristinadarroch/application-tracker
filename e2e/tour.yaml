@@ -11,11 +11,16 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: Load demo data
 - takeScreenshot: e2e/artifacts/tour-${THEME}-settings
 - waitForAnimationToEnd
-- tapOn:
-    text: Back
-    retryTapIfNoChange: true
+- tapOn: Back
+# The "Added 3 demo applications" banner can still be animating in and swallow the tap.
+- runFlow:
+    when:
+      visible: Load demo data
+    commands:
+      - waitForAnimationToEnd
+      - tapOn: Back
 - extendedWaitUntil:
-    visible: Your applications
+    visible: Next interview
     timeout: 10000
 - waitForAnimationToEnd
 - takeScreenshot: e2e/artifacts/tour-${THEME}-pipeline

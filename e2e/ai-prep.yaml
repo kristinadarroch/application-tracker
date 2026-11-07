@@ -27,15 +27,16 @@ appId: dev.kristinadarroch.applicationtracker
 - takeScreenshot: e2e/artifacts/prep-01-questions
 # PREP-2: mark the first behavioral question practiced
 # Right after the questions arrive, the first tap sometimes doesn't register (cause not found;
-# see docs/verification.md). Tap once more if the count didn't move.
+# see docs/verification.md). Let the screen settle, then tap once more only if the count is
+# still 0, so a slow but successful first tap is never undone.
 - tapOn:
     id: prep-question
     index: 0
+- waitForAnimationToEnd
 - runFlow:
     when:
-      notVisible: '1 / .* practiced'
+      visible: '0 / .* practiced'
     commands:
-      - waitForAnimationToEnd
       - tapOn:
           id: prep-question
           index: 0
