@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Card, StageProgressLegend, makeStyles, Text } from '@/design-system';
@@ -9,6 +10,7 @@ import type { Application, NextStep } from '../schema';
 import { NO_PREP, type PrepSummary } from '../selectors';
 import { ApplicationRow } from './ApplicationRow';
 import { StageHeader } from './StageHeader';
+import { StatusFilter, type StatusFilterValue } from './StatusFilter';
 
 export interface ApplicationsCardProps {
   byStage: Record<Stage, Application[]>;
@@ -32,7 +34,8 @@ const useStyles = makeStyles((t) => ({
 
 /**
  * Every application, grouped by stage in pipeline order. Every stage shows with its
- * count, and empty stages collapse to one compact row (PIPE-1).
+ * count, and empty stages collapse to one compact row (PIPE-1). The status filter narrows the
+ * list to one stage (PIPE-8).
  */
 export function ApplicationsCard({
   byStage,
@@ -42,8 +45,13 @@ export function ApplicationsCard({
   onOpen,
 }: ApplicationsCardProps) {
   const styles = useStyles();
-  const closed = byStage.rejected.length + byStage.withdrawn.length;
-  const active = STAGES.reduce((sum, stage) => sum + byStage[stage].length, 0) - closed;
+  const [filter, setFilter] = useState<StatusFilterValue>('all');
+  const counts = Object.fromEntries(
+    STAGES.map((stage) => [stage, byStage[stage].length]),
+  ) as Record<Stage, number>;
+  const closed = counts.rejected + counts.withdrawn;
+  const active = STAGES.reduce((sum, stage) => sum + counts[stage], 0) - closed;
+  const stages = filter === 'all' ? STAGES : [filter];
   return (
     <Card>
       <View style={styles.title}>
@@ -52,12 +60,16 @@ export function ApplicationsCard({
           {`${active} active · ${closed} closed`}
         </Text>
       </View>
+      <StatusFilter counts={counts} value={filter} onChange={setFilter} />
       <View style={styles.legend}>
         <StageProgressLegend />
       </View>
-      {STAGES.map((stage) => (
+      {stages.map((stage) => (
         <View key={stage}>
-          <StageHeader stage={stage} count={byStage[stage].length} />
+          <StageHeader stage={stage} count={counts[stage]} />
+          {filter !== 'all' && counts[stage] === 0 ? (
+            <Text color="secondary">No applications in this status.</Text>
+          ) : null}
           {byStage[stage].map((application) => {
             const urgentStep = urgentSteps.get(application.id);
             return (

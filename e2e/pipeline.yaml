@@ -29,6 +29,19 @@ appId: dev.kristinadarroch.applicationtracker
     element: '.*Acme Health.*Stage: Interviewing.*Prep: .*'
 - takeScreenshot: e2e/artifacts/pipeline-02-seeded
 
+# PIPE-8: filter the list to one status, then back to All
+- scrollUntilVisible:
+    element: 'Interviewing · 1'
+    direction: UP
+- tapOn: 'Interviewing · 1'
+- assertVisible: '.*Acme Health.*Stage: Interviewing.*'
+- assertNotVisible: '.*Globex.*Stage: Saved.*'
+- assertNotVisible: '.*Northwind Labs.*Stage: Applied.*'
+- takeScreenshot: e2e/artifacts/pipeline-03-filtered
+- tapOn: 'All · 3'
+- scrollUntilVisible:
+    element: '.*Globex.*Stage: Saved.*'
+
 # PIPE-2: validation, then a valid manual add
 - waitForAnimationToEnd
 - tapOn:

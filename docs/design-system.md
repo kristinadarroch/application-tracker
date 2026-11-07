@@ -24,7 +24,7 @@ The Pipeline tab (home) is prep-first, top to bottom:
 
 1. **`NextInterviewCard`** (feature component on `SpotlightCard`): eyebrow "Next interview" (with "+N MORE" when other applications are Interviewing), company badge, company as title, role as subtitle, prep progress ("4 of 10 questions practiced · 1 mock interview", or "Prep not started"), and actions "Practice questions" (primary) and "Mock interview" (secondary). It picks the Interviewing application with the soonest open Next Step (`selectNextInterview`). With no Interviewing application it reads "Interview prep" / "No interviews yet" / "Move an application to Interviewing and its prep questions show up here." and has no actions.
 2. **`UpNextCard`**: the next Next Step on a `SpotlightCard` (eyebrow "Up next", action "View").
-3. **`ApplicationsCard`**: "Your applications" with "3 active · 0 closed" and one `ApplicationRow` per application. Interviewing rows add a prep line under the role ("4 of 10 practiced · 1 mock" / "Prep not started").
+3. **`ApplicationsCard`**: "Your applications" with "3 active · 0 closed", a `StatusFilter` row of `Chip`s ("All · 3", "Interviewing · 1", …; only statuses with applications, plus the selected one), and one `ApplicationRow` per application. Interviewing rows add a prep line under the role ("4 of 10 practiced · 1 mock" / "Prep not started").
 4. **Stats**: questions practiced, then sent this week (`StatTile`).
 
 ## Principles

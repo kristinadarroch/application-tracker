@@ -48,7 +48,7 @@ flowchart LR
 
 ## Tier 1 — Pipeline
 
-- Pipeline tab (home), prep-first: a **Next interview** card (prep progress, "Practice questions", "Mock interview"), then the "Up next" Next Step, then applications grouped by **Stage** with counts and an empty state.
+- Pipeline tab (home), prep-first: a **Next interview** card (prep progress, "Practice questions", "Mock interview"), then the "Up next" Next Step, then applications grouped by **Stage** with counts and an empty state, with a status filter ("All" plus one chip per status that has applications).
 - Create an application manually (form validated by the `Application` Zod schema).
 - Application detail: fields, stage changer, notes, **Next Steps** list (add, complete).
 - Edit and delete with confirmation.

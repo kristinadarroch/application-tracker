@@ -1,8 +1,9 @@
-import { fireEvent, screen, within } from 'expo-router/testing-library';
+import { act, fireEvent, screen, within } from 'expo-router/testing-library';
 
 import { addDays, toIsoDate } from '@/lib/dates';
 import { ApplicationIdSchema, NextStepIdSchema } from '@/lib/ids';
 
+import { stageChanged } from '../slice';
 import { applicationsState, makeApplication, makeNextStep, prepState } from '../testing/fixtures';
 import { renderApp } from '@/test/renderApp';
 
@@ -242,6 +243,71 @@ describe('Applications card', () => {
     expect(acme).toHaveAccessibleName(
       'Acme Health, Senior React Native Engineer, Austin, TX, Stage: Interviewing, Prep: 4 of 10 questions practiced, 1 mock interview',
     );
+  });
+});
+
+describe('Status filter (PIPE-8)', () => {
+  const filterState = {
+    applications: applicationsState(
+      makeApplication({ id: ApplicationIdSchema.parse('acme'), stage: 'interviewing' }),
+      makeApplication({
+        id: ApplicationIdSchema.parse('globex'),
+        company: 'Globex',
+        stage: 'interviewing',
+      }),
+      makeApplication({
+        id: ApplicationIdSchema.parse('northwind'),
+        company: 'Northwind Labs',
+        stage: 'applied',
+      }),
+    ),
+  };
+  const chip = (name: string) => screen.getByRole('button', { name });
+  const row = (company: string) =>
+    screen.queryByRole('button', { name: new RegExp(`^${company},`) });
+
+  it('offers All plus each status that has applications, with counts, All selected', async () => {
+    await renderApp('/', { preloadedState: filterState });
+    expect(chip('All · 3')).toBeSelected();
+    expect(chip('Applied · 1')).not.toBeSelected();
+    expect(chip('Interviewing · 2')).not.toBeSelected();
+    for (const empty of ['Saved', 'Offer', 'Rejected', 'Withdrawn']) {
+      expect(screen.queryByRole('button', { name: new RegExp(`^${empty} · `) })).toBeNull();
+    }
+  });
+
+  it('shows only the picked status, leaves the prep cards alone, and All brings everything back', async () => {
+    await renderApp('/', { preloadedState: filterState });
+    await fireEvent.press(chip('Interviewing · 2'));
+
+    expect(chip('Interviewing · 2')).toBeSelected();
+    expect(chip('All · 3')).not.toBeSelected();
+    expect(row('Acme Health')).toBeOnTheScreen();
+    expect(row('Globex')).toBeOnTheScreen();
+    expect(row('Northwind Labs')).toBeNull();
+    expect(screen.getByText('Next interview')).toBeOnTheScreen();
+
+    await fireEvent.press(chip('All · 3'));
+    expect(row('Northwind Labs')).toBeOnTheScreen();
+  });
+
+  it('keeps an emptied status selected and says it has no applications', async () => {
+    const { store } = await renderApp('/', { preloadedState: filterState });
+    await fireEvent.press(chip('Applied · 1'));
+
+    await act(async () => {
+      store.dispatch(
+        stageChanged({
+          id: ApplicationIdSchema.parse('northwind'),
+          stage: 'interviewing',
+          now: new Date().toISOString(),
+        }),
+      );
+    });
+
+    expect(chip('Applied · 0')).toBeSelected();
+    expect(screen.getByText('No applications in this status.')).toBeOnTheScreen();
+    expect(row('Northwind Labs')).toBeNull();
   });
 });
 

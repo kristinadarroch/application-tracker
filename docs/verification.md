@@ -46,6 +46,7 @@ Flow changes in this round:
 | UX-6 gallery | Gallery renders (DS tests) | Settings → Design system gallery |
 | UX-7 AI unavailable | Intake, inbox, prep screen tests | `android-ai-off.yaml` |
 | PIPE-1–6 | `pipeline`, `applicationForm`, `applicationDetail`, selector and slice tests | `pipeline.yaml` |
+| PIPE-8 status filter | `pipeline.test.tsx` "Status filter": chips with counts, only non-empty statuses, selection narrows the list, All restores it, an emptied status stays selected with "No applications in this status." | `pipeline.yaml` (filters to Interviewing and back to All) |
 | PIPE-7 persistence | `persistence.test.tsx` (real redux-persist config), `persistConfig.test.ts` (migration) | Data survives relaunch (manual) |
 | INT-1 share sheet | `shareScreen`, `routing` tests | Manual: share from Safari / Chrome |
 | INT-2–6 | `intakeScreen` (link field first; a pasted link loads and drafts with no tap), `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml` (pasted text; a live link needs the network), model checks (listings) |

@@ -16,7 +16,7 @@ User stories are the source of truth for **what** the app does and how we know i
 | Epic | Stories | Tier | Priority |
 |---|---|---|---|
 | [Experience & accessibility](#experience--accessibility) | UX-1 – UX-7 | 0–2 | Must |
-| [Pipeline](#pipeline) | PIPE-1 – PIPE-7 | 1 | Must |
+| [Pipeline](#pipeline) | PIPE-1 – PIPE-8 | 1 | Must |
 | [Intake](#intake) | INT-1 – INT-6 | 2 | Must |
 | [Prep questions](#prep-questions) | PREP-1 – PREP-3 | 2 | Must |
 | [Mock interview](#mock-interview) | MOCK-1 – MOCK-5 | 3 | Should |
@@ -154,6 +154,16 @@ As a job seeker, I want dated next steps on each application, so that I don't mi
 As a job seeker, I want my data saved on my device, so that nothing is lost when I close the app.
 
 - **When** I force-quit and reopen the app, **then** all applications, drafts, Next Steps, prep questions, sessions, and settings are restored.
+
+### PIPE-8 · Filter my applications by status
+
+As a job seeker, I want to show only the applications in one status, so that I can focus on, say, everything I'm interviewing for.
+
+- **When** I open the Pipeline tab, **then** "Your applications" has a filter row: "All" plus one chip per status that has applications, each with its count ("Interviewing · 2"), with "All" selected.
+- **When** I pick a status, **then** only that status's group and rows show, and the chip is announced as selected.
+- **When** I pick "All", **then** every group shows again.
+- **Given** I filtered to a status and its last application moves away, **then** its chip stays selected with a count of 0 and the list says "No applications in this status."
+- **When** I filter, **then** the Next interview and Up next cards don't change.
 
 ---
 
