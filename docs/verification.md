@@ -47,6 +47,7 @@ Flow changes in this round:
 | UX-7 AI unavailable | Intake, inbox, prep screen tests | `android-ai-off.yaml` |
 | PIPE-1–6 | `pipeline`, `applicationForm`, `applicationDetail`, selector and slice tests | `pipeline.yaml` |
 | PIPE-8 status filter | `pipeline.test.tsx` "Status filter": chips with counts, only non-empty statuses, selection narrows the list, All restores it, an emptied status stays selected with "No applications in this status." | `pipeline.yaml` (filters to Interviewing and back to All) |
+| PIPE-8 at large text | — | `a11y-large-text.yaml` captures the filter row: pass on iOS AX5 and Android 2.0, after one fix (below) |
 | PIPE-7 persistence | `persistence.test.tsx` (real redux-persist config), `persistConfig.test.ts` (migration) | Data survives relaunch (manual) |
 | INT-1 share sheet | `shareScreen`, `routing` tests | Manual: share from Safari / Chrome |
 | INT-2–6 | `intakeScreen` (link field first; a pasted link loads and drafts with no tap), `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml` (pasted text; a live link needs the network), model checks (listings) |
@@ -90,6 +91,8 @@ Screens: settings, pipeline with demo data, application detail, Next Step form, 
 Found and fixed in the first pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
 
 Found and fixed in the redesign pass: at AX5 the Inbox buttons ("Receive next email", "Connect Gmail") grew wider than the screen and were clipped. `Button` now never exceeds its container (`maxWidth: '100%'`, shrinking label), so the label wraps inside the pill.
+
+Found and fixed with the status filter (PIPE-8): at AX5 the "Interviewing · 1" chip ran past the card's edge. `Chip` now has the same bound as `Button`, so the label wraps inside the chip. At AX5 long single words still break mid-word ("Interviewin/g"), as do the progress legend captions ("APPLIE/D") at both AX5 and Android 2.0; nothing is clipped.
 
 Harness limit at AX5 on iOS: an application row is taller than the screen, and Maestro's taps on it scrolled the list instead of opening it. The flow opens Acme's detail through the Up next card's "View" button instead, so the row itself was checked for layout (screenshot) but not activated at AX5. On Android at 2.0, an earlier run of this pass opened the row directly.
 

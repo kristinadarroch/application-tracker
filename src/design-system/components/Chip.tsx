@@ -20,6 +20,9 @@ const useStyles = makeStyles((t) => ({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
+    // Never wider than its row: at large text sizes the label wraps instead of clipping.
+    maxWidth: '100%',
+    flexShrink: 1,
     gap: t.space[1],
     minHeight: t.size.minTouchTarget,
     paddingHorizontal: t.space[3],
@@ -37,11 +40,17 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.action.primary.bgPressed,
     borderColor: t.color.action.primary.bgPressed,
   },
-  label: { ...t.type.bodySmall, fontFamily: fontFamily.bold, color: t.color.text.primary },
+  label: {
+    ...t.type.bodySmall,
+    fontFamily: fontFamily.bold,
+    color: t.color.text.primary,
+    flexShrink: 1,
+  },
   selectedLabel: {
     ...t.type.bodySmall,
     fontFamily: fontFamily.extrabold,
     color: t.color.action.primary.fg,
+    flexShrink: 1,
   },
 }));
 

@@ -54,7 +54,7 @@ flowchart LR
 - Edit and delete with confirmation.
 - Persistence across app restarts.
 
-**Stories:** [PIPE-1 – PIPE-7](user-stories.md#pipeline), [UX-2 – UX-5](user-stories.md#experience--accessibility).
+**Stories:** [PIPE-1 – PIPE-8](user-stories.md#pipeline), [UX-2 – UX-5](user-stories.md#experience--accessibility).
 
 **Engineering done when:** selectors `selectApplicationsByStage`, `selectUpcomingNextSteps`, and `selectPipelineCounts` have unit tests.
 

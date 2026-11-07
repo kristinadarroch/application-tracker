@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { Chip, makeStyles, STAGE_ICONS } from '@/design-system';
+import { Chip, makeStyles, STAGE_ICONS, Text } from '@/design-system';
 import { STAGE_LABELS, STAGES, type Stage } from '@/lib/stage';
 
 /** "all", or the one status the list is narrowed to (PIPE-8). */
@@ -13,6 +13,7 @@ export interface StatusFilterProps {
 }
 
 const useStyles = makeStyles((t) => ({
+  wrap: { gap: t.space[2] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] },
 }));
 
@@ -25,17 +26,22 @@ export function StatusFilter({ counts, value, onChange }: StatusFilterProps) {
   const total = STAGES.reduce((sum, stage) => sum + counts[stage], 0);
   const shown = STAGES.filter((stage) => counts[stage] > 0 || stage === value);
   return (
-    <View style={styles.chips}>
-      <Chip label={`All · ${total}`} selected={value === 'all'} onPress={() => onChange('all')} />
-      {shown.map((stage) => (
-        <Chip
-          key={stage}
-          label={`${STAGE_LABELS[stage]} · ${counts[stage]}`}
-          icon={STAGE_ICONS[stage]}
-          selected={stage === value}
-          onPress={() => onChange(stage)}
-        />
-      ))}
+    <View style={styles.wrap}>
+      <Text variant="overline" color="secondary">
+        Filter by status
+      </Text>
+      <View style={styles.chips}>
+        <Chip label={`All · ${total}`} selected={value === 'all'} onPress={() => onChange('all')} />
+        {shown.map((stage) => (
+          <Chip
+            key={stage}
+            label={`${STAGE_LABELS[stage]} · ${counts[stage]}`}
+            icon={STAGE_ICONS[stage]}
+            selected={stage === value}
+            onPress={() => onChange(stage)}
+          />
+        ))}
+      </View>
     </View>
   );
 }

@@ -44,6 +44,13 @@ appId: dev.kristinadarroch.applicationtracker
     visibilityPercentage: 30
     centerElement: true
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline-card-badge
+# PIPE-8: the status filter chips wrap at large text
+- scrollUntilVisible:
+    element: Filter by status
+    direction: UP
+    timeout: 60000
+    centerElement: true
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-status-filter
 # At the largest sizes the row is taller than the screen, so the harness can't tap it reliably.
 # Open the same application through the Up next card's View button instead.
 - scrollUntilVisible:

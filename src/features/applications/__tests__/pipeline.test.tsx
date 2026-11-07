@@ -268,6 +268,7 @@ describe('Status filter (PIPE-8)', () => {
 
   it('offers All plus each status that has applications, with counts, All selected', async () => {
     await renderApp('/', { preloadedState: filterState });
+    expect(screen.getByText('Filter by status')).toBeOnTheScreen();
     expect(chip('All · 3')).toBeSelected();
     expect(chip('Applied · 1')).not.toBeSelected();
     expect(chip('Interviewing · 2')).not.toBeSelected();
