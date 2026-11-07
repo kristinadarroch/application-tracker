@@ -1,6 +1,16 @@
 import { useRouter } from 'expo-router';
 
-import { Banner, Button, Chip, ErrorState, Screen, Stack, Text, TextField } from '@/design-system';
+import {
+  Banner,
+  Button,
+  Card,
+  Chip,
+  ErrorState,
+  Screen,
+  Stack,
+  Text,
+  TextField,
+} from '@/design-system';
 import { describeError } from '@/lib/errors';
 
 import { useListingIntake, type IntakeInput, type IntakeOrigin } from '../hooks/useListingIntake';
@@ -15,7 +25,8 @@ export interface ListingIntakeScreenProps {
 
 /**
  * Add a job from its link (the default) or pasted text, read it on the device, and open the draft
- * for review (INT-1 – INT-3, INT-5, UX-7). A pasted link starts reading on its own.
+ * for review (INT-1 – INT-3, INT-5, UX-7). A pasted link starts reading on its own. Transit look:
+ * a sign panel says a new line is being drawn and that reading stays on the device.
  */
 export function ListingIntakeScreen({
   title,
@@ -32,9 +43,22 @@ export function ListingIntakeScreen({
   return (
     <Screen
       title={title}
+      header="plain"
       onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       scroll
     >
+      <Card variant="sign">
+        <Stack gap={1}>
+          <Text variant="board" color="onSignSecondary">
+            {origin === 'shared' ? 'New line · shared with the app' : 'New line'}
+          </Text>
+          <Text variant="bodyStrong" color="onSign">
+            {origin === 'shared'
+              ? 'The shared listing is read on this device, then you check the draft before anything is saved.'
+              : 'Paste the job’s link or its text. The listing is read on this device, then you check the draft before anything is saved.'}
+          </Text>
+        </Stack>
+      </Card>
       {intake.aiUnavailable !== undefined ? (
         <Banner
           tone="warning"
@@ -73,7 +97,7 @@ export function ListingIntakeScreen({
           placeholder="https://"
           keyboardType="url"
           autoCapitalize="none"
-          helperText="Paste the job’s link and the app reads the page. Sharing a job from Safari or Chrome skips this screen."
+          helperText="Sharing a job from Safari or Chrome skips this screen."
           {...(intake.urlError === undefined ? {} : { error: intake.urlError })}
         />
       ) : (
@@ -141,9 +165,9 @@ export function ListingIntakeScreen({
             onPress={intake.submit}
           />
           {reading ? (
-            <Text variant="caption" color="secondary" align="center">
+            <Text variant="board" color="secondary" align="center">
               {intake.mode === 'url'
-                ? 'Loading the page and reading the listing…'
+                ? 'Reading the page on this device…'
                 : 'Reading the listing on this device…'}
             </Text>
           ) : (

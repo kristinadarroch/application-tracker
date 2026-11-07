@@ -2,7 +2,7 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- assertVisible: No applications yet # PIPE-1 empty state
+- assertVisible: No lines yet # PIPE-1 empty state
 
 # UX-1 / demo data
 - tapOn: Open settings
@@ -72,7 +72,7 @@ appId: dev.kristinadarroch.applicationtracker
     element: Save application
 - tapOn: Save application
 - extendedWaitUntil:
-    visible: Details
+    visible: Edit application
     timeout: 10000
 - takeScreenshot: e2e/artifacts/pipeline-03-detail
 
@@ -89,8 +89,13 @@ appId: dev.kristinadarroch.applicationtracker
 - pressKey: Enter
 - tapOn: Today
 - tapOn: Add Next Step
-- assertVisible: Send portfolio
+# The new step boards under the current station, above the form.
+- scrollUntilVisible:
+    element: Mark “Send portfolio” done
+    direction: UP
 - tapOn: Mark “Send portfolio” done
+- scrollUntilVisible:
+    element: Completed
 - assertVisible: Completed
 - takeScreenshot: e2e/artifacts/pipeline-04-next-steps
 

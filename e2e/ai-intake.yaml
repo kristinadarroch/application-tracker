@@ -24,7 +24,7 @@ appId: dev.kristinadarroch.applicationtracker
     element: Confirm
 - tapOn: Confirm
 - extendedWaitUntil:
-    visible: Details
+    visible: Edit application
     timeout: 10000
 - assertVisible: '.*Senior Mobile Engineer.*'
 - takeScreenshot: e2e/artifacts/intake-02-confirmed

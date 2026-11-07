@@ -4,10 +4,15 @@ import { Pressable } from 'react-native';
 import { assertNever } from '@/lib/assertNever';
 
 import { makeStyles } from '../theme/makeStyles';
+import type { Theme } from '../theme/theme';
 import { useTheme } from '../theme/useTheme';
 import type { IconName } from './icons';
 
-export type IconButtonVariant = 'primary' | 'secondary' | 'ghost';
+/**
+ * Always round. `primary` ink circle · `secondary` surface circle with a hairline ·
+ * `ghost` bare glyph · `onSign` outlined circle for dark sign panels.
+ */
+export type IconButtonVariant = 'primary' | 'secondary' | 'ghost' | 'onSign';
 
 export interface IconButtonProps {
   icon: IconName;
@@ -19,26 +24,44 @@ export interface IconButtonProps {
   accessibilityHint?: string;
 }
 
+const ICON_SIZE = 20;
+
 const useStyles = makeStyles((t) => ({
   base: {
     width: t.size.minTouchTarget,
     height: t.size.minTouchTarget,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: t.radius.md,
+    borderRadius: t.radius.pill,
   },
   primary: { backgroundColor: t.color.action.primary.bg },
   primaryPressed: { backgroundColor: t.color.action.primary.bgPressed },
   secondary: {
     backgroundColor: t.color.bg.surface,
     borderWidth: 1,
-    borderColor: t.color.border.strong,
+    borderColor: t.color.border.subtle,
   },
   secondaryPressed: { backgroundColor: t.color.bg.subtle },
   ghost: {},
   ghostPressed: { backgroundColor: t.color.bg.subtle },
+  onSign: { borderWidth: 2, borderColor: t.color.sign.fg },
+  onSignPressed: { opacity: 0.7 },
   disabled: { opacity: 0.5 },
 }));
+
+function foregroundColor(theme: Theme, variant: IconButtonVariant): string {
+  switch (variant) {
+    case 'primary':
+      return theme.color.action.primary.fg;
+    case 'secondary':
+    case 'ghost':
+      return theme.color.text.primary;
+    case 'onSign':
+      return theme.color.sign.fg;
+    default:
+      return assertNever(variant);
+  }
+}
 
 export function IconButton({
   icon,
@@ -50,18 +73,6 @@ export function IconButton({
 }: IconButtonProps) {
   const styles = useStyles();
   const theme = useTheme();
-  let fg: string;
-  switch (variant) {
-    case 'primary':
-      fg = theme.color.action.primary.fg;
-      break;
-    case 'secondary':
-    case 'ghost':
-      fg = theme.color.text.primary;
-      break;
-    default:
-      return assertNever(variant);
-  }
   return (
     <Pressable
       accessibilityRole="button"
@@ -77,7 +88,7 @@ export function IconButton({
         disabled ? styles.disabled : null,
       ]}
     >
-      <Ionicons name={icon} size={22} color={fg} />
+      <Ionicons name={icon} size={ICON_SIZE} color={foregroundColor(theme, variant)} />
     </Pressable>
   );
 }

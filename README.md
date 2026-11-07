@@ -26,7 +26,7 @@ Share a job listing into the app (or paste it). AI extracts the company, role, l
 | Doc | What it covers |
 |---|---|
 | [`CONTEXT.md`](CONTEXT.md) | Domain glossary. Use these terms in code and UI. |
-| [`docs/design-system.md`](docs/design-system.md) | Tokens, themes, components, accessibility rules |
+| [`docs/design-system.md`](docs/design-system.md) | Transit design language (each application is a transit line): tokens, themes, components, contrast, accessibility rules |
 | [`docs/architecture.md`](docs/architecture.md) | Folder layout, Redux design, on-device AI, error handling, testing |
 | [`docs/user-stories.md`](docs/user-stories.md) | User stories with Given/When/Then acceptance criteria |
 | [`docs/features.md`](docs/features.md) | Build tiers, screens, which stories each tier delivers |

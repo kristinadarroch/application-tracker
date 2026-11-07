@@ -11,7 +11,7 @@ const daysFromNow = (days: number) => toIsoDate(addDays(new Date(), days));
 describe('Pipeline (PIPE-1)', () => {
   it('shows an empty state led by Add from a link, with Add application as the manual path', async () => {
     const { getPathname } = await renderApp('/');
-    expect(screen.getByText('No applications yet')).toBeOnTheScreen();
+    expect(screen.getByText('No lines yet')).toBeOnTheScreen();
     expect(screen.getAllByRole('button', { name: 'Add application' }).length).toBeGreaterThan(0);
 
     const linkButtons = screen.getAllByRole('button', { name: 'Add from a link' });
@@ -52,15 +52,31 @@ describe('Pipeline (PIPE-1)', () => {
     ]);
   });
 
-  it('shows company, role, location, and stage on each card', async () => {
+  it('shows company, role, location, and stage on each line', async () => {
     await renderApp('/', {
       preloadedState: { applications: applicationsState(makeApplication({ stage: 'applied' })) },
     });
-    const card = screen.getByRole('button', { name: /^Acme Health,/ });
-    expect(within(card).getByText('Acme Health')).toBeOnTheScreen();
-    expect(within(card).getByText('Senior React Native Engineer')).toBeOnTheScreen();
-    expect(within(card).getByText('Austin, TX')).toBeOnTheScreen();
-    expect(within(card).getByLabelText('Stage: Applied')).toBeOnTheScreen();
+    const row = screen.getByRole('button', { name: /^Acme Health,/ });
+    expect(within(row).getByText('Acme Health')).toBeOnTheScreen();
+    expect(within(row).getByText('Senior React Native Engineer')).toBeOnTheScreen();
+    expect(within(row).getByText('Austin, TX')).toBeOnTheScreen();
+    expect(row).toHaveAccessibleName(
+      'Acme Health, Senior React Native Engineer, Austin, TX, Stage: Applied',
+    );
+  });
+
+  it('opens the manual add form from the sign header', async () => {
+    const { getPathname } = await renderApp('/');
+    await fireEvent.press(screen.getAllByRole('button', { name: 'Add application' })[0]!);
+    expect(getPathname()).toBe('/application/new');
+  });
+
+  it('adds from a link with the tab bar action button', async () => {
+    const { getPathname } = await renderApp('/', {
+      preloadedState: { applications: applicationsState(makeApplication()) },
+    });
+    await fireEvent.press(screen.getByRole('button', { name: 'Add from a link' }));
+    expect(getPathname()).toBe('/intake/new');
   });
 
   it('opens the detail screen from a card', async () => {
@@ -111,5 +127,31 @@ describe('Urgent badge (PIPE-6)', () => {
     expect(screen.getByRole('button', { name: /^Northwind Labs,/ })).not.toHaveAccessibleName(
       /Urgent/,
     );
+  });
+});
+
+describe('Next departure (PIPE-6)', () => {
+  it('boards the soonest open Next Step across all applications', async () => {
+    const { getPathname } = await renderApp('/', {
+      preloadedState: {
+        applications: applicationsState(
+          makeApplication({
+            id: ApplicationIdSchema.parse('later'),
+            company: 'Globex',
+            nextSteps: [makeNextStep({ title: 'Send references', dueDate: daysFromNow(5) })],
+          }),
+          makeApplication({
+            id: ApplicationIdSchema.parse('soonest'),
+            company: 'Acme Health',
+            nextSteps: [makeNextStep({ title: 'Book the onsite', dueDate: daysFromNow(1) })],
+          }),
+        ),
+      },
+    });
+    expect(screen.getByText('Book the onsite')).toBeOnTheScreen();
+    expect(screen.queryByText('Send references')).not.toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Board' }));
+    expect(getPathname()).toBe('/application/soonest');
   });
 });

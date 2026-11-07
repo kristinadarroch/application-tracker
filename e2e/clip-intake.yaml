@@ -23,6 +23,6 @@ appId: dev.kristinadarroch.applicationtracker
     element: Confirm
 - tapOn: Confirm
 - extendedWaitUntil:
-    visible: Details
+    visible: Edit application
     timeout: 10000
 - waitForAnimationToEnd

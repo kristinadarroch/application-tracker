@@ -7,6 +7,7 @@ import {
   Card,
   ErrorState,
   makeStyles,
+  ProgressStops,
   Screen,
   Skeleton,
   Stack,
@@ -15,10 +16,12 @@ import {
 } from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
+import { lineFor } from '@/lib/lines';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
+import { LineHeading } from '../components/LineHeading';
 import { TranscriptTurn } from '../components/TranscriptTurn';
 import { useAnswerMockInterviewTurn, useRouteApplication, useStartMockInterview } from '../hooks';
 import type { MockInterviewSession } from '../schema';
@@ -45,6 +48,7 @@ function MockInterview({ application }: { application: Application }) {
   // Ending clears the active session while this screen animates away; without this flag the
   // empty screen would immediately start a new session in the background.
   const [ending, setEnding] = useState(false);
+  const line = lineFor(application.id, application.company);
 
   const end = (active: MockInterviewSession) => {
     setEnding(true);
@@ -61,16 +65,26 @@ function MockInterview({ application }: { application: Application }) {
       {...(Platform.OS === 'ios' ? { behavior: 'padding' as const } : {})}
     >
       <Screen
+        header="sign"
+        eyebrow={`Line ${line.letter} · Practice loop`}
         title={TITLE}
         onBack={router.back}
         scroll
         headerRight={
           session === undefined ? undefined : (
-            <Button label="End" variant="ghost" onPress={() => end(session)} />
+            <Button label="End" variant="onSign" onPress={() => end(session)} />
+          )
+        }
+        headerAccessory={
+          session === undefined ? undefined : (
+            <ProgressStops
+              total={session.turns.length}
+              done={session.turns.filter((turn) => turn.feedback !== undefined).length}
+            />
           )
         }
       >
-        <Text color="secondary">{`${application.role} · ${application.company}`}</Text>
+        <LineHeading application={application} />
         {session !== undefined ? (
           <ActiveSession application={application} session={session} />
         ) : ending ? null : (
@@ -99,20 +113,23 @@ function StartSession({ application }: { application: Application }) {
   }
   return (
     <Card>
-      <Text variant="heading">Practice for this interview</Text>
-      <Text color="secondary">
-        {`Answer questions for ${application.role} at ${application.company} and get feedback after each answer. You can leave and come back anytime.`}
-      </Text>
-      <View
-        accessible
-        accessibilityLabel="Getting your first question"
-        accessibilityState={{ busy: true }}
-      >
-        <Stack gap={2}>
-          <Skeleton width="90%" height={18} />
-          <Skeleton width="70%" height={18} />
-        </Stack>
-      </View>
+      <Stack gap={3}>
+        <Text variant="heading">Practice for this interview</Text>
+        <Text color="secondary">
+          {`Answer questions for ${application.role} at ${application.company} and get feedback after each answer. You can leave and come back anytime.`}
+        </Text>
+        <View
+          accessible
+          accessibilityLabel="Getting your first question"
+          accessibilityState={{ busy: true }}
+        >
+          <Stack gap={2}>
+            <Skeleton width="30%" height={16} />
+            <Skeleton width="90%" height={24} />
+            <Skeleton width="70%" height={24} />
+          </Stack>
+        </View>
+      </Stack>
     </Card>
   );
 }
@@ -167,6 +184,7 @@ function AnswerComposer({
       <Button
         label="Submit answer"
         icon="send"
+        size="lg"
         loading={turn.pending}
         disabled={trimmed.length === 0}
         onPress={submit}

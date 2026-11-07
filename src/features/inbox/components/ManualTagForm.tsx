@@ -53,9 +53,14 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
   };
 
   return (
-    <Card>
+    <Card variant="surface">
       <Stack gap={4}>
-        <Text variant="heading">Tag manually</Text>
+        <Stack gap={1}>
+          <Text variant="station" color="tertiary">
+            From this email
+          </Text>
+          <Text variant="heading">Tag manually</Text>
+        </Stack>
         <ApplicationPicker
           label="Application"
           applications={applications}
@@ -71,7 +76,9 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
           {...(errors.title === undefined ? {} : { error: errors.title })}
         />
         <Stack gap={2}>
-          <Text variant="bodyStrong">Due</Text>
+          <Text variant="station" color="secondary">
+            Due
+          </Text>
           <Stack direction="row" gap={2} wrap="wrap">
             {DUE_PICKS.map((pick) => (
               <Chip
@@ -82,7 +89,9 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
               />
             ))}
           </Stack>
-          <Text color="secondary">{formatDueDate(dueDate, now)}</Text>
+          <Text variant="board" color="secondary">
+            {formatDueDate(dueDate, now)}
+          </Text>
         </Stack>
         <Stack direction="row" gap={2} wrap="wrap">
           <Button label="Add Next Step" icon="add" onPress={submit} />

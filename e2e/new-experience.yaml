@@ -31,7 +31,7 @@ appId: dev.kristinadarroch.applicationtracker
     element: Confirm
 - tapOn: Confirm
 - extendedWaitUntil:
-    visible: Details
+    visible: Edit application
     timeout: 10000
 
 # Prep questions started generating when the job was saved; nothing to tap

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { Badge, IconButton, makeStyles, Text } from '@/design-system';
+import { Badge, Card, IconButton, makeStyles, Text } from '@/design-system';
 import { isUrgent } from '@/lib/dates';
 import type { ApplicationId } from '@/lib/ids';
 import { useAppDispatch } from '@/store/hooks';
@@ -13,48 +13,88 @@ export interface NextStepRowProps {
   applicationId: ApplicationId;
   step: NextStep;
   now: Date;
+  /** Board eyebrow for open steps: "Next step" for the soonest, "Then" for the rest. */
+  eyebrow?: string;
 }
 
 const useStyles = makeStyles((t) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: t.space[2] },
   text: { flex: 1, gap: t.space[1] },
+  due: { flexDirection: 'row', flexWrap: 'wrap' },
 }));
 
-/** One Next Step: toggle done, title with due date (warning badge when urgent), delete. */
-export function NextStepRow({ applicationId, step, now }: NextStepRowProps) {
+/**
+ * One Next Step. Open steps are departure boards (dark sign panel, urgent yellow badge within
+ * 48 hours); completed steps are plain rows. Both toggle done and delete.
+ */
+export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowProps) {
   const dispatch = useAppDispatch();
   const styles = useStyles();
   const due = dueLabel(step.dueDate, now);
-  return (
-    <View style={styles.row}>
-      <IconButton
-        icon={step.done ? 'checkmark-circle' : 'ellipse-outline'}
-        accessibilityLabel={
-          step.done ? `Mark “${step.title}” not done` : `Mark “${step.title}” done`
-        }
-        onPress={() =>
-          dispatch(nextStepToggled({ applicationId, id: step.id, now: new Date().toISOString() }))
-        }
-      />
-      <View style={styles.text}>
-        <Text>{step.title}</Text>
-        {step.done ? (
+  const toggle = () =>
+    dispatch(nextStepToggled({ applicationId, id: step.id, now: new Date().toISOString() }));
+  const remove = () => dispatch(nextStepRemoved({ applicationId, id: step.id }));
+
+  if (step.done) {
+    return (
+      <View style={styles.row}>
+        <IconButton
+          icon="checkmark-circle"
+          variant="ghost"
+          accessibilityLabel={`Mark “${step.title}” not done`}
+          onPress={toggle}
+        />
+        <View style={styles.text}>
+          <Text>{step.title}</Text>
           <Text variant="bodySmall" color="secondary">
             Done
           </Text>
-        ) : isUrgent(step.dueDate, now) ? (
-          <Badge tone="warning" label={due} />
-        ) : (
-          <Text variant="bodySmall" color="secondary">
-            {due}
-          </Text>
-        )}
+        </View>
+        <IconButton
+          icon="trash-outline"
+          variant="ghost"
+          accessibilityLabel={`Delete “${step.title}”`}
+          onPress={remove}
+        />
       </View>
-      <IconButton
-        icon="trash-outline"
-        accessibilityLabel={`Delete “${step.title}”`}
-        onPress={() => dispatch(nextStepRemoved({ applicationId, id: step.id }))}
-      />
-    </View>
+    );
+  }
+
+  return (
+    <Card variant="sign">
+      <View style={styles.row}>
+        <View style={styles.text}>
+          {eyebrow !== undefined ? (
+            <Text variant="board" color="onSignSecondary">
+              {eyebrow}
+            </Text>
+          ) : null}
+          <Text variant="departure" color="onSign">
+            {step.title}
+          </Text>
+          <View style={styles.due}>
+            {isUrgent(step.dueDate, now) ? (
+              <Badge tone="urgent" label={due} />
+            ) : (
+              <Text variant="board" color="onSignSecondary">
+                {due}
+              </Text>
+            )}
+          </View>
+        </View>
+        <IconButton
+          icon="checkmark"
+          variant="onSign"
+          accessibilityLabel={`Mark “${step.title}” done`}
+          onPress={toggle}
+        />
+        <IconButton
+          icon="trash-outline"
+          variant="onSign"
+          accessibilityLabel={`Delete “${step.title}”`}
+          onPress={remove}
+        />
+      </View>
+    </Card>
   );
 }

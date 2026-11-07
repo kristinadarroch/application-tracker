@@ -32,14 +32,28 @@ appId: dev.kristinadarroch.applicationtracker
     timeout: 60000
     visibilityPercentage: 50
 - tapOn: Load demo data
-- tapOn: Back
+- waitForAnimationToEnd
+- tapOn:
+    text: Back
+    retryTapIfNoChange: true
+- waitForAnimationToEnd
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline
 - scrollUntilVisible:
-    element: '.*Acme Health.*'
+    element: '.*Acme Health.*Interviewing.*'
     timeout: 60000
     visibilityPercentage: 30
+    centerElement: true
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline-card-badge
-- tapOn: '.*Acme Health.*'
+# At the largest sizes the row is taller than the screen, so the harness can't tap it reliably.
+# Open the same application through the departure board's Board button instead.
+- scrollUntilVisible:
+    element: Board
+    direction: UP
+    timeout: 60000
+- tapOn: Board
+- extendedWaitUntil:
+    visible: Edit application
+    timeout: 10000
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-detail
 - scrollUntilVisible:
     element: Add Next Step
@@ -62,6 +76,10 @@ appId: dev.kristinadarroch.applicationtracker
     commands:
       - tapOn: Open
 - extendedWaitUntil:
-    visible: Paste text
+    visible: Add from a link
     timeout: 10000
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-intake
+- scrollUntilVisible:
+    element: Paste text
+    timeout: 60000
+- takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-intake-fields

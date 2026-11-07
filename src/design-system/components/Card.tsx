@@ -2,33 +2,46 @@ import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { makeStyles } from '../theme/makeStyles';
+import { Hatch } from './Hatch';
+
+/**
+ * `surface` flat white card on the platform gray · `sign` dark sign panel ·
+ * `proposal` hatched fill with a dashed border (AI output not yet saved).
+ */
+export type CardVariant = 'surface' | 'sign' | 'proposal';
 
 export interface CardProps {
   children: ReactNode;
   onPress?: () => void;
-  /** Raised cards get `elevation.1`; flat cards use a hairline border. */
-  elevated?: boolean;
+  variant?: CardVariant;
   accessibilityLabel?: string;
   accessibilityHint?: string;
 }
 
 const useStyles = makeStyles((t) => ({
   base: {
-    backgroundColor: t.color.bg.surface,
     borderRadius: t.radius.lg,
     padding: t.space[4],
     gap: t.space[2],
-    borderWidth: 1,
-    borderColor: t.color.border.subtle,
   },
-  raised: { ...t.elevation[1] },
-  pressed: { backgroundColor: t.color.bg.subtle },
+  surface: { backgroundColor: t.color.bg.surface },
+  surfacePressed: { backgroundColor: t.color.bg.subtle },
+  sign: { backgroundColor: t.color.sign.bg },
+  signPressed: { opacity: 0.85 },
+  proposal: {
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: t.color.proposal.border,
+    padding: t.space[3],
+  },
+  proposalPressed: { opacity: 0.85 },
 }));
 
 export function Card({
   children,
   onPress,
-  elevated = false,
+  variant = 'surface',
   accessibilityLabel,
   accessibilityHint,
 }: CardProps) {
@@ -37,10 +50,16 @@ export function Card({
     ...(accessibilityLabel === undefined ? {} : { accessibilityLabel }),
     ...(accessibilityHint === undefined ? {} : { accessibilityHint }),
   };
+  const content = (
+    <>
+      {variant === 'proposal' ? <Hatch /> : null}
+      {children}
+    </>
+  );
   if (onPress === undefined) {
     return (
-      <View style={[styles.base, elevated ? styles.raised : null]} {...a11y}>
-        {children}
+      <View style={[styles.base, styles[variant]]} {...a11y}>
+        {content}
       </View>
     );
   }
@@ -50,12 +69,12 @@ export function Card({
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        elevated ? styles.raised : null,
-        pressed ? styles.pressed : null,
+        styles[variant],
+        pressed ? styles[`${variant}Pressed`] : null,
       ]}
       {...a11y}
     >
-      {children}
+      {content}
     </Pressable>
   );
 }

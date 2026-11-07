@@ -78,7 +78,7 @@ describe('Keep my data (PIPE-7)', () => {
 
     await renderApp('/', { preloadedState: { applications, settings } });
     const card = screen.getByRole('button', { name: /^Acme Health,/ });
-    expect(within(card).getByLabelText('Stage: Interviewing')).toBeOnTheScreen();
+    expect(card).toHaveAccessibleName(/Stage: Interviewing/);
     expect(within(card).getByText('Due tomorrow')).toBeOnTheScreen();
   });
 });

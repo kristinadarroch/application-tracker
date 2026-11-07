@@ -23,7 +23,7 @@ export default function ReviewDraftRoute() {
 
   if (current === undefined) {
     return (
-      <Screen title="Review draft" onBack={() => router.dismissTo('/')}>
+      <Screen title="Review draft" header="plain" onBack={() => router.dismissTo('/')}>
         <ErrorState error={{ kind: 'not_found', entity: 'draft' }} />
         <Button
           label="Back to Pipeline"

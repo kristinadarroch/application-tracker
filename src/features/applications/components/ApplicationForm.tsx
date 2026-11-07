@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, Stack, TextField, type TextFieldProps } from '@/design-system';
+import { Button, Card, Stack, Text, TextField, type TextFieldProps } from '@/design-system';
 
 import {
   validateApplicationForm,
@@ -54,26 +54,33 @@ export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Applic
   };
 
   return (
-    <Stack gap={4}>
-      {field('company', 'Company', { autoCapitalize: 'words' })}
-      {field('role', 'Role', { autoCapitalize: 'words' })}
-      <StagePicker
-        label="Stage"
-        value={values.stage}
-        onChange={(stage) => setValues((current) => ({ ...current, stage }))}
-      />
-      {field('location', 'Location', { autoCapitalize: 'words' })}
-      {field('salary', 'Salary')}
-      {field('listingUrl', 'Listing link', {
-        keyboardType: 'url',
-        autoCapitalize: 'none',
-        placeholder: 'https://',
-      })}
-      {field('requirements', 'Requirements', {
-        multiline: true,
-        helperText: 'Separate requirements with commas or new lines.',
-      })}
-      {field('notes', 'Notes', { multiline: true })}
+    <Stack gap={3}>
+      <Card>
+        <Text variant="heading">The job</Text>
+        {field('company', 'Company', { autoCapitalize: 'words' })}
+        {field('role', 'Role', { autoCapitalize: 'words' })}
+        {field('location', 'Location', { autoCapitalize: 'words' })}
+        {field('salary', 'Salary')}
+        {field('listingUrl', 'Listing link', {
+          keyboardType: 'url',
+          autoCapitalize: 'none',
+          placeholder: 'https://',
+        })}
+      </Card>
+      <Card>
+        <StagePicker
+          label="Stage"
+          value={values.stage}
+          onChange={(stage) => setValues((current) => ({ ...current, stage }))}
+        />
+      </Card>
+      <Card>
+        {field('requirements', 'Requirements', {
+          multiline: true,
+          helperText: 'Separate requirements with commas or new lines.',
+        })}
+        {field('notes', 'Notes', { multiline: true })}
+      </Card>
       <Button label={submitLabel} size="lg" onPress={submit} />
     </Stack>
   );

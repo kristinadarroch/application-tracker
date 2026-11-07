@@ -1,0 +1,48 @@
+# Screenshot tour of the Transit screens in one theme. Run twice:
+#   maestro test -e THEME=Light e2e/tour.yaml
+#   maestro test -e THEME=Dark e2e/tour.yaml
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+- tapOn: Open settings
+- tapOn: ${THEME}
+- scrollUntilVisible:
+    element: Load demo data
+- tapOn: Load demo data
+- waitForAnimationToEnd
+- tapOn:
+    text: Back
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: Your lines
+    timeout: 10000
+- waitForAnimationToEnd
+- takeScreenshot: e2e/artifacts/tour-${THEME}-pipeline
+- scrollUntilVisible:
+    element: '.*Acme Health.*Interviewing.*'
+- tapOn: '.*Acme Health.*Interviewing.*'
+- extendedWaitUntil:
+    visible: Edit application
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/tour-${THEME}-detail
+- tapOn: Back
+- waitForAnimationToEnd
+- tapOn: 'Inbox.*'
+- tapOn: Receive next email
+- extendedWaitUntil:
+    notVisible: '(?i).*analyzing.*'
+    timeout: 60000
+- waitForAnimationToEnd
+- takeScreenshot: e2e/artifacts/tour-${THEME}-inbox
+- tapOn: 'Interview invitation.*'
+- extendedWaitUntil:
+    visible: Proposed Next Step
+    timeout: 10000
+- takeScreenshot: e2e/artifacts/tour-${THEME}-message
+- tapOn: Back
+- tapOn: 'Prep.*'
+- waitForAnimationToEnd
+- takeScreenshot: e2e/artifacts/tour-${THEME}-prep
+- tapOn: Add from a link
+- waitForAnimationToEnd
+- takeScreenshot: e2e/artifacts/tour-${THEME}-intake

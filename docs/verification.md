@@ -10,20 +10,22 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
-## Latest end-to-end results (2026-11-06)
+## Latest end-to-end results (2026-11-06, Transit design)
 
-All rows below ran on the final app code (AI runs from the saved job: link-first intake, prep questions in the background and on open, mock interview starting on open), except the large-text pass and the model checks, which ran at `7cf0ac3`; the model prompts and tasks have not changed since.
+All rows below ran on the Transit redesign (ADR 0006), except the model checks, which ran at `7cf0ac3`; the model prompts and tasks have not changed since. Flow changes for the redesign: the detail screen is recognised by "Edit application"; Acme is opened from its line row (`.*Acme Health.*Interviewing.*`), because the departure board above also names Acme; "Analyzing" waits became case-insensitive, and the inbox flow now waits for the finished result ("Next Step proposed") before opening the message.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
-| `pipeline.yaml` | Pass, after a flow fix (wait for the form before scrolling) | Pass |
-| `ai-intake.yaml` | Pass (opens on the link field, then uses Paste text) | — (AI is iOS only) |
-| `ai-prep.yaml` | Pass with no Generate or Start tap. An earlier attempt stopped at launch: Maestro's own hierarchy request failed (`kAXErrorInvalidUIElement`) and hung; the rerun passed | — |
-| `ai-inbox.yaml` | Pass | — |
-| `android-ai-off.yaml` | — | Pass, after two flow fixes for the emulator keyboard (its stylus tour, and closing it by tapping outside) |
-| `a11y-large-text.yaml` | Pass (AX5, at `2bd0c9f`) | Pass (font scale 2.0, at `a5c8c91`) |
-| `demo.yaml` | Failed once: the model marked the Acme invite an unsure match (correct INBX-4 behavior: Accept waits for a choice). The flow now picks the application when asked; the rerun passed in 113 s and is the backup video | — |
-| `ai-checks.yaml` | Stricter checks (below): 2 / 2 consecutive runs, every group "0 failed", after one fix | — |
+| `pipeline.yaml` | Pass | Pass |
+| `tour.yaml` (screenshots of every main screen) | Pass in Light and Dark | — |
+| `ai-intake.yaml` | Pass | — (AI is iOS only) |
+| `ai-prep.yaml` | Pass, after the flow fix to open Acme from its row | — |
+| `ai-inbox.yaml` | Pass, after the flow fix above. One attempt stopped at launch: Maestro's own hierarchy request failed (`kAXErrorInvalidUIElement`) and hung; the rerun passed | — |
+| `android-ai-off.yaml` | — | Pass |
+| `a11y-large-text.yaml` | Pass (AX5), after one app fix (below) | Pass (font scale 2.0) |
+| `demo.yaml` | Pass | — |
+| `new-experience.yaml` | Pass (sample listing served from `e2e/fixtures` on `127.0.0.1:8099`) | — |
+| `ai-checks.yaml` | 2 / 2 consecutive runs, every group "0 failed" (at `7cf0ac3`) | — |
 
 ## Story coverage
 
@@ -74,10 +76,14 @@ Screens: settings, pipeline with demo data, application detail, Next Step form, 
 
 | Platform | Setting | Result |
 |---|---|---|
-| iOS 27 Simulator | Larger Accessibility Sizes, largest (`AX5`) | Pass. All text wraps; nothing clipped or overlapping; long screens scroll. Screen titles, pills, and captions stop growing at 1.6×. |
+| iOS 27 Simulator | Larger Accessibility Sizes, largest (`AX5`) | Pass. All text wraps; nothing clipped or overlapping; long screens scroll. Sign-panel titles, pills, and captions stop growing at 1.6×. |
 | Android 36 emulator | Font scale 2.0 | Pass. Same screens; single-line fields truncate their placeholder with an ellipsis. |
 
-Found and fixed in this pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
+Found and fixed in the first pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
+
+Found and fixed in the Transit pass: at AX5 the Inbox buttons ("Receive next email", "Connect Gmail") grew wider than the screen and were clipped. `Button` now never exceeds its container (`maxWidth: '100%'`, shrinking label), so the label wraps inside the pill.
+
+Harness limit at AX5 on iOS: a line row is taller than the screen, and Maestro's taps on it scrolled the list instead of opening it. The flow opens Acme's detail through the departure board's "Board" button instead, so the row itself was checked for layout (screenshot) but not activated at AX5. On Android at 2.0, an earlier run of this pass opened the row directly.
 
 To repeat: set the size (`xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large` or `adb shell settings put system font_scale 2.0`), run the flow with `-e PLATFORM=ios|android`, review `e2e/artifacts/a11y-*.png`, then reset (`content_size large`, `font_scale 1.0`).
 

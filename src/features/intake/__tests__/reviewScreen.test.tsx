@@ -32,6 +32,8 @@ describe('Review a draft (INT-4)', () => {
       expect(screen.getByLabelText(label)).toHaveDisplayValue(value);
     }
     expect(selectAllApplications(store.getState())).toHaveLength(0);
+    // Unconfirmed AI output is marked as a proposal, not a saved application.
+    expect(screen.getByLabelText(/^Proposal, not saved/)).toBeOnTheScreen();
   });
 
   it('creates the application from my edits on Confirm and removes the draft', async () => {

@@ -7,9 +7,14 @@ import { makeStyles } from '../theme/makeStyles';
 import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import type { Theme } from '../theme/theme';
+import { fontFamily } from '../tokens/typography';
 import type { IconName } from './icons';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+/**
+ * `primary` ink pill · `secondary` 2px outline pill · `ghost` underlined link text ·
+ * `destructive` danger outline pill · `onSign` white pill for dark sign panels.
+ */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'onSign';
 export type ButtonSize = 'md' | 'lg';
 
 export interface ButtonProps {
@@ -17,48 +22,58 @@ export interface ButtonProps {
   onPress: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Icon before the label. */
   icon?: IconName;
+  /** Icon after the label ("Board →"). */
+  trailingIcon?: IconName;
   loading?: boolean;
   disabled?: boolean;
   accessibilityHint?: string;
 }
+
+const LARGE_HEIGHT = 50;
 
 const useStyles = makeStyles((t) => ({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: t.space[2],
     minHeight: t.size.minTouchTarget,
     minWidth: t.size.minTouchTarget,
-    borderRadius: t.radius.md,
-    borderWidth: 1,
-    borderColor: t.color.border.strong,
+    // Never wider than its container: at large text sizes the label wraps instead of clipping.
+    maxWidth: '100%',
+    flexShrink: 1,
+    borderRadius: t.radius.pill,
+    borderWidth: 2,
     paddingHorizontal: t.space[4],
   },
   md: { minHeight: t.size.minTouchTarget, paddingVertical: t.space[2] },
-  lg: { minHeight: 52, paddingVertical: t.space[3], paddingHorizontal: t.space[5] },
+  lg: {
+    minHeight: Math.max(LARGE_HEIGHT, t.size.minTouchTarget),
+    paddingVertical: t.space[3],
+    paddingHorizontal: t.space[5],
+  },
   primary: { backgroundColor: t.color.action.primary.bg, borderColor: t.color.action.primary.bg },
   primaryPressed: {
     backgroundColor: t.color.action.primary.bgPressed,
     borderColor: t.color.action.primary.bgPressed,
   },
-  secondary: { backgroundColor: t.color.bg.surface },
+  secondary: { backgroundColor: t.color.bg.surface, borderColor: t.color.border.strong },
   secondaryPressed: { backgroundColor: t.color.bg.subtle },
-  ghost: { borderWidth: 0 },
-  ghostPressed: { backgroundColor: t.color.bg.subtle },
-  destructive: {
-    backgroundColor: t.color.feedback.danger.bg,
-    borderColor: t.color.feedback.danger.fg,
-  },
-  destructivePressed: { opacity: 0.8 },
+  ghost: { borderWidth: 0, paddingHorizontal: t.space[2] },
+  ghostPressed: { opacity: 0.7 },
+  destructive: { backgroundColor: t.color.bg.surface, borderColor: t.color.feedback.danger.fg },
+  destructivePressed: { backgroundColor: t.color.feedback.danger.bg },
+  onSign: { backgroundColor: t.color.sign.fg, borderColor: t.color.sign.fg },
+  onSignPressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
-  label: t.type.bodyStrong,
+  label: { ...t.type.bodyStrong, fontFamily: fontFamily.extrabold, flexShrink: 1 },
   primaryLabel: { color: t.color.action.primary.fg },
   secondaryLabel: { color: t.color.text.primary },
-  ghostLabel: { color: t.color.text.link },
+  ghostLabel: { color: t.color.text.link, textDecorationLine: 'underline' },
   destructiveLabel: { color: t.color.feedback.danger.fg },
-  content: { flexDirection: 'row', alignItems: 'center', gap: t.space[2] },
+  onSignLabel: { color: t.color.sign.bg },
+  content: { flexDirection: 'row', alignItems: 'center', gap: t.space[2], flexShrink: 1 },
   hidden: { opacity: 0 },
   spinner: { position: 'absolute' },
 }));
@@ -73,6 +88,8 @@ function foregroundColor(theme: Theme, variant: ButtonVariant): string {
       return theme.color.text.link;
     case 'destructive':
       return theme.color.feedback.danger.fg;
+    case 'onSign':
+      return theme.color.sign.bg;
     default:
       return assertNever(variant);
   }
@@ -84,6 +101,7 @@ export function Button({
   variant = 'primary',
   size = 'md',
   icon,
+  trailingIcon,
   loading = false,
   disabled = false,
   accessibilityHint,
@@ -117,6 +135,9 @@ export function Button({
         >
           {label}
         </RNText>
+        {trailingIcon !== undefined ? (
+          <Ionicons name={trailingIcon} size={iconSize} color={fg} />
+        ) : null}
       </View>
       {loading ? <ActivityIndicator style={styles.spinner} color={fg} /> : null}
     </Pressable>

@@ -1,29 +1,40 @@
 import { useRouter } from 'expo-router';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, View } from 'react-native';
 
 import {
   Button,
   Card,
   ErrorState,
   IconButton,
+  LineRoundel,
+  makeStyles,
   Screen,
   Stack,
   StagePill,
   Text,
 } from '@/design-system';
+import { lineFor } from '@/lib/lines';
+import type { Stage } from '@/lib/stage';
 import { useAppDispatch } from '@/store/hooks';
 
 import { useApplicationFromRoute } from '../hooks/useApplicationFromRoute';
 import { useGoBack } from '../hooks/useGoBack';
 import { useNow } from '../hooks/useNow';
 import { applicationRemoved, stageChanged } from '../slice';
-import { NextStepsSection } from './NextStepsSection';
-import { StagePicker } from './StagePicker';
+import { AddNextStepForm } from './AddNextStepForm';
+import { NextStepRow } from './NextStepRow';
+import { RouteCard } from './RouteCard';
+
+const useStyles = makeStyles((t) => ({
+  identity: { flexDirection: 'row', alignItems: 'flex-start', gap: t.space[3] },
+  identityText: { flex: 1, gap: t.space[1] },
+  closeLinks: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: t.space[2] },
+}));
 
 function DetailField({ label, value }: { label: string; value: string | undefined }) {
   return (
     <Stack gap={1}>
-      <Text variant="caption" color="secondary">
+      <Text variant="station" color="secondary">
         {label}
       </Text>
       <Text color={value === undefined ? 'tertiary' : 'primary'}>{value ?? 'Not added'}</Text>
@@ -39,10 +50,14 @@ async function openListing(url: string) {
   }
 }
 
-/** Everything about one application: fields, stage, notes, Next Steps, prep, delete (PIPE-3–6). */
+/**
+ * One application as a line: its route of stations with Next Steps departing from the current
+ * one, then details, notes, prep, and delete (PIPE-3–6).
+ */
 export function ApplicationDetailScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const styles = useStyles();
   const goBack = useGoBack();
   const now = useNow();
   const application = useApplicationFromRoute();
@@ -57,6 +72,13 @@ export function ApplicationDetailScreen() {
 
   const { id, company, role, location, salary, listingUrl, stage, notes, requirements } =
     application;
+  const line = lineFor(id, company);
+  const completed = application.nextSteps
+    .filter((step) => step.done)
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
+
+  const changeStage = (next: Stage) =>
+    dispatch(stageChanged({ id, stage: next, now: new Date().toISOString() }));
 
   const confirmDelete = () =>
     Alert.alert(
@@ -77,21 +99,58 @@ export function ApplicationDetailScreen() {
 
   return (
     <Screen
-      title={company}
       onBack={goBack}
       scroll
       headerRight={
         <IconButton
           icon="create-outline"
+          variant="secondary"
           accessibilityLabel="Edit application"
           onPress={() => router.push({ pathname: '/application/[id]/edit', params: { id } })}
         />
       }
     >
-      <Stack gap={2}>
-        <Text variant="heading">{role}</Text>
-        <StagePill stage={stage} />
+      <View style={styles.identity}>
+        <LineRoundel line={line.index} letter={line.letter} size="lg" />
+        <View style={styles.identityText}>
+          <Text variant="board" color="secondary">
+            {[`Line ${line.letter}`, location].filter((part) => part !== undefined).join(' · ')}
+          </Text>
+          <Text variant="title">{company}</Text>
+          <Text color="secondary">{role}</Text>
+          <StagePill stage={stage} />
+        </View>
+      </View>
+
+      <RouteCard application={application} line={line} now={now} onStageChange={changeStage} />
+
+      <Stack gap={1}>
+        <Text variant="station" color="secondary">
+          End the trip
+        </Text>
+        <View style={styles.closeLinks}>
+          {stage !== 'rejected' ? (
+            <Button label="Rejected" variant="ghost" onPress={() => changeStage('rejected')} />
+          ) : null}
+          {stage !== 'withdrawn' ? (
+            <Button label="Withdrawn" variant="ghost" onPress={() => changeStage('withdrawn')} />
+          ) : null}
+        </View>
       </Stack>
+
+      <Card>
+        <Text variant="heading">Add a Next Step</Text>
+        <AddNextStepForm applicationId={id} now={now} />
+      </Card>
+
+      {completed.length > 0 ? (
+        <Card>
+          <Text variant="heading">Completed</Text>
+          {completed.map((step) => (
+            <NextStepRow key={step.id} applicationId={id} step={step} now={now} />
+          ))}
+        </Card>
+      ) : null}
 
       <Card>
         <Text variant="heading">Details</Text>
@@ -110,17 +169,6 @@ export function ApplicationDetailScreen() {
       </Card>
 
       <Card>
-        <Text variant="heading">Stage</Text>
-        <StagePicker
-          label="Tap a stage to move this application."
-          value={stage}
-          onChange={(next) =>
-            dispatch(stageChanged({ id, stage: next, now: new Date().toISOString() }))
-          }
-        />
-      </Card>
-
-      <Card>
         <Text variant="heading">Notes</Text>
         <Text color={notes.length === 0 ? 'tertiary' : 'primary'}>
           {notes.length === 0 ? 'No notes yet.' : notes}
@@ -134,8 +182,6 @@ export function ApplicationDetailScreen() {
           </>
         ) : null}
       </Card>
-
-      <NextStepsSection application={application} now={now} />
 
       <Card>
         <Text variant="heading">Prepare</Text>

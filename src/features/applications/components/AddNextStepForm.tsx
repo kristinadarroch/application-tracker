@@ -82,7 +82,7 @@ export function AddNextStepForm({ applicationId, now }: AddNextStepFormProps) {
         {...(errors.title === undefined ? {} : { error: errors.title })}
       />
       <Stack gap={2}>
-        <Text variant="bodySmall" color="secondary">
+        <Text variant="station" color="secondary">
           Due
         </Text>
         <View style={styles.chips}>

@@ -53,23 +53,20 @@ const useStyles = makeStyles((t) => ({
     alignItems: 'flex-start',
     gap: t.space[3],
     padding: t.space[4],
-    borderRadius: t.radius.md,
+    borderRadius: t.radius.sm,
+    borderLeftWidth: 4,
+    backgroundColor: t.color.bg.surface,
   },
   icon: { paddingTop: t.space[1] / 2 },
   content: { flex: 1, gap: t.space[1] },
-  title: t.type.bodyStrong,
-  body: t.type.bodySmall,
+  title: { ...t.type.bodyStrong, color: t.color.text.primary },
+  body: { ...t.type.bodySmall, color: t.color.text.secondary },
   action: { alignSelf: 'flex-start', marginTop: t.space[2] },
-  neutral: { backgroundColor: t.color.bg.subtle },
-  info: { backgroundColor: t.color.feedback.info.bg },
-  success: { backgroundColor: t.color.feedback.success.bg },
-  warning: { backgroundColor: t.color.feedback.warning.bg },
-  danger: { backgroundColor: t.color.feedback.danger.bg },
-  neutralFg: { color: t.color.text.primary },
-  infoFg: { color: t.color.feedback.info.fg },
-  successFg: { color: t.color.feedback.success.fg },
-  warningFg: { color: t.color.feedback.warning.fg },
-  dangerFg: { color: t.color.feedback.danger.fg },
+  neutral: { borderLeftColor: t.color.border.strong },
+  info: { borderLeftColor: t.color.feedback.info.fg },
+  success: { borderLeftColor: t.color.feedback.success.fg },
+  warning: { borderLeftColor: t.color.feedback.warning.fg },
+  danger: { borderLeftColor: t.color.feedback.danger.fg },
 }));
 
 /** Inline status message. Announced politely on mount and whenever the title changes; never moves focus. */
@@ -93,7 +90,7 @@ export function Banner({ tone, title, body, action }: BannerProps) {
       </View>
       <View style={styles.content}>
         <RNText
-          style={[styles.title, styles[`${tone}Fg`]]}
+          style={styles.title}
           maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodyStrong}
           // Role on the title (an accessible element) so the action button stays reachable.
           accessibilityRole={tone === 'danger' ? 'alert' : 'text'}
@@ -101,10 +98,7 @@ export function Banner({ tone, title, body, action }: BannerProps) {
           {title}
         </RNText>
         {body !== undefined ? (
-          <RNText
-            style={[styles.body, styles[`${tone}Fg`]]}
-            maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodySmall}
-          >
+          <RNText style={styles.body} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodySmall}>
             {body}
           </RNText>
         ) : null}

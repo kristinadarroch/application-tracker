@@ -2,10 +2,11 @@ import type { ViewStyle } from 'react-native';
 
 export type ElevationLevel = 0 | 1 | 2;
 
+/** Transit is flat: white cards on the platform gray. Only floating controls cast a shadow. */
 export const lightElevation: Record<ElevationLevel, ViewStyle> = {
   0: {},
-  1: { boxShadow: '0px 1px 3px 0px rgba(13, 16, 23, 0.10)' },
-  2: { boxShadow: '0px 6px 16px 0px rgba(13, 16, 23, 0.16)' },
+  1: {},
+  2: { boxShadow: '0px 6px 20px 0px rgba(18, 20, 23, 0.18)' },
 };
 
 /** Dark theme drops shadows; surfaces separate by `bg.*` steps instead. */

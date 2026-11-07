@@ -66,7 +66,7 @@ export default function ShareRoute() {
       );
     case 'unsupported':
       return (
-        <Screen title="Shared listing" onBack={() => router.replace('/')}>
+        <Screen title="Shared listing" header="plain" onBack={() => router.replace('/')}>
           <EmptyState
             icon="close-circle-outline"
             title="This can’t be imported"
@@ -77,7 +77,7 @@ export default function ShareRoute() {
       );
     case 'nothing':
       return (
-        <Screen title="Shared listing" onBack={() => router.replace('/')}>
+        <Screen title="Shared listing" header="plain" onBack={() => router.replace('/')}>
           <EmptyState
             icon="share-outline"
             title="Nothing to import"

@@ -38,7 +38,21 @@ const useStyles = makeStyles((t) => ({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: t.space[3] },
   switchText: { flex: 1, gap: t.space[1] },
+  heading: { gap: t.space[1] },
 }));
+
+/** Card heading: a station-style eyebrow over the section title. */
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.heading}>
+      <Text variant="station" color="secondary">
+        {eyebrow}
+      </Text>
+      <Text variant="heading">{title}</Text>
+    </View>
+  );
+}
 
 function AiStatus({ availability }: { availability: AiAvailability | null }) {
   if (availability === null) {
@@ -79,7 +93,7 @@ function DeveloperSection() {
 
   return (
     <Card>
-      <Text variant="heading">Developer</Text>
+      <SectionHeading eyebrow="Presenter tools" title="Developer" />
       <View style={styles.switchRow}>
         <View style={styles.switchText}>
           <Text variant="bodyStrong">AI Replay</Text>
@@ -137,7 +151,7 @@ export function SettingsScreen() {
   return (
     <Screen title="Settings" onBack={goBack} scroll>
       <Card>
-        <Text variant="heading">Theme</Text>
+        <SectionHeading eyebrow="Appearance" title="Theme" />
         <View style={styles.chips}>
           {THEME_OPTIONS.map(({ value, label }) => (
             <Chip
@@ -153,7 +167,7 @@ export function SettingsScreen() {
         </Text>
       </Card>
       <Card>
-        <Text variant="heading">AI</Text>
+        <SectionHeading eyebrow="On this device" title="AI" />
         <AiStatus availability={availability} />
       </Card>
       {__DEV__ ? <DeveloperSection /> : null}

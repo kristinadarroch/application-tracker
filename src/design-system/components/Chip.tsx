@@ -4,6 +4,7 @@ import { Pressable, Text as RNText } from 'react-native';
 import { makeStyles } from '../theme/makeStyles';
 import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
+import { fontFamily } from '../tokens/typography';
 import type { IconName } from './icons';
 
 export interface ChipProps {
@@ -23,8 +24,8 @@ const useStyles = makeStyles((t) => ({
     minHeight: t.size.minTouchTarget,
     paddingHorizontal: t.space[3],
     borderRadius: t.radius.pill,
-    borderWidth: 1,
-    borderColor: t.color.border.strong,
+    borderWidth: 2,
+    borderColor: t.color.border.subtle,
     backgroundColor: t.color.bg.surface,
   },
   pressed: { backgroundColor: t.color.bg.subtle },
@@ -36,8 +37,12 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.action.primary.bgPressed,
     borderColor: t.color.action.primary.bgPressed,
   },
-  label: { ...t.type.bodySmall, color: t.color.text.primary },
-  selectedLabel: { ...t.type.bodySmall, fontWeight: '600', color: t.color.action.primary.fg },
+  label: { ...t.type.bodySmall, fontFamily: fontFamily.bold, color: t.color.text.primary },
+  selectedLabel: {
+    ...t.type.bodySmall,
+    fontFamily: fontFamily.extrabold,
+    color: t.color.action.primary.fg,
+  },
 }));
 
 /** Single toggle used for stage pickers, filters, and due-date quick picks. */

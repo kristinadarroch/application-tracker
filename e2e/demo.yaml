@@ -25,7 +25,7 @@ appId: dev.kristinadarroch.applicationtracker
     element: Confirm
 - tapOn: Confirm
 - extendedWaitUntil:
-    visible: Details
+    visible: Edit application
     timeout: 10000
 # 2:00 Prep questions (already generating since Confirm) and one mock-interview turn
 - waitForAnimationToEnd
@@ -63,7 +63,7 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: 'Inbox.*'
 - tapOn: Receive next email
 - extendedWaitUntil:
-    notVisible: '.*Analyzing.*'
+    notVisible: '(?i).*analyzing.*'
     timeout: 60000
 - waitForAnimationToEnd
 - tapOn: 'Interview invitation.*'

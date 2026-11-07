@@ -83,3 +83,34 @@ export const selectUrgentApplicationIds = createSelector(
   [selectUrgentNextStepByApplication],
   (byApplication): ReadonlySet<ApplicationId> => new Set(byApplication.keys()),
 );
+
+/** Whether a stage means the application was sent. Withdrawn can happen before applying. */
+const SENT: Record<Stage, boolean> = {
+  saved: false,
+  applied: true,
+  interviewing: true,
+  offer: true,
+  rejected: true,
+  withdrawn: false,
+};
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Applications added in the last 7 days that have been sent (stage Applied or later). */
+export const selectSentThisWeekCount = createSelector(
+  [selectAllApplications, (_state: RootState, now: Date) => now.getTime()],
+  (applications, nowMs): number =>
+    applications.filter(
+      (application) =>
+        SENT[application.stage] && nowMs - new Date(application.createdAt).getTime() <= WEEK_MS,
+    ).length,
+);
+
+/** Prep questions marked practiced, across every application. Reads prep state only through `RootState`. */
+export const selectPracticedQuestionCount = createSelector(
+  [(state: RootState) => state.prep.questionSets],
+  (questionSets): number =>
+    Object.values(questionSets).reduce(
+      (sum, set) => sum + (set?.questions.filter((question) => question.practiced).length ?? 0),
+      0,
+    ),
+);

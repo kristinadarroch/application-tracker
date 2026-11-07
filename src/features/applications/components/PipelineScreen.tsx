@@ -1,61 +1,68 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, SectionList, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Button, EmptyState, IconButton, makeStyles, Screen, Stack } from '@/design-system';
+import {
+  Button,
+  EmptyState,
+  IconButton,
+  makeStyles,
+  Screen,
+  Stack,
+  StatTile,
+} from '@/design-system';
 import { DraftsBanner } from '@/features/intake';
-import { STAGES, type Stage } from '@/lib/stage';
+import type { ApplicationId } from '@/lib/ids';
+import { STAGES } from '@/lib/stage';
 import { useAppSelector } from '@/store/hooks';
 
+import { formatBoardDate } from '../boardDate';
 import { useNow } from '../hooks/useNow';
-import { dueLabel } from '../nextStepDue';
-import type { Application } from '../schema';
 import {
   selectApplicationsByStage,
   selectPipelineCounts,
+  selectPracticedQuestionCount,
+  selectSentThisWeekCount,
+  selectUpcomingNextSteps,
   selectUrgentNextStepByApplication,
 } from '../selectors';
-import { ApplicationCard } from './ApplicationCard';
-import { StageHeader } from './StageHeader';
-
-interface StageSection {
-  stage: Stage;
-  data: Application[];
-}
+import { NextDepartureBoard } from './NextDepartureBoard';
+import { YourLinesCard } from './YourLinesCard';
 
 const useStyles = makeStyles((t) => ({
-  list: { paddingBottom: t.space[6] },
-  item: { paddingBottom: t.space[3] },
-  empty: { flexGrow: 1, justifyContent: 'center', paddingBottom: t.space[6] },
+  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[3] },
+  stat: { flexGrow: 1, flexBasis: 140 },
 }));
 
-/** Six stage headers and footers plus the first screenful of cards. */
-const INITIAL_ITEMS = 24;
-
-/** Applications grouped by Stage in pipeline order, every stage shown with its count (PIPE-1). */
+/**
+ * Today on the pipeline: the next departure, every application as a line grouped by Stage in
+ * pipeline order with a count per stage (PIPE-1), and weekly stats.
+ */
 export function PipelineScreen() {
   const router = useRouter();
   const styles = useStyles();
   const now = useNow();
   const byStage = useAppSelector(selectApplicationsByStage);
   const counts = useAppSelector(selectPipelineCounts);
+  const upcoming = useAppSelector((state) => selectUpcomingNextSteps(state, now));
   const urgentSteps = useAppSelector((state) => selectUrgentNextStepByApplication(state, now));
+  const sentThisWeek = useAppSelector((state) => selectSentThisWeekCount(state, now));
+  const practiced = useAppSelector(selectPracticedQuestionCount);
   const total = STAGES.reduce((sum, stage) => sum + counts[stage], 0);
-  const sections: StageSection[] = STAGES.map((stage) => ({ stage, data: byStage[stage] }));
+
+  const openApplication = (id: ApplicationId) =>
+    router.push({ pathname: '/application/[id]', params: { id } });
 
   const actions = (
-    <Stack direction="row" gap={1}>
-      <IconButton
-        icon="link-outline"
-        accessibilityLabel="Add from a link"
-        onPress={() => router.push('/intake/new')}
-      />
+    <Stack direction="row" gap={2}>
       <IconButton
         icon="add"
+        variant="onSign"
         accessibilityLabel="Add application"
         onPress={() => router.push('/application/new')}
       />
       <IconButton
-        icon="settings-outline"
+        icon="options-outline"
+        variant="onSign"
         accessibilityLabel="Open settings"
         onPress={() => router.push('/settings')}
       />
@@ -63,54 +70,55 @@ export function PipelineScreen() {
   );
 
   return (
-    <Screen title="Pipeline" headerRight={actions}>
+    <Screen
+      header="sign"
+      eyebrow={formatBoardDate(now, { weekday: true })}
+      title="Pipeline"
+      headerRight={actions}
+      scroll
+    >
+      <DraftsBanner />
       {total === 0 ? (
-        <ScrollView contentContainerStyle={styles.empty}>
-          <DraftsBanner />
+        <Stack gap={3} align="center">
           <EmptyState
-            icon="albums-outline"
-            title="No applications yet"
-            body="Add a job from its link and review what AI fills in, or add one by hand."
+            icon="trail-sign-outline"
+            title="No lines yet"
+            body="Each job you track becomes a line. Add one from its link and review what AI fills in, or add it by hand."
             action={{ label: 'Add from a link', onPress: () => router.push('/intake/new') }}
           />
-          <Stack align="center">
-            <Button
-              label="Add application"
-              icon="add"
-              variant="secondary"
-              onPress={() => router.push('/application/new')}
-            />
-          </Stack>
-        </ScrollView>
+          <Button
+            label="Add application"
+            icon="add"
+            variant="secondary"
+            onPress={() => router.push('/application/new')}
+          />
+        </Stack>
       ) : (
-        <SectionList<Application, StageSection>
-          sections={sections}
-          keyExtractor={(application) => application.id}
-          ListHeaderComponent={DraftsBanner}
-          contentContainerStyle={styles.list}
-          stickySectionHeadersEnabled={false}
-          // Every stage header (and the first cards) renders up front, so all counts are there at once.
-          initialNumToRender={INITIAL_ITEMS}
-          renderSectionHeader={({ section }) => (
-            <StageHeader stage={section.stage} count={section.data.length} />
-          )}
-          renderItem={({ item }) => {
-            const urgentStep = urgentSteps.get(item.id);
-            return (
-              <View style={styles.item}>
-                <ApplicationCard
-                  application={item}
-                  urgentLabel={
-                    urgentStep === undefined ? undefined : dueLabel(urgentStep.dueDate, now)
-                  }
-                  onPress={() =>
-                    router.push({ pathname: '/application/[id]', params: { id: item.id } })
-                  }
-                />
-              </View>
-            );
-          }}
-        />
+        <>
+          <NextDepartureBoard upcoming={upcoming} now={now} onOpen={openApplication} />
+          <YourLinesCard
+            byStage={byStage}
+            urgentSteps={urgentSteps}
+            now={now}
+            onOpen={openApplication}
+          />
+          <View style={styles.stats}>
+            <View style={styles.stat}>
+              <StatTile
+                icon="paper-plane-outline"
+                value={String(sentThisWeek)}
+                label="sent this week"
+              />
+            </View>
+            <View style={styles.stat}>
+              <StatTile
+                icon="chatbubble-outline"
+                value={String(practiced)}
+                label="questions practiced"
+              />
+            </View>
+          </View>
+        </>
       )}
     </Screen>
   );

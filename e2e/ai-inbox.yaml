@@ -9,12 +9,15 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible: No messages yet
 # INBX-6: deliver the first sample email (Acme Health interview invite)
 - tapOn: Receive next email
+# Wait for the finished result, not just the absence of "Analyzing" (which can pass before it starts).
 - extendedWaitUntil:
-    notVisible: '.*Analyzing.*'
+    visible: '(?i).*next step proposed.*'
     timeout: 60000
 - takeScreenshot: e2e/artifacts/inbox-01-triaged
 - waitForAnimationToEnd
-- tapOn: 'Interview invitation.*'
+- tapOn:
+    text: 'Interview invitation.*'
+    retryTapIfNoChange: true
 # INBX-2: proposal linked to the application, accept adds the Next Step
 - extendedWaitUntil:
     visible: Proposed Next Step
@@ -27,7 +30,14 @@ appId: dev.kristinadarroch.applicationtracker
 - assertVisible: '.*Next Step added.*'
 - tapOn: Back
 - tapOn: 'Pipeline.*'
-- tapOn: '.*Acme Health.*'
+- waitForAnimationToEnd
 - scrollUntilVisible:
-    element: Add Next Step
+    element: '.*Acme Health.*Interviewing.*'
+- tapOn: '.*Acme Health.*Interviewing.*'
+- extendedWaitUntil:
+    visible: Edit application
+    timeout: 10000
+# The accepted step boards under the current station (its title comes from the model, so the
+# check is the board label; the unit tests cover the exact step).
+- assertVisible: '(?i)next step'
 - takeScreenshot: e2e/artifacts/inbox-03-step-on-application

@@ -4,7 +4,8 @@ import { Button, Card, EmptyState, Screen, Stack, Text } from '@/design-system';
 import { SessionIdSchema } from '@/lib/ids';
 import { useAppSelector } from '@/store/hooks';
 
-import { BulletList } from '../components/BulletList';
+import { FeedbackList } from '../components/FeedbackList';
+import { SectionHeader } from '../components/SectionHeader';
 import { TranscriptTurn } from '../components/TranscriptTurn';
 import { selectSessionById } from '../selectors';
 import { formatSessionDate, summarizeSession } from '../session';
@@ -33,11 +34,17 @@ export function SessionSummaryScreen() {
 
   const summary = summarizeSession(session);
   const noFeedback = 'Answer at least one question to get feedback.';
+  const emptyText = summary.answered === 0 ? noFeedback : 'None noted.';
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
-      <Text color="secondary">
-        {`${formatSessionDate(session.startedAt)} · ${summary.answered} of ${session.turns.length} questions answered`}
-      </Text>
+      <Stack gap={1}>
+        <Text variant="board" color="secondary">
+          {formatSessionDate(session.startedAt)}
+        </Text>
+        <Text variant="departure">
+          {`${summary.answered} of ${session.turns.length} questions answered`}
+        </Text>
+      </Stack>
       {session.status === 'active' ? (
         <Button
           label="Continue mock interview"
@@ -51,21 +58,13 @@ export function SessionSummaryScreen() {
         />
       ) : null}
       <Card>
-        <BulletList
-          title="Strengths"
-          items={summary.strengths}
-          emptyText={summary.answered === 0 ? noFeedback : 'None noted.'}
-        />
+        <Stack gap={4}>
+          <FeedbackList kind="strengths" items={summary.strengths} emptyText={emptyText} />
+          <FeedbackList kind="gaps" items={summary.gaps} emptyText={emptyText} />
+        </Stack>
       </Card>
-      <Card>
-        <BulletList
-          title="Gaps"
-          items={summary.gaps}
-          emptyText={summary.answered === 0 ? noFeedback : 'None noted.'}
-        />
-      </Card>
-      <Stack gap={4}>
-        <Text variant="heading">Transcript</Text>
+      <Stack gap={6}>
+        <SectionHeader label="Transcript" />
         {session.turns.map((turn, index) => (
           // Turns are append-only, so the index is a stable key.
           <TranscriptTurn key={index} turn={turn} index={index} variant="closed" />

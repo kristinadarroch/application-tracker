@@ -1,3 +1,12 @@
+import {
+  Overpass_400Regular,
+  Overpass_600SemiBold,
+  Overpass_700Bold,
+  Overpass_800ExtraBold,
+  Overpass_900Black,
+} from '@expo-google-fonts/overpass';
+import { OverpassMono_700Bold } from '@expo-google-fonts/overpass-mono';
+import { useFonts } from 'expo-font';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -35,7 +44,21 @@ function Navigator() {
   );
 }
 
+/** Transit's two families, keyed by the names `fontFamily` tokens use. */
+const TRANSIT_FONTS = {
+  Overpass_400Regular,
+  Overpass_600SemiBold,
+  Overpass_700Bold,
+  Overpass_800ExtraBold,
+  Overpass_900Black,
+  OverpassMono_700Bold,
+};
+
 export default function RootLayout() {
+  // The splash stays up until fonts load, then until saved data is restored. If fonts fail to
+  // load, the app still starts with system fonts.
+  const [fontsLoaded, fontError] = useFonts(TRANSIT_FONTS);
+  if (!fontsLoaded && fontError === null) return null;
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor} onBeforeLift={() => SplashScreen.hideAsync()}>

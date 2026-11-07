@@ -4,9 +4,9 @@ import { useState } from 'react';
 import {
   Banner,
   Button,
-  Card,
   EmptyState,
   ErrorState,
+  ProposalCard,
   Screen,
   Stack,
   Text,
@@ -19,6 +19,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
+import { LineHeading } from '../components/LineHeading';
+import { SectionHeader } from '../components/SectionHeader';
 import { toAppError, useFindReviewQuestionsMutation } from '../api';
 import { useRouteApplication } from '../hooks';
 import type { ReviewQuestion } from '../schema';
@@ -45,7 +47,7 @@ function InterviewReviews({ application }: { application: Application }) {
 
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
-      <Text color="secondary">{`${application.role} · ${application.company}`}</Text>
+      <LineHeading application={application} />
       <TextField
         label="Paste interview reviews"
         helperText="Paste reviews you found, for example on Glassdoor. Nothing is fetched from any site."
@@ -72,6 +74,7 @@ function InterviewReviews({ application }: { application: Application }) {
           {result.data.trimmed ? (
             <Banner tone="info" title="Only the first part of the pasted text was read." />
           ) : null}
+          {result.data.questions.length > 0 ? <SectionHeader label="Likely questions" /> : null}
           {result.data.questions.length === 0 ? (
             <EmptyState
               icon="document-text-outline"
@@ -121,16 +124,18 @@ function ReviewQuestionCard({
     setStatus('added');
   };
   return (
-    <Card>
-      <Text variant="heading">{question.question}</Text>
-      <Text variant="bodySmall" color="secondary">{`“${question.quote}”`}</Text>
-      <Button
-        label={status === 'added' ? 'Added to prep questions' : 'Add to prep questions'}
-        icon={status === 'added' ? 'checkmark' : 'add'}
-        variant="secondary"
-        disabled={status === 'added'}
-        onPress={add}
-      />
-    </Card>
+    <ProposalCard eyebrow="PROPOSED · FROM REVIEWS" onDevice>
+      <Stack gap={3}>
+        <Text variant="heading">{question.question}</Text>
+        <Text variant="bodySmall" color="secondary">{`“${question.quote}”`}</Text>
+        <Button
+          label={status === 'added' ? 'Added to prep questions' : 'Add to prep questions'}
+          icon={status === 'added' ? 'checkmark' : 'add'}
+          variant="secondary"
+          disabled={status === 'added'}
+          onPress={add}
+        />
+      </Stack>
+    </ProposalCard>
   );
 }

@@ -35,24 +35,31 @@ export function ConnectGmailScreen({
   return (
     <Screen title="Gmail" onBack={onBack} scroll>
       <Stack gap={4}>
-        <Stack direction="row" gap={2} align="center">
-          <Text variant="bodyStrong">Email Source</Text>
-          <Badge
-            tone={connected ? 'success' : 'neutral'}
-            label={
-              connected
-                ? 'Gmail · connected'
-                : source === 'gmail'
-                  ? 'Gmail · signed out'
-                  : 'Sample emails'
-            }
-          />
-        </Stack>
-        <Text color="secondary">
-          The app reads your primary inbox from the last 30 days with read-only access. Messages are
-          analyzed on this device. The sign-in is kept in memory only, so you connect again after
-          restarting the app.
-        </Text>
+        <Card variant="surface">
+          <Stack gap={3}>
+            <Stack direction="row" gap={2} align="center" justify="between" wrap="wrap">
+              <Text variant="station" color="secondary">
+                Email Source
+              </Text>
+              <Badge
+                tone={connected ? 'success' : 'neutral'}
+                icon={connected ? 'checkmark-circle-outline' : 'mail-outline'}
+                label={
+                  connected
+                    ? 'Gmail · connected'
+                    : source === 'gmail'
+                      ? 'Gmail · signed out'
+                      : 'Sample emails'
+                }
+              />
+            </Stack>
+            <Text color="secondary">
+              The app reads your primary inbox from the last 30 days with read-only access. Messages
+              are analyzed on this device. The sign-in is kept in memory only, so you connect again
+              after restarting the app.
+            </Text>
+          </Stack>
+        </Card>
         {clientId === undefined ? (
           <SetupNeeded />
         ) : connected ? (
@@ -85,11 +92,16 @@ export function ConnectGmailScreen({
 
 function SetupNeeded() {
   return (
-    <Card>
+    <Card variant="surface">
       <Stack gap={3}>
         <Text variant="heading">Gmail isn’t set up in this build</Text>
         {SETUP_STEPS.map((step, index) => (
-          <Text key={step}>{`${index + 1}. ${step}`}</Text>
+          <Stack key={step} direction="row" gap={3} align="start">
+            <Text variant="board" color="tertiary">{`${index + 1}`}</Text>
+            <Stack flex={1}>
+              <Text>{step}</Text>
+            </Stack>
+          </Stack>
         ))}
         <Button
           label="Connect Gmail"

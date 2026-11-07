@@ -41,7 +41,8 @@ describe('Application detail (PIPE-4)', () => {
       'https://acme.com/jobs/1',
       'Referred by Sam.',
       '• TypeScript',
-      'Next Steps',
+      'Line A · Austin, TX',
+      'No open Next Steps.',
     ]) {
       expect(screen.getByText(text)).toBeOnTheScreen();
     }
@@ -74,11 +75,21 @@ describe('Change stage (PIPE-3)', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByLabelText('Saved, 0 applications')).toBeOnTheScreen();
     expect(screen.getByLabelText('Interviewing, 1 application')).toBeOnTheScreen();
-    expect(
-      within(screen.getByRole('button', { name: /^Acme Health,/ })).getByLabelText(
-        'Stage: Interviewing',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: /^Acme Health,/ })).toHaveAccessibleName(
+      /Stage: Interviewing/,
+    );
+  });
+
+  it('ends the route as Rejected, and the route stations reopen it', async () => {
+    const { store } = await openAcmeFromPipeline();
+    await fireEvent.press(screen.getByRole('button', { name: 'Rejected' }));
+    expect(selectAllApplications(store.getState())[0]?.stage).toBe('rejected');
+    expect(screen.getByLabelText('Stage: Rejected')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Rejected' })).not.toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Applied' }));
+    expect(selectAllApplications(store.getState())[0]?.stage).toBe('applied');
+    expect(screen.getByRole('button', { name: 'Applied' })).toBeSelected();
   });
 });
 

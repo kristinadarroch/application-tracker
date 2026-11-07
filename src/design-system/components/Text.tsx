@@ -2,11 +2,12 @@ import type { ReactNode } from 'react';
 import { Text as RNText } from 'react-native';
 
 import { makeStyles } from '../theme/makeStyles';
-import type { SemanticColors } from '../tokens/semantic';
 import type { TypographyVariant } from '../tokens/typography';
 import { useTheme } from '../theme/useTheme';
 
-export type TextColor = keyof SemanticColors['text'];
+/** Text colors; `onSign*` are for text drawn on dark sign panels. */
+export type TextColor =
+  'primary' | 'secondary' | 'tertiary' | 'inverse' | 'link' | 'onSign' | 'onSignSecondary';
 export type TextAlign = 'left' | 'center' | 'right';
 
 export interface TextProps {
@@ -24,12 +25,14 @@ const useStyles = makeStyles((t) => ({
   tertiary: { color: t.color.text.tertiary },
   inverse: { color: t.color.text.inverse },
   link: { color: t.color.text.link },
+  onSign: { color: t.color.sign.fg },
+  onSignSecondary: { color: t.color.sign.fgSecondary },
   left: { textAlign: 'left' },
   center: { textAlign: 'center' },
   right: { textAlign: 'right' },
 }));
 
-/** Header role for hero, screen, and section titles so screen readers can jump between them. */
+/** Header role for sign, screen, and section titles so screen readers can jump between them. */
 const HEADER_VARIANTS: readonly TypographyVariant[] = ['display', 'title', 'heading'];
 
 export function Text({

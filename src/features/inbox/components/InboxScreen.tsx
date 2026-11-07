@@ -1,6 +1,6 @@
 import { FlatList } from 'react-native';
 
-import { Badge, Banner, Button, EmptyState, makeStyles, Screen, Stack } from '@/design-system';
+import { Banner, Button, EmptyState, makeStyles, Screen, Stack } from '@/design-system';
 import { selectAiAvailability } from '@/features/capabilities';
 import { describeError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';
@@ -16,6 +16,7 @@ import {
   selectHasMoreFixtures,
   selectInboxMessages,
   selectTriage,
+  selectTriageCandidates,
 } from '../selectors';
 import { nextFixtureReceived } from '../slice';
 import { startTriage } from '../thunks';
@@ -27,7 +28,8 @@ export interface InboxScreenProps {
 }
 
 const useStyles = makeStyles((t) => ({
-  list: { gap: t.space[3], paddingBottom: t.space[6] },
+  // Extra bottom room so the last card clears the floating tab bar.
+  list: { gap: t.space[3], paddingBottom: t.space[12] * 2 },
 }));
 
 /** Inbox tab: messages newest first with their Triage status (INBX-1). */
@@ -38,10 +40,7 @@ export function InboxScreen({ onOpenMessage, onOpenGmailSettings }: InboxScreenP
   const autoTriage = useAutoTriage();
 
   return (
-    <Screen
-      title="Inbox"
-      headerRight={<Badge tone="neutral" label={source === 'gmail' ? 'Gmail' : 'Sample emails'} />}
-    >
+    <Screen header="sign" title="Inbox" eyebrow={source === 'gmail' ? 'GMAIL' : 'SAMPLE EMAILS'}>
       <FlatList
         data={messages}
         keyExtractor={(message) => message.id}
@@ -70,10 +69,13 @@ function InboxRow({ message, onOpen }: { message: InboxMessage; onOpen: () => vo
   const dispatch = useAppDispatch();
   const triage = useAppSelector((state) => selectTriage(state, message.id));
   const canTriage = useAppSelector((state) => selectCanTriage(state, message.id));
+  const candidates = useAppSelector(selectTriageCandidates);
+  const matchedId = triage?.status === 'done' ? triage.result.applicationId : null;
   return (
     <MessageRow
       message={message}
       triage={triage}
+      matched={candidates.find((candidate) => candidate.id === matchedId)}
       canTriage={canTriage}
       onOpen={onOpen}
       onRetry={() => void dispatch(startTriage(message.id))}
@@ -111,21 +113,23 @@ function InboxHeader({
         />
       ) : null}
       {source === 'gmail' ? <GmailSyncControls onReconnect={onOpenGmailSettings} /> : null}
-      {__DEV__ && source === 'mock' ? (
+      <Stack direction="row" gap={2} align="center" wrap="wrap">
+        {__DEV__ && source === 'mock' ? (
+          <Button
+            label={hasMoreFixtures ? 'Receive next email' : 'No more sample emails'}
+            icon="mail-unread-outline"
+            variant="primary"
+            disabled={!hasMoreFixtures}
+            onPress={() => dispatch(nextFixtureReceived({ now: new Date().toISOString() }))}
+          />
+        ) : null}
         <Button
-          label={hasMoreFixtures ? 'Receive next email' : 'No more sample emails'}
-          icon="mail-unread-outline"
+          label={source === 'gmail' ? 'Gmail settings' : 'Connect Gmail'}
+          icon="logo-google"
           variant="secondary"
-          disabled={!hasMoreFixtures}
-          onPress={() => dispatch(nextFixtureReceived({ now: new Date().toISOString() }))}
+          onPress={onOpenGmailSettings}
         />
-      ) : null}
-      <Button
-        label={source === 'gmail' ? 'Gmail settings' : 'Connect Gmail'}
-        icon="logo-google"
-        variant="ghost"
-        onPress={onOpenGmailSettings}
-      />
+      </Stack>
     </Stack>
   );
 }
@@ -148,7 +152,7 @@ function GmailSyncControls({ onReconnect }: { onReconnect: () => void }) {
       <Button
         label="Check for new email"
         icon="refresh"
-        variant="secondary"
+        variant="primary"
         loading={state.status === 'syncing'}
         onPress={() => void sync()}
       />

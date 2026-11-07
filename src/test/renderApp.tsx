@@ -3,6 +3,7 @@ import { renderRouter } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 
+import TabsLayout from '@/app/(tabs)/_layout';
 import PipelineRoute from '@/app/(tabs)/index';
 import ApplicationDetailRoute from '@/app/application/[id]/index';
 import EditApplicationRoute from '@/app/application/[id]/edit';
@@ -41,7 +42,10 @@ export async function renderApp(initialUrl: string, options: Options = {}) {
   const result = await renderRouter(
     {
       _layout: RootStack,
+      '(tabs)/_layout': TabsLayout,
       '(tabs)/index': PipelineRoute,
+      '(tabs)/inbox': OtherFeatureRoute,
+      '(tabs)/prep': OtherFeatureRoute,
       'application/new': NewApplicationRoute,
       'application/[id]/index': ApplicationDetailRoute,
       'application/[id]/edit': EditApplicationRoute,

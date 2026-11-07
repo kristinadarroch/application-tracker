@@ -17,7 +17,7 @@ import {
 import { proposalDecided } from '../slice';
 import { acceptProposal, startTriage, tagManually } from '../thunks';
 import { ManualTagForm, type ManualTag } from './ManualTagForm';
-import { ProposalCard } from './ProposalCard';
+import { TriageResultPanel } from './TriageResultPanel';
 
 export interface MessageDetailScreenProps {
   messageId: MessageId;
@@ -66,13 +66,21 @@ function MessageDetail({ message }: { message: InboxMessage }) {
   return (
     <Stack gap={4}>
       <Stack gap={1}>
+        <Text variant="board" color="tertiary">
+          {new Date(message.receivedAt).toLocaleString(undefined, {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            hour: 'numeric',
+            minute: '2-digit',
+          })}
+        </Text>
         <Text variant="heading">
           {message.subject.length > 0 ? message.subject : '(No subject)'}
         </Text>
         <Text color="secondary">
           {message.fromName === undefined ? message.from : `${message.fromName} <${message.from}>`}
         </Text>
-        <Text color="tertiary">{new Date(message.receivedAt).toLocaleString()}</Text>
       </Stack>
 
       {actionError !== null ? (
@@ -120,8 +128,13 @@ function MessageDetail({ message }: { message: InboxMessage }) {
         />
       )}
 
-      <Card>
-        <Text>{message.bodyText}</Text>
+      <Card variant="surface">
+        <Stack gap={2}>
+          <Text variant="station" color="tertiary">
+            Email
+          </Text>
+          <Text>{message.bodyText}</Text>
+        </Stack>
       </Card>
     </Stack>
   );
@@ -152,9 +165,12 @@ function TriagePanel({
   );
   if (triage === undefined) {
     return (
-      <Card>
+      <Card variant="surface">
         <Stack gap={3}>
-          <Text color="secondary">Waiting to analyze. Messages are analyzed one at a time.</Text>
+          <Text variant="board" color="tertiary">
+            Waiting to analyze
+          </Text>
+          <Text color="secondary">Messages are analyzed one at a time.</Text>
           <Stack direction="row" gap={2} wrap="wrap">
             <Button label="Analyze now" icon="sparkles-outline" onPress={onRetry} />
             {tagButton}
@@ -166,9 +182,11 @@ function TriagePanel({
   switch (triage.status) {
     case 'pending':
       return (
-        <Card accessibilityLabel="Analyzing message">
+        <Card variant="surface" accessibilityLabel="Analyzing message">
           <Stack gap={2}>
-            <Text color="secondary">Analyzing…</Text>
+            <Text variant="board" color="secondary">
+              Analyzing…
+            </Text>
             <Skeleton width="70%" height={16} />
             <Skeleton width="45%" height={16} />
           </Stack>
@@ -176,15 +194,17 @@ function TriagePanel({
       );
     case 'failed':
       return (
-        <Card>
-          <ErrorState error={triage.error} onRetry={onRetry} />
-          {tagButton}
+        <Card variant="surface">
+          <Stack gap={3}>
+            <ErrorState error={triage.error} onRetry={onRetry} />
+            {tagButton}
+          </Stack>
         </Card>
       );
     case 'done':
       return (
-        <Stack gap={2}>
-          <ProposalCard
+        <Stack gap={3}>
+          <TriageResultPanel
             result={triage.result}
             replayed={triage.replayed}
             decision={triage.decision}

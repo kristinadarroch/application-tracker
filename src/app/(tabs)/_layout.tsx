@@ -1,54 +1,53 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
 
-import { useTheme, type IconName } from '@/design-system';
+import { FloatingTabBar, type IconName } from '@/design-system';
 
-function TabIcon({ name, focused, size }: { name: IconName; focused: boolean; size: number }) {
-  const theme = useTheme();
+/** Label and icon per tab route; unknown routes fall back to their route name. */
+const TAB_META: Record<string, { label: string; icon: IconName }> = {
+  index: { label: 'Pipeline', icon: 'git-commit-outline' },
+  inbox: { label: 'Inbox', icon: 'mail-outline' },
+  prep: { label: 'Prep', icon: 'reader-outline' },
+};
+
+/** The floating Transit tab bar, with "Add from a link" as its action button (B1). */
+function TransitTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
+  const tabs = state.routes.map((route, index) => {
+    const meta = TAB_META[route.name];
+    const focused = index === state.index;
+    return {
+      key: route.key,
+      label: meta?.label ?? route.name,
+      icon: meta?.icon ?? 'ellipse-outline',
+      focused,
+      onPress: () => {
+        const event = emitter.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
+        if (!focused && !event.defaultPrevented) navigateToTab(route.key);
+      },
+    };
+  });
   return (
-    <Ionicons
-      name={name}
-      size={size}
-      color={focused ? theme.color.text.link : theme.color.text.secondary}
+    <FloatingTabBar
+      tabs={tabs}
+      action={{
+        icon: 'add',
+        accessibilityLabel: 'Add from a link',
+        onPress: () => router.push('/intake/new'),
+      }}
     />
   );
 }
 
 export default function TabsLayout() {
-  const theme = useTheme();
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.color.text.link,
-        tabBarInactiveTintColor: theme.color.text.secondary,
-        tabBarStyle: {
-          backgroundColor: theme.color.bg.surface,
-          borderTopColor: theme.color.border.subtle,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Pipeline',
-          tabBarIcon: (props) => <TabIcon name="albums-outline" {...props} />,
-        }}
-      />
-      <Tabs.Screen
-        name="inbox"
-        options={{
-          title: 'Inbox',
-          tabBarIcon: (props) => <TabIcon name="mail-outline" {...props} />,
-        }}
-      />
-      <Tabs.Screen
-        name="prep"
-        options={{
-          title: 'Prep',
-          tabBarIcon: (props) => <TabIcon name="school-outline" {...props} />,
-        }}
-      />
+    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <TransitTabBar {...props} />}>
+      <Tabs.Screen name="index" options={{ title: 'Pipeline' }} />
+      <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
+      <Tabs.Screen name="prep" options={{ title: 'Prep' }} />
     </Tabs>
   );
 }

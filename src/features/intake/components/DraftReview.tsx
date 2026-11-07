@@ -1,9 +1,22 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
-import { Banner, Button, Screen, Stack, Text, TextField } from '@/design-system';
+import {
+  Banner,
+  Button,
+  Card,
+  LineRoundel,
+  LineStrip,
+  LineStripLegend,
+  ProposalCard,
+  Screen,
+  Stack,
+  Text,
+  TextField,
+} from '@/design-system';
 import { applicationAdded, applicationSaved } from '@/features/applications/model';
 import { ApplicationIdSchema, createId } from '@/lib/ids';
+import { lineFor } from '@/lib/lines';
 import { useAppDispatch } from '@/store/hooks';
 
 import { draftRemoved, draftUpdated } from '../draftsSlice';
@@ -21,8 +34,9 @@ export interface DraftReviewProps {
 }
 
 /**
- * Every extracted field, editable. Only Confirm turns the draft into an Application (INT-4);
- * edits are saved to the draft on blur so the user can come back later (INT-6).
+ * Every extracted field, editable, inside a proposal card: the draft is unconfirmed AI output.
+ * Only Confirm turns the draft into an Application (INT-4); edits are saved to the draft on blur so
+ * the user can come back later (INT-6). A preview shows the line it would ride, starting at Saved.
  */
 export function DraftReview({ draft }: DraftReviewProps) {
   const router = useRouter();
@@ -67,41 +81,73 @@ export function DraftReview({ draft }: DraftReviewProps) {
     router.dismissTo('/');
   };
 
+  const line = lineFor(draft.id, values.company);
+  const company = values.company.trim();
+  const role = values.role.trim();
+
   return (
     <Screen
       title="Review draft"
+      header="plain"
       onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       scroll
     >
-      <Text color="secondary">
-        AI read this listing on your device. Check each detail, then confirm to add it to your
-        pipeline.
-      </Text>
-      {draft.trimmed ? (
-        <Banner
-          tone="info"
-          title="Only the first part of this listing was read"
-          body="The listing was too long to read at once. Check the details against the full listing."
-        />
-      ) : null}
+      <Card>
+        <Stack gap={3}>
+          <Stack direction="row" gap={3} align="center">
+            <LineRoundel line={line.index} letter={line.letter} size="lg" />
+            <Stack gap={1} flex={1}>
+              <Text variant="station" color="secondary">
+                New line
+              </Text>
+              <Text variant="bodyStrong">
+                {role === '' || company === '' ? 'New application' : `${role} at ${company}`}
+              </Text>
+            </Stack>
+          </Stack>
+          <Stack gap={1}>
+            <LineStripLegend />
+            <LineStrip stage="saved" line={line.index} />
+          </Stack>
+          <Text variant="bodySmall" color="secondary">
+            Confirm adds it to your pipeline at Saved.
+          </Text>
+        </Stack>
+      </Card>
 
-      <TextField label="Company" autoCapitalize="words" {...field('company')} />
-      <TextField label="Role" autoCapitalize="words" {...field('role')} />
-      <TextField label="Location" autoCapitalize="words" {...field('location')} />
-      <TextField label="Salary" {...field('salary')} />
-      <TextField
-        label="Listing link"
-        keyboardType="url"
-        autoCapitalize="none"
-        {...field('listingUrl')}
-      />
-      <TextField
-        label="Requirements"
-        helperText="One per line"
-        multiline
-        {...field('requirements')}
-      />
-      <TextField label="Notes" multiline {...field('notes')} />
+      <ProposalCard eyebrow="PROPOSED · READ FROM THE LISTING" onDevice>
+        <Stack gap={3}>
+          <Text color="secondary">
+            AI read this listing on your device. Check each detail, then confirm to add it to your
+            pipeline.
+          </Text>
+          {draft.trimmed ? (
+            <Banner
+              tone="info"
+              title="Only the first part of this listing was read"
+              body="The listing was too long to read at once. Check the details against the full listing."
+            />
+          ) : null}
+
+          <TextField label="Company" autoCapitalize="words" {...field('company')} />
+          <TextField label="Role" autoCapitalize="words" {...field('role')} />
+          <TextField label="Location" autoCapitalize="words" {...field('location')} />
+          <TextField label="Salary" {...field('salary')} />
+          <TextField
+            label="Listing link"
+            keyboardType="url"
+            autoCapitalize="none"
+            {...field('listingUrl')}
+          />
+          <TextField
+            label="Requirements"
+            helperText="One per line"
+            multiline
+            {...field('requirements')}
+          />
+          <TextField label="Notes" multiline {...field('notes')} />
+        </Stack>
+      </ProposalCard>
 
       <Stack gap={2}>
         <Button label="Confirm" size="lg" icon="checkmark" onPress={confirm} />

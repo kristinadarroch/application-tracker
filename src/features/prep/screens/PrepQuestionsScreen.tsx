@@ -2,14 +2,27 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, View } from 'react-native';
 
-import { Button, ErrorState, ListItem, Screen, Skeleton, Stack, Text } from '@/design-system';
+import {
+  Button,
+  ErrorState,
+  ListItem,
+  makeStyles,
+  Screen,
+  Skeleton,
+  Stack,
+  Text,
+} from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
+import { lineFor } from '@/lib/lines';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
+import { LineHeading } from '../components/LineHeading';
+import { PracticeBar } from '../components/PracticeBar';
 import { QuestionRow } from '../components/QuestionRow';
+import { SectionHeader } from '../components/SectionHeader';
 import { useGeneratePrepQuestions, useRouteApplication } from '../hooks';
 import { PREP_QUESTION_TYPE_LABELS, PREP_QUESTION_TYPES, type PrepQuestionSet } from '../schema';
 import {
@@ -23,6 +36,11 @@ import { questionPracticeToggled } from '../slice';
 
 const TITLE = 'Prep questions';
 
+const useStyles = makeStyles((t) => ({
+  skeletonStop: { flexDirection: 'row', alignItems: 'center', gap: t.space[3] },
+  skeletonText: { flex: 1 },
+}));
+
 /** `/prep/[applicationId]`: prep questions (PREP-1–3), past mock interviews (MOCK-5), and reviews (LATER-1). */
 export function PrepQuestionsScreen() {
   const application = useRouteApplication();
@@ -34,7 +52,7 @@ function PrepQuestions({ application }: { application: Application }) {
   const set = useAppSelector((state) => selectQuestionSet(state, application.id));
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
-      <Text color="secondary">{`${application.role} · ${application.company}`}</Text>
+      <LineHeading application={application} />
       {set === undefined ? (
         <NoQuestionSet application={application} />
       ) : (
@@ -56,18 +74,25 @@ function PrepQuestions({ application }: { application: Application }) {
   );
 }
 
+/** Placeholder stops while the questions generate. */
 function LoadingQuestions() {
+  const styles = useStyles();
   return (
     <View
       accessible
       accessibilityLabel="Generating prep questions"
       accessibilityState={{ busy: true }}
     >
-      <Stack gap={3}>
-        <Skeleton width="40%" height={22} />
-        <Skeleton width="100%" height={44} />
-        <Skeleton width="100%" height={44} />
-        <Skeleton width="100%" height={44} />
+      <Stack gap={4}>
+        <Skeleton width="30%" height={16} />
+        {[0, 1, 2, 3].map((stop) => (
+          <View key={stop} style={styles.skeletonStop}>
+            <Skeleton width={22} height={22} radius="pill" />
+            <View style={styles.skeletonText}>
+              <Skeleton width="100%" height={40} />
+            </View>
+          </View>
+        ))}
       </Stack>
     </View>
   );
@@ -102,6 +127,7 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
   const ai = useAppSelector(selectAiAvailability);
   const progress = useAppSelector((state) => selectPrepProgress(state, application.id));
   const generate = useGeneratePrepQuestions(application);
+  const line = lineFor(application.id, application.company).index;
 
   // PREP-1: regenerating replaces the set and its practice progress, so ask first.
   const confirmRegenerate = () =>
@@ -116,7 +142,10 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
 
   return (
     <Stack gap={4}>
-      <Text variant="heading">{`${progress.practiced} / ${progress.total} practiced`}</Text>
+      <Stack gap={2}>
+        <Text variant="departure">{`${progress.practiced} / ${progress.total} practiced`}</Text>
+        <PracticeBar line={line} practiced={progress.practiced} total={progress.total} />
+      </Stack>
       {ai?.status === 'unavailable' ? (
         <AiUnavailableNotice reason={ai.reason} variant="banner" />
       ) : ai?.status === 'available' ? (
@@ -137,11 +166,13 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
         if (questions.length === 0) return null;
         return (
           <Stack key={type} gap={1}>
-            <Text variant="heading">{PREP_QUESTION_TYPE_LABELS[type]}</Text>
-            {questions.map((question) => (
+            <SectionHeader label={PREP_QUESTION_TYPE_LABELS[type]} />
+            {questions.map((question, index) => (
               <QuestionRow
                 key={question.id}
                 question={question}
+                line={line}
+                track={index === questions.length - 1 ? 'end' : 'continues'}
                 onToggle={() =>
                   dispatch(
                     questionPracticeToggled({
@@ -169,7 +200,7 @@ function MockInterviews({ application }: { application: Application }) {
     });
   return (
     <Stack gap={2}>
-      <Text variant="heading">Mock interviews</Text>
+      <SectionHeader label="Mock interviews" />
       <Button
         label={active === undefined ? 'Mock interview' : 'Resume mock interview'}
         icon="chatbubbles-outline"

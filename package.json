@@ -15,6 +15,8 @@
     "check": "npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {
+    "@expo-google-fonts/overpass": "^0.4.2",
+    "@expo-google-fonts/overpass-mono": "^0.4.2",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-ai/apple": "^0.12.0",
     "@react-native-async-storage/async-storage": "2.2.0",

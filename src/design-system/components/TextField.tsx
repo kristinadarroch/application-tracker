@@ -25,7 +25,7 @@ const useStyles = makeStyles((t) => ({
     ...t.type.body,
     color: t.color.text.primary,
     backgroundColor: t.color.bg.surface,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: t.color.border.strong,
     borderRadius: t.radius.md,
     minHeight: t.size.minTouchTarget,

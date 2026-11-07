@@ -4,8 +4,19 @@ appId: dev.kristinadarroch.applicationtracker
 - runFlow: launch.yaml
 - tapOn: Open settings
 - tapOn: Load demo data
-- tapOn: Back
-- tapOn: '.*Acme Health.*'
+- tapOn:
+    text: Back
+    retryTapIfNoChange: true
+- extendedWaitUntil:
+    visible: Your lines
+    timeout: 10000
+# Open Acme from its line row (the departure board above also names Acme but isn't the row).
+- scrollUntilVisible:
+    element: '.*Acme Health.*Interviewing.*'
+- tapOn: '.*Acme Health.*Interviewing.*'
+- extendedWaitUntil:
+    visible: Edit application
+    timeout: 10000
 - scrollUntilVisible:
     element: Prep questions
 # PREP-1: questions generate on their own when the screen opens; no Generate step

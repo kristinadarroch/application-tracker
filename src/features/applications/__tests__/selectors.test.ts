@@ -1,10 +1,12 @@
-import { ApplicationIdSchema, NextStepIdSchema } from '@/lib/ids';
+import { ApplicationIdSchema, NextStepIdSchema, QuestionIdSchema } from '@/lib/ids';
 import { STAGES } from '@/lib/stage';
 import { makeStore } from '@/store/store';
 
 import {
   selectApplicationsByStage,
   selectPipelineCounts,
+  selectPracticedQuestionCount,
+  selectSentThisWeekCount,
   selectUpcomingNextSteps,
   selectUrgentApplicationIds,
   selectUrgentNextStepByApplication,
@@ -140,5 +142,49 @@ describe('urgent applications', () => {
     );
     expect([...selectUrgentApplicationIds(state, NOW)]).toEqual([globexId]);
     expect(selectUrgentNextStepByApplication(state, NOW).get(globexId)?.title).toBe('Today');
+  });
+});
+
+describe('selectSentThisWeekCount', () => {
+  it('counts applications added in the last 7 days that reached Applied or later', () => {
+    const state = stateWith(
+      makeApplication({ id: acmeId, stage: 'applied', createdAt: '2026-11-04T09:00:00.000Z' }),
+      makeApplication({ id: globexId, stage: 'saved', createdAt: '2026-11-04T09:00:00.000Z' }),
+      makeApplication({
+        id: northwindId,
+        stage: 'interviewing',
+        createdAt: '2026-10-01T09:00:00.000Z',
+      }),
+    );
+    expect(selectSentThisWeekCount(state, NOW)).toBe(1);
+  });
+});
+
+describe('selectPracticedQuestionCount', () => {
+  it('counts practiced prep questions across applications', () => {
+    const question = (id: string, practiced: boolean) => ({
+      id: QuestionIdSchema.parse(id),
+      type: 'behavioral' as const,
+      text: 'Tell me about a time…',
+      practiced,
+    });
+    const state = makeStore({
+      prep: {
+        questionSets: {
+          [acmeId]: {
+            applicationId: acmeId,
+            generatedAt: '2026-11-04T09:00:00.000Z',
+            questions: [question('q1', true), question('q2', false)],
+          },
+          [globexId]: {
+            applicationId: globexId,
+            generatedAt: '2026-11-04T09:00:00.000Z',
+            questions: [question('q3', true)],
+          },
+        },
+        sessions: { ids: [], entities: {} },
+      },
+    }).getState();
+    expect(selectPracticedQuestionCount(state)).toBe(2);
   });
 });
