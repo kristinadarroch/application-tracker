@@ -12,7 +12,10 @@ export type StationState = 'passed' | 'current' | 'future';
 export interface StationMarkerProps {
   stage: Stage;
   state: StationState;
-  /** Line color for passed stations. Defaults to the first line. */
+  /**
+   * The application's line, for passed stations on its route. Omit it when the marker stands for
+   * a stage across all lines (section headers): passed stations then draw in neutral ink.
+   */
   line?: LineIndex;
 }
 
@@ -45,7 +48,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 /** Decorative station mark; the adjacent stage word carries the meaning. */
-export function StationMarker({ stage, state, line = 0 }: StationMarkerProps) {
+export function StationMarker({ stage, state, line }: StationMarkerProps) {
   const styles = useStyles();
   return (
     <View
@@ -55,8 +58,8 @@ export function StationMarker({ stage, state, line = 0 }: StationMarkerProps) {
     >
       <StationGlyph
         kind={STAGE_GLYPHS[stage]}
-        tone={toneFor(state)}
-        line={line}
+        tone={state === 'passed' && line === undefined ? 'ink' : toneFor(state)}
+        line={line ?? 0}
         metrics={MARKER_METRICS}
         dashed={stage === 'saved'}
         halo={state === 'current'}

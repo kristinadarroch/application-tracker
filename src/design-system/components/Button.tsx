@@ -67,7 +67,12 @@ const useStyles = makeStyles((t) => ({
   onSign: { backgroundColor: t.color.sign.fg, borderColor: t.color.sign.fg },
   onSignPressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
-  label: { ...t.type.bodyStrong, fontFamily: fontFamily.extrabold, flexShrink: 1 },
+  label: {
+    ...t.type.bodyStrong,
+    fontFamily: fontFamily.extrabold,
+    flexShrink: 1,
+    textAlign: 'center',
+  },
   primaryLabel: { color: t.color.action.primary.fg },
   secondaryLabel: { color: t.color.text.primary },
   ghostLabel: { color: t.color.text.link, textDecorationLine: 'underline' },

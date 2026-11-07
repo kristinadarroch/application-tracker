@@ -9,6 +9,7 @@ appId: dev.kristinadarroch.applicationtracker
 - scrollUntilVisible:
     element: Load demo data
 - tapOn: Load demo data
+- takeScreenshot: e2e/artifacts/tour-${THEME}-settings
 - waitForAnimationToEnd
 - tapOn:
     text: Back
