@@ -8,24 +8,24 @@ import {
   Button,
   Card,
   Chip,
-  DepartureBoard,
+  SpotlightCard,
   EmptyState,
   ErrorState,
   FloatingTabBar,
   IconButton,
-  LineRoundel,
-  LineStrip,
-  LineStripLegend,
+  CompanyBadge,
+  StageProgress,
+  StageProgressLegend,
   ListItem,
   makeStyles,
-  ProgressStops,
+  ProgressSteps,
   ProposalCard,
-  RouteStation,
+  StageStep,
   Screen,
   Skeleton,
   Stack,
   StagePill,
-  StationMarker,
+  StageMarker,
   StatTile,
   Text,
   TextField,
@@ -36,7 +36,7 @@ import {
   type ButtonVariant,
   type ColorScheme,
   type IconButtonVariant,
-  type LineIndex,
+  type AccentIndex,
   type Theme,
   type TypographyVariant,
 } from '@/design-system';
@@ -45,21 +45,21 @@ import { STAGE_LABELS, STAGES } from '@/lib/stage';
 const TYPE_VARIANTS: { variant: TypographyVariant; sample: string }[] = [
   { variant: 'display', sample: 'Today' },
   { variant: 'title', sample: 'Acme Health' },
-  { variant: 'departure', sample: 'Book the onsite' },
-  { variant: 'heading', sample: 'Your lines' },
+  { variant: 'feature', sample: 'Book the onsite' },
+  { variant: 'heading', sample: 'Your applications' },
   { variant: 'body', sample: 'Senior React Native Engineer · Austin, TX' },
   { variant: 'bodyStrong', sample: 'Recruiter screen went well' },
   { variant: 'bodySmall', sample: 'Applied 28 Oct · via link' },
   { variant: 'caption', sample: 'Shown on the pipeline card' },
-  { variant: 'station', sample: 'Saved · Applied · Interview · Offer' },
-  { variant: 'board', sample: 'Due tomorrow · Sat 7 Nov' },
+  { variant: 'overline', sample: 'Saved · Applied · Interview · Offer' },
+  { variant: 'mono', sample: 'Due tomorrow · Sat 7 Nov' },
 ];
 const BUTTON_VARIANTS: ButtonVariant[] = ['primary', 'secondary', 'ghost', 'destructive'];
 const ICON_VARIANTS: IconButtonVariant[] = ['primary', 'secondary', 'ghost'];
 const BADGE_TONES: BadgeTone[] = ['neutral', 'info', 'success', 'warning', 'danger'];
 const BANNER_TONES: BannerTone[] = ['neutral', 'info', 'success', 'warning', 'danger'];
-const STATION_STATES = ['passed', 'current', 'future'] as const;
-const LINES: { index: LineIndex; letter: string; company: string }[] = [
+const STAGE_STATES = ['passed', 'current', 'future'] as const;
+const ACCENTS: { index: AccentIndex; letter: string; company: string }[] = [
   { index: 0, letter: 'A', company: 'Acme Health' },
   { index: 1, letter: 'N', company: 'Northwind Labs' },
   { index: 2, letter: 'G', company: 'Globex' },
@@ -96,14 +96,14 @@ interface SwatchSpec {
 function swatchesFor(color: Theme['color']): SwatchSpec[] {
   const canvas = { role: 'bg.canvas', value: color.bg.canvas };
   const surface = { role: 'bg.surface', value: color.bg.surface };
-  const sign = { role: 'sign.bg', value: color.sign.bg };
+  const panel = { role: 'panel.bg', value: color.panel.bg };
   return [
     { role: 'bg.canvas', value: color.bg.canvas },
     { role: 'bg.surface', value: color.bg.surface },
     { role: 'bg.subtle', value: color.bg.subtle },
-    { role: 'sign.bg', value: color.sign.bg },
-    { role: 'sign.fg', value: color.sign.fg, on: sign },
-    { role: 'sign.fgSecondary', value: color.sign.fgSecondary, on: sign },
+    { role: 'panel.bg', value: color.panel.bg },
+    { role: 'panel.fg', value: color.panel.fg, on: panel },
+    { role: 'panel.fgSecondary', value: color.panel.fgSecondary, on: panel },
     { role: 'text.primary', value: color.text.primary, on: canvas },
     { role: 'text.secondary', value: color.text.secondary, on: canvas },
     { role: 'text.tertiary', value: color.text.tertiary, on: surface },
@@ -116,17 +116,17 @@ function swatchesFor(color: Theme['color']): SwatchSpec[] {
     { role: 'border.strong', value: color.border.strong, on: surface },
     { role: 'border.subtle', value: color.border.subtle },
     { role: 'focus.ring', value: color.focus.ring, on: surface },
-    { role: 'urgent.bg', value: color.urgent.bg, on: sign },
+    { role: 'urgent.bg', value: color.urgent.bg, on: panel },
     {
       role: 'urgent.fg',
       value: color.urgent.fg,
       on: { role: 'urgent.bg', value: color.urgent.bg },
     },
     { role: 'proposal.hatchB', value: color.proposal.hatchB },
-    { role: 'station.future', value: color.station.future, on: surface },
-    ...LINES.map(({ index }) => ({
-      role: `line.${index}`,
-      value: color.line[index].bg,
+    { role: 'stage.future', value: color.stage.future, on: surface },
+    ...ACCENTS.map(({ index }) => ({
+      role: `accent.${index}`,
+      value: color.accent[index].bg,
       on: surface,
     })),
     ...(['success', 'warning', 'danger', 'info'] as const).map((tone) => ({
@@ -160,8 +160,8 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 2,
     borderColor: t.color.border.strong,
   },
-  stationCell: { width: 44, alignItems: 'center' },
-  stationLabel: { flex: 1 },
+  markerCell: { width: 44, alignItems: 'center' },
+  markerLabel: { flex: 1 },
   tabBarFrame: { minHeight: 96, justifyContent: 'flex-end' },
   spaceBar: { height: 8, borderRadius: t.radius.pill, backgroundColor: t.color.text.primary },
   elevationBox: {
@@ -187,7 +187,7 @@ function Section({
   return (
     <Stack gap={3}>
       <Stack gap={1}>
-        <Text variant="station" color="secondary">
+        <Text variant="overline" color="secondary">
           {eyebrow}
         </Text>
         <Text variant="heading">{title}</Text>
@@ -199,17 +199,17 @@ function Section({
 
 function Concept() {
   return (
-    <Card variant="sign">
+    <Card variant="panel">
       <Stack gap={2}>
-        <Text color="onSign">
-          Every application is a line. Stages are stations, the next step is a departure, and a
-          closed application is a completed route: the trip still counts.
+        <Text color="onPanel">
+          Interview prep, one application at a time: practice the questions, run a mock interview,
+          and keep the next step in view so nothing slips.
         </Text>
-        <Text variant="board" color="onSignSecondary">
-          Overpass · wayfinding display and body
+        <Text variant="mono" color="onPanelSecondary">
+          Overpass · display and body
         </Text>
-        <Text variant="board" color="onSignSecondary">
-          Overpass Mono · boards, dates, codes
+        <Text variant="mono" color="onPanelSecondary">
+          Overpass Mono · labels, dates, codes
         </Text>
       </Stack>
     </Card>
@@ -220,10 +220,7 @@ function Palette() {
   const { color, scheme } = useTheme();
   const styles = useStyles();
   return (
-    <Section
-      eyebrow="Palette"
-      title={scheme === 'light' ? 'Light · “Platform”' : 'Dark · “Night service”'}
-    >
+    <Section eyebrow="Palette" title={scheme === 'light' ? 'Light' : 'Dark'}>
       <Card>
         <Stack gap={3}>
           {swatchesFor(color).map(({ role, value, on }) => {
@@ -233,7 +230,7 @@ function Palette() {
                 <View style={[styles.swatch, { backgroundColor: value }]} />
                 <View style={styles.swatchText}>
                   <Text variant="bodyStrong">{role}</Text>
-                  <Text variant="board" color="secondary">
+                  <Text variant="mono" color="secondary">
                     {ratio === null || on === undefined
                       ? value
                       : `${value} · ${ratio.toFixed(2)}:1 on ${on.role}`}
@@ -252,13 +249,13 @@ function TypeScale() {
   const theme = useTheme();
   const styles = useStyles();
   return (
-    <Section eyebrow="Type scale" title="Signage weights">
+    <Section eyebrow="Type scale" title="Typography">
       <Card>
         {TYPE_VARIANTS.map(({ variant, sample }) => {
           const spec = theme.type[variant];
           return (
             <View key={variant} style={styles.typeRow}>
-              <Text variant="board" color="tertiary">
+              <Text variant="mono" color="tertiary">
                 {`${variant} ${spec.fontSize ?? ''}/${spec.lineHeight ?? ''} · ${spec.fontFamily ?? ''}`}
               </Text>
               <Text variant={variant}>{sample}</Text>
@@ -277,7 +274,7 @@ function Shape() {
     <Section eyebrow="Shape" title="Spacing, radii, elevation, motion">
       {Object.entries(theme.space).map(([key, value]) => (
         <Stack key={key} direction="row" gap={3} align="center">
-          <Text variant="board" color="secondary">
+          <Text variant="mono" color="secondary">
             {`space.${key} ${value}`}
           </Text>
           <View style={[styles.spaceBar, { width: value }]} />
@@ -287,7 +284,7 @@ function Shape() {
         {Object.entries(theme.radius).map(([key, value]) => (
           <Stack key={key} gap={1} align="center">
             <View style={[styles.radiusBox, { borderRadius: value }]} />
-            <Text variant="board" color="secondary">
+            <Text variant="mono" color="secondary">
               {`${key} ${value}`}
             </Text>
           </Stack>
@@ -296,31 +293,31 @@ function Shape() {
       <Stack direction="row" gap={4} wrap="wrap">
         {([0, 1, 2] as const).map((level) => (
           <View key={level} style={[styles.elevationBox, theme.elevation[level]]}>
-            <Text variant="board">{`elevation.${level}`}</Text>
+            <Text variant="mono">{`elevation.${level}`}</Text>
           </View>
         ))}
       </Stack>
       <Text variant="bodySmall" color="secondary">
-        {`Cards ${theme.radius.lg}, inner boards and inputs ${theme.radius.md}, every control fully round. Flat surfaces; only floating controls cast a shadow (elevation 2). Motion ${theme.motion.fast}/${theme.motion.base}/${theme.motion.slow} ms${theme.reduceMotion ? ' (Reduce Motion on)' : ''}.`}
+        {`Cards ${theme.radius.lg}, inner panels and inputs ${theme.radius.md}, every control fully round. Flat surfaces; only floating controls cast a shadow (elevation 2). Motion ${theme.motion.fast}/${theme.motion.base}/${theme.motion.slow} ms${theme.reduceMotion ? ' (Reduce Motion on)' : ''}.`}
       </Text>
     </Section>
   );
 }
 
-function Stations() {
+function StageMarkers() {
   const styles = useStyles();
   return (
-    <Section eyebrow="Station markers · all 6 stages" title="Passed · current · future">
+    <Section eyebrow="StageMarker · all 6 stages" title="Passed · current · future">
       <Card>
         <Stack gap={3}>
           {STAGES.map((stage, i) => (
             <Stack key={stage} direction="row" gap={2} align="center">
-              {STATION_STATES.map((state) => (
-                <View key={state} style={styles.stationCell}>
-                  <StationMarker stage={stage} state={state} line={LINES[i % 4]?.index ?? 0} />
+              {STAGE_STATES.map((state) => (
+                <View key={state} style={styles.markerCell}>
+                  <StageMarker stage={stage} state={state} accent={ACCENTS[i % 4]?.index ?? 0} />
                 </View>
               ))}
-              <View style={styles.stationLabel}>
+              <View style={styles.markerLabel}>
                 <StagePill stage={stage} />
               </View>
             </Stack>
@@ -331,17 +328,17 @@ function Stations() {
   );
 }
 
-function Lines() {
+function CompanyBadges() {
   return (
-    <Section eyebrow="Lines" title="Color + shape + letter">
+    <Section eyebrow="CompanyBadge" title="Color + shape + letter">
       <Card>
         <Stack gap={3}>
-          {LINES.map(({ index, letter, company }) => (
+          {ACCENTS.map(({ index, letter, company }) => (
             <Stack key={index} direction="row" gap={3} align="center">
-              <LineRoundel line={index} letter={letter} size="sm" />
-              <LineRoundel line={index} letter={letter} size="md" />
-              <LineRoundel line={index} letter={letter} size="lg" />
-              <Text variant="bodyStrong">{`Line ${index} · ${company}`}</Text>
+              <CompanyBadge accent={index} letter={letter} size="sm" />
+              <CompanyBadge accent={index} letter={letter} size="md" />
+              <CompanyBadge accent={index} letter={letter} size="lg" />
+              <Text variant="bodyStrong">{`Accent ${index} · ${company}`}</Text>
             </Stack>
           ))}
         </Stack>
@@ -350,18 +347,18 @@ function Lines() {
   );
 }
 
-function Strips() {
+function StageProgressSamples() {
   return (
-    <Section eyebrow="LineStrip" title="One strip per stage">
+    <Section eyebrow="StageProgress" title="One strip per stage">
       <Card>
         <Stack gap={3}>
-          <LineStripLegend />
+          <StageProgressLegend />
           {STAGES.map((stage, i) => (
             <Stack key={stage} gap={1}>
               <Text variant="caption" color="secondary">
                 {STAGE_LABELS[stage]}
               </Text>
-              <LineStrip stage={stage} line={LINES[i % 4]?.index ?? 0} />
+              <StageProgress stage={stage} accent={ACCENTS[i % 4]?.index ?? 0} />
             </Stack>
           ))}
         </Stack>
@@ -370,60 +367,60 @@ function Strips() {
   );
 }
 
-function Route() {
+function StageSteps() {
   const [selected, setSelected] = useState<string>('interviewing');
   return (
-    <Section eyebrow="RouteStation" title="Application timeline">
+    <Section eyebrow="StageStep" title="Application timeline">
       <Card>
-        <RouteStation
+        <StageStep
           stage="saved"
           state="passed"
-          line={0}
+          accent={0}
           label="Saved"
           meta="21 Oct"
           selected={selected === 'saved'}
           onPress={() => setSelected('saved')}
         />
-        <RouteStation
+        <StageStep
           stage="applied"
           state="passed"
-          line={0}
+          accent={0}
           label="Applied"
           meta="28 Oct"
           selected={selected === 'applied'}
           onPress={() => setSelected('applied')}
         />
-        <RouteStation
+        <StageStep
           stage="interviewing"
           state="current"
-          line={0}
+          accent={0}
           label="Interviewing"
           meta="4 Nov"
-          tag="You are here"
+          tag="Current"
           selected={selected === 'interviewing'}
           onPress={() => setSelected('interviewing')}
         >
           <ProposalCard eyebrow="Proposed · from email" onDevice>
             <Text variant="bodyStrong">Book the onsite</Text>
           </ProposalCard>
-        </RouteStation>
-        <RouteStation stage="offer" state="future" line={0} label="Offer" last />
+        </StageStep>
+        <StageStep stage="offer" state="future" accent={0} label="Offer" last />
       </Card>
     </Section>
   );
 }
 
-function Boards() {
+function SpotlightCards() {
   return (
-    <Section eyebrow="Departures and proposals" title="Board · proposal vs confirmed">
-      <DepartureBoard
-        eyebrow="Next departure"
+    <Section eyebrow="SpotlightCard and proposals" title="Spotlight · proposal vs confirmed">
+      <SpotlightCard
+        eyebrow="Up next"
         count="1 today"
-        line={{ index: 0, letter: 'A' }}
+        accent={{ index: 0, letter: 'A' }}
         title="Book the onsite"
         subtitle="Acme Health · Senior React Native Engineer"
         urgentLabel="Due tomorrow"
-        action={{ label: 'Board →', onPress: noop }}
+        action={{ label: 'View →', onPress: noop }}
         onDone={noop}
         onDoneLabel="Mark done"
       />
@@ -431,7 +428,7 @@ function Boards() {
         <Stack gap={1}>
           <Text variant="heading">Prep a 20-min system design walkthrough</Text>
           <Text variant="bodySmall" color="secondary">
-            Planned works: shown hatched, like a line under construction.
+            AI proposals are shown hatched until you accept them.
           </Text>
           <Stack direction="row" gap={2} wrap="wrap">
             <Button label="Accept" onPress={noop} />
@@ -439,12 +436,12 @@ function Boards() {
           </Stack>
         </Stack>
       </ProposalCard>
-      <Card variant="sign">
+      <Card variant="panel">
         <Stack gap={1}>
-          <Text variant="board" color="onSignSecondary">
+          <Text variant="mono" color="onPanelSecondary">
             Next step · confirmed
           </Text>
-          <Text variant="heading" color="onSign">
+          <Text variant="heading" color="onPanel">
             Prep a 20-min system design walkthrough
           </Text>
         </Stack>
@@ -485,13 +482,13 @@ function Controls() {
             <Button label="Disabled" variant={variant} disabled onPress={noop} />
           </Stack>
         ))}
-        <Card variant="sign">
+        <Card variant="panel">
           <Stack direction="row" gap={2} align="center" wrap="wrap">
-            <Button label="Board →" variant="onSign" onPress={noop} />
+            <Button label="View →" variant="onPanel" onPress={noop} />
             <IconButton
               icon="settings-outline"
-              variant="onSign"
-              accessibilityLabel="Settings (onSign)"
+              variant="onPanel"
+              accessibilityLabel="Settings (onPanel)"
               onPress={noop}
             />
           </Stack>
@@ -550,16 +547,16 @@ function Controls() {
 
 function Progress() {
   return (
-    <Section eyebrow="Stats and practice" title="StatTile · ProgressStops">
+    <Section eyebrow="Stats and practice" title="StatTile · ProgressSteps">
       <Stack direction="row" gap={3}>
         <Stack flex={1}>
-          <StatTile icon="git-branch-outline" value="4" label="Active lines" />
+          <StatTile icon="git-branch-outline" value="4" label="Active applications" />
         </Stack>
         <Stack flex={1}>
-          <StatTile icon="flag-outline" value="2" label="Routes complete" />
+          <StatTile icon="flag-outline" value="2" label="Closed" />
         </Stack>
       </Stack>
-      <ProgressStops total={20} done={6} />
+      <ProgressSteps total={20} done={6} />
     </Section>
   );
 }
@@ -598,7 +595,7 @@ function States() {
         <ListItem
           title="Acme Health"
           subtitle="Senior React Native Engineer"
-          leading={<LineRoundel line={0} letter="A" size="md" />}
+          leading={<CompanyBadge accent={0} letter="A" size="md" />}
           trailing={<StagePill stage="interviewing" />}
           onPress={noop}
         />
@@ -609,9 +606,9 @@ function States() {
         <Skeleton width="100%" height={56} radius="lg" />
       </Stack>
       <EmptyState
-        icon="git-branch-outline"
-        title="No lines yet"
-        body="Add a job you're interested in to start your first line."
+        icon="briefcase-outline"
+        title="No applications yet"
+        body="Add a job from its link and review what AI fills in, or add it by hand."
         action={{ label: 'Add application', onPress: noop }}
       />
       <ErrorState error={{ kind: 'network' }} onRetry={noop} />
@@ -624,14 +621,14 @@ function Gallery({ scheme, onToggle }: { scheme: ColorScheme; onToggle: () => vo
   const next = scheme === 'light' ? 'dark' : 'light';
   return (
     <Screen
-      header="sign"
-      eyebrow="Design system"
-      title="Transit"
+      header="panel"
+      eyebrow="Dev gallery"
+      title="Design system"
       scroll
       headerRight={
         <IconButton
           icon={scheme === 'light' ? 'moon-outline' : 'sunny-outline'}
-          variant="onSign"
+          variant="onPanel"
           accessibilityLabel={`Switch to ${next} theme`}
           onPress={onToggle}
         />
@@ -642,11 +639,11 @@ function Gallery({ scheme, onToggle }: { scheme: ColorScheme; onToggle: () => vo
         <Palette />
         <TypeScale />
         <Shape />
-        <Stations />
-        <Lines />
-        <Strips />
-        <Route />
-        <Boards />
+        <StageMarkers />
+        <CompanyBadges />
+        <StageProgressSamples />
+        <StageSteps />
+        <SpotlightCards />
         <Controls />
         <Progress />
         <TabBarSample />

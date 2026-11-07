@@ -5,19 +5,19 @@ import type { Stage } from '@/lib/stage';
 
 import { makeStyles } from '../theme/makeStyles';
 import { useTheme } from '../theme/useTheme';
-import type { LineIndex } from '../tokens/semantic';
-import { STRIP_METRICS, StationGlyph } from './stationGlyph';
+import type { AccentIndex } from '../tokens/semantic';
+import { STRIP_METRICS, StageGlyph } from './stageGlyph';
 
-export interface LineStripProps {
+export interface StageProgressProps {
   stage: Stage;
-  line: LineIndex;
+  accent: AccentIndex;
 }
 
-/** The four stations of a running line, left to right. */
+/** The four stages of an active application, left to right. */
 const STRIP_STAGES = ['saved', 'applied', 'interviewing', 'offer'] as const;
 const LEGEND = ['Saved', 'Applied', 'Interview', 'Offer'] as const;
 const COLUMNS = STRIP_STAGES.length;
-/** A closed route ends at this column (B1 "Route complete"), before the Offer terminal. */
+/** A closed application ends at this column (B1 "closed"), before the Offer star. */
 const END_COLUMN = 2;
 const TRACK_HEIGHT = 30;
 const RUNNING_THICKNESS = 6;
@@ -40,11 +40,11 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 1,
     borderRadius: 1,
     borderStyle: 'dotted',
-    borderColor: t.color.station.future,
+    borderColor: t.color.stage.future,
   },
   legend: { flexDirection: 'row' },
   legendLabel: {
-    ...t.type.station,
+    ...t.type.overline,
     flex: 1,
     textAlign: 'center',
     color: t.color.text.secondary,
@@ -90,15 +90,15 @@ function DottedSegment({ from, to }: { from: number; to: number }) {
 }
 
 /**
- * Horizontal 4-station strip (B1). Reached track is solid in the line color, the rest dotted;
- * the current station is the interchange pill with a yellow halo. A closed route (Rejected,
- * Withdrawn) is solid with small stops, ending in a terminus bar or a branch. Decorative: the
- * row's own label carries the stage.
+ * Horizontal 4-stage progress (B1). Reached track is solid in the accent color, the rest dotted;
+ * the current stage is the ring pill with a yellow halo. A closed application (Rejected,
+ * Withdrawn) is solid with small pips, ending in a bar or an exit. Decorative: the row's own
+ * label carries the stage.
  */
-export function LineStrip({ stage, line }: LineStripProps) {
+export function StageProgress({ stage, accent }: StageProgressProps) {
   const styles = useStyles();
   const theme = useTheme();
-  const color = theme.color.line[line].bg;
+  const color = theme.color.accent[accent].bg;
   const closed = stage === 'rejected' || stage === 'withdrawn';
   const current = closed ? END_COLUMN : (STRIP_STAGES as readonly Stage[]).indexOf(stage);
 
@@ -118,32 +118,26 @@ export function LineStrip({ stage, line }: LineStripProps) {
       ) : null}
       {!closed && current < COLUMNS - 1 ? <DottedSegment from={current} to={COLUMNS - 1} /> : null}
       <View style={styles.columns}>
-        {STRIP_STAGES.map((station, column) => (
-          <View key={station} style={styles.column}>
+        {STRIP_STAGES.map((stripStage, column) => (
+          <View key={stripStage} style={styles.column}>
             {closed ? (
               column < END_COLUMN ? (
-                <StationGlyph kind="dot" tone="line" line={line} metrics={STRIP_METRICS} />
+                <StageGlyph kind="pip" tone="accent" accent={accent} metrics={STRIP_METRICS} />
               ) : column === END_COLUMN ? (
-                <StationGlyph
-                  kind={stage === 'rejected' ? 'terminus' : 'branch'}
+                <StageGlyph
+                  kind={stage === 'rejected' ? 'bar' : 'exit'}
                   tone="ink"
-                  line={line}
+                  accent={accent}
                   metrics={STRIP_METRICS}
                 />
               ) : null
             ) : column === current ? (
-              <StationGlyph
-                kind="interchange"
-                tone="ink"
-                line={line}
-                metrics={STRIP_METRICS}
-                halo
-              />
+              <StageGlyph kind="ring" tone="ink" accent={accent} metrics={STRIP_METRICS} halo />
             ) : (
-              <StationGlyph
-                kind="stop"
-                tone={column < current ? 'line' : 'future'}
-                line={line}
+              <StageGlyph
+                kind="dot"
+                tone={column < current ? 'accent' : 'future'}
+                accent={accent}
                 metrics={STRIP_METRICS}
               />
             )}
@@ -154,8 +148,8 @@ export function LineStrip({ stage, line }: LineStripProps) {
   );
 }
 
-/** Column captions for `LineStrip`; give it the same width as the strips below it. */
-export function LineStripLegend() {
+/** Column captions for `StageProgress`; give it the same width as the progress rows below it. */
+export function StageProgressLegend() {
   const styles = useStyles();
   const theme = useTheme();
   return (
@@ -168,7 +162,7 @@ export function LineStripLegend() {
         <RNText
           key={label}
           style={styles.legendLabel}
-          maxFontSizeMultiplier={theme.maxFontSizeMultiplier.station}
+          maxFontSizeMultiplier={theme.maxFontSizeMultiplier.overline}
         >
           {label}
         </RNText>

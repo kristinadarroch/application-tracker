@@ -5,9 +5,9 @@ import { makeStyles } from '../theme/makeStyles';
 import type { TypographyVariant } from '../tokens/typography';
 import { useTheme } from '../theme/useTheme';
 
-/** Text colors; `onSign*` are for text drawn on dark sign panels. */
+/** Text colors; `onPanel*` are for text drawn on dark panels. */
 export type TextColor =
-  'primary' | 'secondary' | 'tertiary' | 'inverse' | 'link' | 'onSign' | 'onSignSecondary';
+  'primary' | 'secondary' | 'tertiary' | 'inverse' | 'link' | 'onPanel' | 'onPanelSecondary';
 export type TextAlign = 'left' | 'center' | 'right';
 
 export interface TextProps {
@@ -25,14 +25,14 @@ const useStyles = makeStyles((t) => ({
   tertiary: { color: t.color.text.tertiary },
   inverse: { color: t.color.text.inverse },
   link: { color: t.color.text.link },
-  onSign: { color: t.color.sign.fg },
-  onSignSecondary: { color: t.color.sign.fgSecondary },
+  onPanel: { color: t.color.panel.fg },
+  onPanelSecondary: { color: t.color.panel.fgSecondary },
   left: { textAlign: 'left' },
   center: { textAlign: 'center' },
   right: { textAlign: 'right' },
 }));
 
-/** Header role for sign, screen, and section titles so screen readers can jump between them. */
+/** Header role for panel, screen, and section titles so screen readers can jump between them. */
 const HEADER_VARIANTS: readonly TypographyVariant[] = ['display', 'title', 'heading'];
 
 export function Text({

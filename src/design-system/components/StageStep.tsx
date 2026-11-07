@@ -7,54 +7,54 @@ import type { Stage } from '@/lib/stage';
 import { makeStyles } from '../theme/makeStyles';
 import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
-import type { LineIndex } from '../tokens/semantic';
+import type { AccentIndex } from '../tokens/semantic';
 import { STAGE_ICONS } from './icons';
-import { ROUTE_METRICS, StationGlyph, type GlyphKind } from './stationGlyph';
-import { toneFor, type StationState } from './StationMarker';
+import { STEP_METRICS, StageGlyph, type GlyphKind } from './stageGlyph';
+import { toneFor, type StageState } from './StageMarker';
 
-export interface RouteStationProps {
+export interface StageStepProps {
   stage: Stage;
-  state: StationState;
-  line: LineIndex;
-  /** Station word, usually the stage label ("Interviewing"). */
+  state: StageState;
+  accent: AccentIndex;
+  /** Stage word, usually the stage label ("Interviewing"). */
   label: string;
-  /** Right-aligned board text: a date or "NEXT STATION". */
+  /** Right-aligned mono text: a date or "NEXT STAGE". */
   meta?: string;
-  /** A short string renders as a yellow tag ("YOU ARE HERE"); any other node renders as is. */
+  /** A short string renders as a yellow tag ("CURRENT"); any other node renders as is. */
   tag?: ReactNode;
-  /** Makes the station row a button. Children stay separate controls. */
+  /** Makes the stage row a button. Children stay separate controls. */
   onPress?: () => void;
   /** Button name; defaults to `label`. */
   accessibilityLabel?: string;
   selected?: boolean;
-  /** No track below the last station. */
+  /** No track below the last stage. */
   last?: boolean;
-  /** Content along the line under the row: the next-step board, proposals. */
+  /** Content along the track under the row: the next-step panel, proposals. */
   children?: ReactNode;
 }
 
-/** Height of each marker shape on the vertical route. */
+/** Height of each marker shape on the vertical track. */
 const GLYPH_HEIGHT: Record<GlyphKind, number> = {
-  stop: ROUTE_METRICS.stop.size,
-  interchange: ROUTE_METRICS.interchange.width,
-  terminal: ROUTE_METRICS.terminal.size,
-  terminus: ROUTE_METRICS.terminus.height,
-  branch: 22,
-  dot: ROUTE_METRICS.dot.size,
+  dot: STEP_METRICS.dot.size,
+  ring: STEP_METRICS.ring.width,
+  star: STEP_METRICS.star.size,
+  bar: STEP_METRICS.bar.height,
+  exit: 22,
+  pip: STEP_METRICS.pip.size,
 };
 
-const RAIL = 44;
+const INDICATOR_WIDTH = 44;
 const SOLID = 6;
 const MARKER_TOP = 4;
 
 const useStyles = makeStyles((t) => ({
-  station: { flexDirection: 'row' },
-  rail: {
+  step: { flexDirection: 'row' },
+  indicatorColumn: {
     position: 'absolute',
     left: 0,
     top: 0,
     bottom: 0,
-    width: RAIL,
+    width: INDICATOR_WIDTH,
     alignItems: 'center',
   },
   marker: { marginTop: MARKER_TOP },
@@ -66,9 +66,9 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 1.5,
     borderRadius: 1.5,
     borderStyle: 'dotted',
-    borderColor: t.color.station.future,
+    borderColor: t.color.stage.future,
   },
-  content: { flex: 1, marginLeft: RAIL, paddingBottom: t.space[2], gap: t.space[2] },
+  content: { flex: 1, marginLeft: INDICATOR_WIDTH, paddingBottom: t.space[2], gap: t.space[2] },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -76,8 +76,8 @@ const useStyles = makeStyles((t) => ({
     gap: t.space[2],
     minHeight: t.size.minTouchTarget,
     paddingTop: t.space[1] / 2,
-    marginLeft: -RAIL,
-    paddingLeft: RAIL,
+    marginLeft: -INDICATOR_WIDTH,
+    paddingLeft: INDICATOR_WIDTH,
     borderRadius: t.radius.md,
   },
   headerPressed: { backgroundColor: t.color.bg.subtle },
@@ -86,9 +86,9 @@ const useStyles = makeStyles((t) => ({
   label: { ...t.type.bodyStrong, color: t.color.text.primary, flexShrink: 1 },
   currentLabel: { ...t.type.heading, color: t.color.text.primary, flexShrink: 1 },
   futureLabel: { ...t.type.bodyStrong, color: t.color.text.secondary, flexShrink: 1 },
-  meta: { ...t.type.board, color: t.color.text.secondary, textAlign: 'right' },
+  meta: { ...t.type.mono, color: t.color.text.secondary, textAlign: 'right' },
   tag: {
-    ...t.type.station,
+    ...t.type.overline,
     color: t.color.urgent.fg,
     backgroundColor: t.color.urgent.bg,
     borderRadius: t.radius.sm,
@@ -100,23 +100,23 @@ const useStyles = makeStyles((t) => ({
   trailing: { flexDirection: 'row', alignItems: 'center', gap: t.space[2], flexShrink: 0 },
 }));
 
-function markerKind(stage: Stage, state: StationState): GlyphKind {
-  if (state !== 'current') return 'stop';
-  if (stage === 'offer') return 'terminal';
-  if (stage === 'rejected') return 'terminus';
-  if (stage === 'withdrawn') return 'branch';
-  return 'interchange';
+function markerKind(stage: Stage, state: StageState): GlyphKind {
+  if (state !== 'current') return 'dot';
+  if (stage === 'offer') return 'star';
+  if (stage === 'rejected') return 'bar';
+  if (stage === 'withdrawn') return 'exit';
+  return 'ring';
 }
 
 /**
- * One station on the vertical route (B2): marker on the line, stage icon + word, board-style
- * meta, optional tag, and children laid along the line. Track above is solid once reached;
- * track below is solid only between passed stations, dotted toward the future.
+ * One stage on the vertical progress track (B2): marker on the track, stage icon + word, mono
+ * meta, optional tag, and children laid along the track. Track above is solid once reached;
+ * track below is solid only between passed stages, dotted toward the future.
  */
-export function RouteStation({
+export function StageStep({
   stage,
   state,
-  line,
+  accent,
   label,
   meta,
   tag,
@@ -125,17 +125,17 @@ export function RouteStation({
   selected = false,
   last = false,
   children,
-}: RouteStationProps) {
+}: StageStepProps) {
   const styles = useStyles();
   const theme = useTheme();
   const iconSize = useScaledIconSize(state === 'current' ? 18 : 16, 'bodyStrong');
   const kind = markerKind(stage, state);
-  const color = theme.color.line[line].bg;
+  const color = theme.color.accent[accent].bg;
 
   // Marker center: the top track ends there and the bottom track starts there.
-  const markerHeight = GLYPH_HEIGHT[kind] + (state === 'current' ? ROUTE_METRICS.halo * 2 : 0);
+  const markerHeight = GLYPH_HEIGHT[kind] + (state === 'current' ? STEP_METRICS.halo * 2 : 0);
   const center = MARKER_TOP + markerHeight / 2;
-  // Saved is always the first station, so nothing runs above it.
+  // Saved is always the first stage, so nothing runs above it.
   const first = stage === 'saved';
   const solidAbove = state !== 'future';
   const solidBelow = state === 'passed';
@@ -174,14 +174,14 @@ export function RouteStation({
       {meta !== undefined || tag !== undefined ? (
         <View style={styles.trailing}>
           {typeof tag === 'string' ? (
-            <RNText style={styles.tag} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.station}>
+            <RNText style={styles.tag} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.overline}>
               {tag}
             </RNText>
           ) : (
             tag
           )}
           {meta !== undefined ? (
-            <RNText style={styles.meta} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.board}>
+            <RNText style={styles.meta} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.mono}>
               {meta}
             </RNText>
           ) : null}
@@ -191,7 +191,7 @@ export function RouteStation({
   );
 
   return (
-    <View style={styles.station}>
+    <View style={styles.step}>
       <View style={styles.content}>
         {onPress === undefined ? (
           <View
@@ -218,7 +218,7 @@ export function RouteStation({
         {children}
       </View>
       <View
-        style={styles.rail}
+        style={styles.indicatorColumn}
         pointerEvents="none"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
@@ -226,11 +226,11 @@ export function RouteStation({
         {first ? null : <View style={[solidAbove ? styles.solid : styles.dotted, tracks.above]} />}
         {last ? null : <View style={[solidBelow ? styles.solid : styles.dotted, tracks.below]} />}
         <View style={styles.marker}>
-          <StationGlyph
+          <StageGlyph
             kind={kind}
             tone={toneFor(state)}
-            line={line}
-            metrics={ROUTE_METRICS}
+            accent={accent}
+            metrics={STEP_METRICS}
             orientation="vertical"
             dashed={stage === 'saved' && state === 'future'}
             halo={state === 'current'}

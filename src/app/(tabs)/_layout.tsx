@@ -10,8 +10,8 @@ const TAB_META: Record<string, { label: string; icon: IconName }> = {
   prep: { label: 'Prep', icon: 'reader-outline' },
 };
 
-/** The floating Transit tab bar, with "Add from a link" as its action button (B1). */
-function TransitTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
+/** The floating tab bar, with "Add from a link" as its action button (B1). */
+function AppTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const tabs = state.routes.map((route, index) => {
     const meta = TAB_META[route.name];
     const focused = index === state.index;
@@ -44,7 +44,7 @@ function TransitTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <TransitTabBar {...props} />}>
+    <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <AppTabBar {...props} />}>
       <Tabs.Screen name="index" options={{ title: 'Pipeline' }} />
       <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
       <Tabs.Screen name="prep" options={{ title: 'Prep' }} />

@@ -1,15 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
-import { makeStyles, Text, useTheme, type LineIndex } from '@/design-system';
+import { makeStyles, Text, useTheme, type AccentIndex } from '@/design-system';
 
 import type { PrepQuestion } from '../schema';
 
 export interface QuestionRowProps {
   question: PrepQuestion;
-  /** The application's line: the track and practiced markers use its color. */
-  line: LineIndex;
-  /** `end` stops the track at this question's marker (the last stop of its section). */
+  /** The application's accent: the track and practiced markers use its color. */
+  accent: AccentIndex;
+  /** `end` stops the track at this question's marker (the last question of its section). */
   track: 'continues' | 'end';
   onToggle: () => void;
 }
@@ -25,8 +25,8 @@ const useStyles = makeStyles((t) => ({
     borderRadius: t.radius.md,
   },
   pressed: { backgroundColor: t.color.bg.subtle },
-  rail: { width: t.space[8], alignItems: 'center' },
-  // Above the marker the track always runs (it joins the previous stop or the section header).
+  indicatorColumn: { width: t.space[8], alignItems: 'center' },
+  // Above the marker the track always runs (it joins the previous question or the section header).
   trackTop: { width: 4, height: t.space[3] },
   trackBottom: { width: 4, flex: 1 },
   marker: {
@@ -39,28 +39,28 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.bg.surface,
   },
   text: { flex: 1, paddingTop: t.space[3], paddingBottom: t.space[4] },
-  line0: { backgroundColor: t.color.line[0].bg, borderColor: t.color.line[0].bg },
-  line1: { backgroundColor: t.color.line[1].bg, borderColor: t.color.line[1].bg },
-  line2: { backgroundColor: t.color.line[2].bg, borderColor: t.color.line[2].bg },
-  line3: { backgroundColor: t.color.line[3].bg, borderColor: t.color.line[3].bg },
-  border0: { borderColor: t.color.line[0].bg },
-  border1: { borderColor: t.color.line[1].bg },
-  border2: { borderColor: t.color.line[2].bg },
-  border3: { borderColor: t.color.line[3].bg },
+  accent0: { backgroundColor: t.color.accent[0].bg, borderColor: t.color.accent[0].bg },
+  accent1: { backgroundColor: t.color.accent[1].bg, borderColor: t.color.accent[1].bg },
+  accent2: { backgroundColor: t.color.accent[2].bg, borderColor: t.color.accent[2].bg },
+  accent3: { backgroundColor: t.color.accent[3].bg, borderColor: t.color.accent[3].bg },
+  border0: { borderColor: t.color.accent[0].bg },
+  border1: { borderColor: t.color.accent[1].bg },
+  border2: { borderColor: t.color.accent[2].bg },
+  border3: { borderColor: t.color.accent[3].bg },
 }));
 
-const FILL = ['line0', 'line1', 'line2', 'line3'] as const;
+const FILL = ['accent0', 'accent1', 'accent2', 'accent3'] as const;
 const BORDER = ['border0', 'border1', 'border2', 'border3'] as const;
 
 /**
- * A prep question as a stop on the application's line, and a checkbox: tap marks it practiced
- * (PREP-2). Practiced stops are filled with a check; unpracticed ones are hollow rings.
+ * A prep question as a step on the application's progress track, and a checkbox: tap marks it
+ * practiced (PREP-2). Practiced markers are filled with a check; unpracticed ones are hollow rings.
  */
-export function QuestionRow({ question, line, track, onToggle }: QuestionRowProps) {
+export function QuestionRow({ question, accent, track, onToggle }: QuestionRowProps) {
   const styles = useStyles();
   const theme = useTheme();
   const practiced = question.practiced;
-  const fill = styles[FILL[line]];
+  const fill = styles[FILL[accent]];
   return (
     <Pressable
       testID="prep-question"
@@ -74,14 +74,14 @@ export function QuestionRow({ question, line, track, onToggle }: QuestionRowProp
       style={({ pressed }) => [styles.row, pressed ? styles.pressed : null]}
     >
       <View
-        style={styles.rail}
+        style={styles.indicatorColumn}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
         <View style={[styles.trackTop, fill]} />
-        <View style={[styles.marker, practiced ? fill : styles[BORDER[line]]]}>
+        <View style={[styles.marker, practiced ? fill : styles[BORDER[accent]]]}>
           {practiced ? (
-            <Ionicons name="checkmark" size={14} color={theme.color.line[line].fg} />
+            <Ionicons name="checkmark" size={14} color={theme.color.accent[accent].fg} />
           ) : null}
         </View>
         {track === 'continues' ? <View style={[styles.trackBottom, fill]} /> : null}

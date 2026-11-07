@@ -3,14 +3,14 @@ import { View, type ViewStyle } from 'react-native';
 
 import { makeStyles } from '../theme/makeStyles';
 
-export interface ProgressStopsProps {
+export interface ProgressStepsProps {
   total: number;
   done: number;
 }
 
 const HEIGHT = 14;
-const STOP = 8;
-const CURRENT_STOP = 12;
+const STEP = 8;
+const CURRENT_STEP = 12;
 
 const useStyles = makeStyles((t) => ({
   track: { height: HEIGHT, justifyContent: 'center', marginHorizontal: t.space[2] },
@@ -21,7 +21,7 @@ const useStyles = makeStyles((t) => ({
     top: (HEIGHT - 4) / 2,
     height: 4,
     borderRadius: 2,
-    backgroundColor: t.color.station.future,
+    backgroundColor: t.color.stage.future,
   },
   fill: {
     position: 'absolute',
@@ -31,40 +31,40 @@ const useStyles = makeStyles((t) => ({
     borderRadius: 3,
     backgroundColor: t.color.urgent.bg,
   },
-  stops: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  done: { width: STOP, height: STOP, borderRadius: STOP / 2, backgroundColor: t.color.urgent.bg },
+  steps: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  done: { width: STEP, height: STEP, borderRadius: STEP / 2, backgroundColor: t.color.urgent.bg },
   current: {
-    width: CURRENT_STOP,
-    height: CURRENT_STOP,
-    borderRadius: CURRENT_STOP / 2,
+    width: CURRENT_STEP,
+    height: CURRENT_STEP,
+    borderRadius: CURRENT_STEP / 2,
     borderWidth: 2,
-    borderColor: t.color.sign.fg,
-    backgroundColor: t.color.sign.bg,
+    borderColor: t.color.panel.fg,
+    backgroundColor: t.color.panel.bg,
   },
   future: {
-    width: STOP,
-    height: STOP,
-    borderRadius: STOP / 2,
+    width: STEP,
+    height: STEP,
+    borderRadius: STEP / 2,
     borderWidth: 2,
-    borderColor: t.color.sign.fgSecondary,
-    backgroundColor: t.color.sign.bg,
+    borderColor: t.color.panel.fgSecondary,
+    backgroundColor: t.color.panel.bg,
   },
 }));
 
 /**
- * Practice loop as a line of stops, for dark sign panels (B3): practiced stops filled yellow,
- * the current stop an ink ring, the rest hollow. Announced as "6 of 20 practiced".
+ * Practice progress as a row of steps, for dark panels (B3): practiced steps filled yellow,
+ * the current step an ink ring, the rest hollow. Announced as "6 of 20 practiced".
  */
-export function ProgressStops({ total, done }: ProgressStopsProps) {
+export function ProgressSteps({ total, done }: ProgressStepsProps) {
   const styles = useStyles();
   const count = Math.max(0, Math.floor(total));
   const reached = Math.min(Math.max(0, Math.floor(done)), count);
-  // The yellow track runs to the last practiced stop; stops are spread edge to edge.
+  // The yellow track runs to the last practiced step; steps are spread edge to edge.
   const fillWidth = useMemo<ViewStyle>(
     () => ({ width: `${count > 1 && reached > 0 ? ((reached - 1) / (count - 1)) * 100 : 0}%` }),
     [count, reached],
   );
-  const stops = Array.from({ length: count }, (_, i) =>
+  const steps = Array.from({ length: count }, (_, i) =>
     i < reached ? styles.done : i === reached ? styles.current : styles.future,
   );
   return (
@@ -77,9 +77,9 @@ export function ProgressStops({ total, done }: ProgressStopsProps) {
     >
       <View style={styles.base} />
       <View style={[styles.fill, fillWidth]} />
-      <View style={styles.stops}>
-        {stops.map((style, i) => (
-          // Stops are positional and never reorder, so the index is a stable key.
+      <View style={styles.steps}>
+        {steps.map((style, i) => (
+          // Steps are positional and never reorder, so the index is a stable key.
           <View key={i} style={style} />
         ))}
       </View>

@@ -114,3 +114,75 @@ export const selectPracticedQuestionCount = createSelector(
       0,
     ),
 );
+
+export interface PrepSummary {
+  practiced: number;
+  total: number;
+  mockCount: number;
+}
+
+/**
+ * Practiced / total prep questions and mock interview count per application.
+ * Reads prep state only through `RootState`.
+ */
+export const selectPrepSummaryByApplication = createSelector(
+  [selectAllApplications, (state: RootState) => state.prep],
+  (applications, prep): ReadonlyMap<ApplicationId, PrepSummary> => {
+    const sessions = Object.values(prep.sessions.entities);
+    const byApplication = new Map<ApplicationId, PrepSummary>();
+    for (const application of applications) {
+      const questions = prep.questionSets[application.id]?.questions ?? [];
+      byApplication.set(application.id, {
+        practiced: questions.filter((question) => question.practiced).length,
+        total: questions.length,
+        mockCount: sessions.filter((session) => session.applicationId === application.id).length,
+      });
+    }
+    return byApplication;
+  },
+);
+
+export interface NextInterview extends PrepSummary {
+  application: Application;
+  /** Interviewing applications besides this one. */
+  otherCount: number;
+}
+
+/** Summary for an application with no prep questions or mock interviews. */
+export const NO_PREP: PrepSummary = { practiced: 0, total: 0, mockCount: 0 };
+
+/** Due date of the soonest open Next Step, if any. ISO dates sort as strings. */
+function soonestOpenDueDate(application: Application): string | undefined {
+  return application.nextSteps
+    .filter((step) => !step.done)
+    .map((step) => step.dueDate)
+    .sort()[0];
+}
+
+/**
+ * The Interviewing application to prep for first: soonest open Next Step due date
+ * (overdue steps count as soonest; applications without one go last), ties broken by
+ * most recently updated. The order never depends on the clock, so it takes no `now`.
+ */
+export const selectNextInterview = createSelector(
+  [selectApplicationsByStage, selectPrepSummaryByApplication],
+  (byStage, prepByApplication): NextInterview | undefined => {
+    const ranked = byStage.interviewing
+      .map((application) => ({ application, due: soonestOpenDueDate(application) }))
+      .sort((a, b) => {
+        if (a.due !== b.due) {
+          if (a.due === undefined) return 1;
+          if (b.due === undefined) return -1;
+          return a.due.localeCompare(b.due);
+        }
+        return b.application.updatedAt.localeCompare(a.application.updatedAt);
+      });
+    const first = ranked[0];
+    if (first === undefined) return undefined;
+    return {
+      application: first.application,
+      ...(prepByApplication.get(first.application.id) ?? NO_PREP),
+      otherCount: ranked.length - 1,
+    };
+  },
+);

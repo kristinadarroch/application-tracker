@@ -8,7 +8,7 @@ import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import { fontFamily } from '../tokens/typography';
 import { STAGE_ICONS } from './icons';
-import { StationMarker } from './StationMarker';
+import { StageMarker } from './StageMarker';
 
 export interface StagePillProps {
   stage: Stage;
@@ -24,7 +24,7 @@ const useStyles = makeStyles((t) => ({
   label: { ...t.type.caption, fontFamily: fontFamily.extrabold, color: t.color.text.primary },
 }));
 
-/** Station label: station shape + stage icon + stage word, monochrome. */
+/** Stage label: stage shape + stage icon + stage word, monochrome. */
 export function StagePill({ stage }: StagePillProps) {
   const styles = useStyles();
   const theme = useTheme();
@@ -37,7 +37,7 @@ export function StagePill({ stage }: StagePillProps) {
       accessibilityLabel={`Stage: ${label}`}
       style={styles.row}
     >
-      <StationMarker stage={stage} state="current" />
+      <StageMarker stage={stage} state="current" />
       <Ionicons name={STAGE_ICONS[stage]} size={iconSize} color={theme.color.text.primary} />
       <RNText style={styles.label} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.caption}>
         {label}

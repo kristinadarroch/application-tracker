@@ -4,15 +4,17 @@ import { makeStore } from '@/store/store';
 
 import {
   selectApplicationsByStage,
+  selectNextInterview,
   selectPipelineCounts,
   selectPracticedQuestionCount,
+  selectPrepSummaryByApplication,
   selectSentThisWeekCount,
   selectUpcomingNextSteps,
   selectUrgentApplicationIds,
   selectUrgentNextStepByApplication,
 } from '../selectors';
 import type { Application } from '../schema';
-import { applicationsState, makeApplication, makeNextStep } from '../testing/fixtures';
+import { applicationsState, makeApplication, makeNextStep, prepState } from '../testing/fixtures';
 
 /** Thursday, Nov 5 2026, 09:00 local time. */
 const NOW = new Date(2026, 10, 5, 9, 0);
@@ -186,5 +188,89 @@ describe('selectPracticedQuestionCount', () => {
       },
     }).getState();
     expect(selectPracticedQuestionCount(state)).toBe(2);
+  });
+});
+
+describe('selectPrepSummaryByApplication', () => {
+  it('counts practiced and total questions and mock interviews per application', () => {
+    const state = makeStore({
+      applications: applicationsState(
+        makeApplication({ id: acmeId }),
+        makeApplication({ id: globexId }),
+      ),
+      prep: prepState({ [acmeId]: { practiced: 4, total: 10, mockCount: 2 } }),
+    }).getState();
+    const summaries = selectPrepSummaryByApplication(state);
+    expect(summaries.get(acmeId)).toEqual({ practiced: 4, total: 10, mockCount: 2 });
+    expect(summaries.get(globexId)).toEqual({ practiced: 0, total: 0, mockCount: 0 });
+  });
+});
+
+describe('selectNextInterview', () => {
+  const interviewing = (id: Application['id'], overrides: Partial<Application> = {}) =>
+    makeApplication({ id, company: id, stage: 'interviewing', ...overrides });
+
+  it('returns undefined when no application is Interviewing', () => {
+    const state = stateWith(makeApplication({ id: acmeId, stage: 'applied' }));
+    expect(selectNextInterview(state)).toBeUndefined();
+  });
+
+  it('picks the soonest open Next Step, ignoring done steps and other stages', () => {
+    const state = makeStore({
+      applications: applicationsState(
+        interviewing(acmeId, {
+          nextSteps: [
+            makeNextStep({ dueDate: '2026-11-03', done: true }),
+            makeNextStep({ id: NextStepIdSchema.parse('s_open'), dueDate: '2026-11-12' }),
+          ],
+        }),
+        interviewing(globexId, { nextSteps: [makeNextStep({ dueDate: '2026-11-08' })] }),
+        makeApplication({
+          id: northwindId,
+          stage: 'applied',
+          nextSteps: [makeNextStep({ dueDate: '2026-11-01' })],
+        }),
+      ),
+      prep: prepState({ [globexId]: { practiced: 1, total: 3, mockCount: 1 } }),
+    }).getState();
+    expect(selectNextInterview(state)).toEqual({
+      application: expect.objectContaining({ id: globexId }),
+      practiced: 1,
+      total: 3,
+      mockCount: 1,
+      otherCount: 1,
+    });
+  });
+
+  it('puts applications without an open Next Step last', () => {
+    const state = stateWith(
+      interviewing(acmeId, { updatedAt: '2026-11-05T08:00:00.000Z' }),
+      interviewing(globexId, {
+        updatedAt: '2026-10-01T08:00:00.000Z',
+        nextSteps: [makeNextStep({ dueDate: '2026-12-20' })],
+      }),
+    );
+    expect(selectNextInterview(state)?.application.id).toBe(globexId);
+  });
+
+  it('breaks a due-date tie by the most recently updated application', () => {
+    const state = stateWith(
+      interviewing(acmeId, {
+        updatedAt: '2026-11-02T08:00:00.000Z',
+        nextSteps: [makeNextStep({ dueDate: '2026-11-09' })],
+      }),
+      interviewing(globexId, {
+        updatedAt: '2026-11-04T08:00:00.000Z',
+        nextSteps: [makeNextStep({ dueDate: '2026-11-09' })],
+      }),
+      interviewing(northwindId, { updatedAt: '2026-11-05T08:00:00.000Z' }),
+    );
+    expect(selectNextInterview(state)).toMatchObject({
+      application: { id: globexId },
+      otherCount: 2,
+      practiced: 0,
+      total: 0,
+      mockCount: 0,
+    });
   });
 });

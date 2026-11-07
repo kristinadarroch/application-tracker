@@ -13,7 +13,7 @@ export interface TranscriptTurnProps {
 }
 
 const useStyles = makeStyles((t) => ({
-  board: {
+  answerPanel: {
     backgroundColor: t.color.bg.surface,
     borderRadius: t.radius.md,
     padding: t.space[4],
@@ -21,19 +21,19 @@ const useStyles = makeStyles((t) => ({
   },
 }));
 
-/** One stop of the practice loop: the question, the user's answer, and its Answer Feedback (MOCK-2). */
+/** One mock interview turn: the question, the user's answer, and its Answer Feedback (MOCK-2). */
 export function TranscriptTurn({ turn, index, variant }: TranscriptTurnProps) {
   const styles = useStyles();
   return (
     <Stack gap={3}>
       <Stack gap={1}>
-        <Text variant="station" color="secondary">{`Stop ${index + 1}`}</Text>
-        <Text variant="departure">{turn.question}</Text>
+        <Text variant="overline" color="secondary">{`Question ${index + 1}`}</Text>
+        <Text variant="feature">{turn.question}</Text>
       </Stack>
       {variant === 'closed' ? (
         <Card>
           <Stack gap={1}>
-            <Text variant="station" color="secondary">
+            <Text variant="overline" color="secondary">
               Your answer
             </Text>
             <Text color={turn.answer === undefined ? 'secondary' : 'primary'}>
@@ -51,8 +51,8 @@ export function TranscriptTurn({ turn, index, variant }: TranscriptTurnProps) {
               emptyText="None noted."
             />
             <FeedbackList kind="gaps" items={turn.feedback.gaps} emptyText="None noted." />
-            <View style={styles.board}>
-              <Text variant="station">Stronger answer</Text>
+            <View style={styles.answerPanel}>
+              <Text variant="overline">Stronger answer</Text>
               <Text>{turn.feedback.strongerAnswer}</Text>
             </View>
           </Stack>

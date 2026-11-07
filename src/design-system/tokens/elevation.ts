@@ -2,7 +2,7 @@ import type { ViewStyle } from 'react-native';
 
 export type ElevationLevel = 0 | 1 | 2;
 
-/** Transit is flat: white cards on the platform gray. Only floating controls cast a shadow. */
+/** The design is flat: white cards on the paper gray. Only floating controls cast a shadow. */
 export const lightElevation: Record<ElevationLevel, ViewStyle> = {
   0: {},
   1: {},

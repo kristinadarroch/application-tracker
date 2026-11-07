@@ -1,41 +1,46 @@
-import { Card, RouteStation, Stack, Text } from '@/design-system';
-import type { LineIdentity } from '@/lib/lines';
+import { Card, StageStep, Stack, Text } from '@/design-system';
+import type { CompanyAccent } from '@/lib/accents';
 import { STAGE_LABELS, type Stage } from '@/lib/stage';
 
-import { formatBoardDate } from '../boardDate';
+import { formatShortDate } from '../shortDate';
 import type { Application } from '../schema';
 import { NextStepRow } from './NextStepRow';
 
-export interface RouteCardProps {
+export interface StageCardProps {
   application: Application;
-  line: LineIdentity;
+  accent: CompanyAccent;
   now: Date;
   onStageChange: (stage: Stage) => void;
 }
 
-/** The four stations every line runs through; Rejected and Withdrawn end the route early. */
-const ROUTE = ['saved', 'applied', 'interviewing', 'offer'] as const satisfies readonly Stage[];
+/** The four stages every application moves through; Rejected and Withdrawn close it early. */
+const OPEN_STAGES = [
+  'saved',
+  'applied',
+  'interviewing',
+  'offer',
+] as const satisfies readonly Stage[];
 
 const CLOSED_TAG: Record<'rejected' | 'withdrawn', string> = {
-  rejected: 'Route complete',
-  withdrawn: 'Left the line',
+  rejected: 'Closed: rejected',
+  withdrawn: 'Closed: withdrawn',
 };
 
 /**
- * The application's route as a vertical line of stations. Each station is a button that moves
- * the application there (PIPE-3); open Next Steps ride under the current station as departure
- * boards, soonest first (PIPE-6).
+ * The application's stages as a vertical progress list. Each stage is a button that moves
+ * the application there (PIPE-3); open Next Steps sit under the current stage as panels,
+ * soonest first (PIPE-6).
  */
-export function RouteCard({ application, line, now, onStageChange }: RouteCardProps) {
+export function StageCard({ application, accent, now, onStageChange }: StageCardProps) {
   const { id, stage, createdAt } = application;
   const closedTag = stage === 'rejected' || stage === 'withdrawn' ? CLOSED_TAG[stage] : undefined;
   const closed = closedTag !== undefined;
-  const currentIndex = ROUTE.findIndex((station) => station === stage);
+  const currentIndex = OPEN_STAGES.findIndex((step) => step === stage);
   const open = application.nextSteps
     .filter((step) => !step.done)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
-  const departures = (
+  const openSteps = (
     <Stack gap={2}>
       {open.length === 0 ? (
         <Text color="secondary">No open Next Steps.</Text>
@@ -55,45 +60,45 @@ export function RouteCard({ application, line, now, onStageChange }: RouteCardPr
 
   return (
     <Card>
-      {ROUTE.map((station, index) => {
+      {OPEN_STAGES.map((step, index) => {
         const state =
           closed || index > currentIndex ? 'future' : index < currentIndex ? 'passed' : 'current';
         const meta =
-          station === 'saved' && state === 'passed'
-            ? formatBoardDate(new Date(createdAt))
+          step === 'saved' && state === 'passed'
+            ? formatShortDate(new Date(createdAt))
             : !closed && index === currentIndex + 1
-              ? 'Next station'
+              ? 'Next stage'
               : undefined;
         return (
-          <RouteStation
-            key={station}
-            stage={station}
+          <StageStep
+            key={step}
+            stage={step}
             state={state}
-            line={line.index}
-            label={STAGE_LABELS[station]}
+            accent={accent.index}
+            label={STAGE_LABELS[step]}
             {...(meta === undefined ? {} : { meta })}
-            {...(state === 'current' ? { tag: 'You are here' } : {})}
+            {...(state === 'current' ? { tag: 'Current' } : {})}
             selected={state === 'current'}
             onPress={() => {
-              if (station !== stage) onStageChange(station);
+              if (step !== stage) onStageChange(step);
             }}
-            last={!closed && index === ROUTE.length - 1}
+            last={!closed && index === OPEN_STAGES.length - 1}
           >
-            {state === 'current' ? departures : null}
-          </RouteStation>
+            {state === 'current' ? openSteps : null}
+          </StageStep>
         );
       })}
       {closedTag !== undefined ? (
-        <RouteStation
+        <StageStep
           stage={stage}
           state="current"
-          line={line.index}
+          accent={accent.index}
           label={STAGE_LABELS[stage]}
           tag={closedTag}
           last
         >
-          {departures}
-        </RouteStation>
+          {openSteps}
+        </StageStep>
       ) : null}
     </Card>
   );

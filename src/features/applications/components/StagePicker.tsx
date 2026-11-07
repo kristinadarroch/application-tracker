@@ -19,7 +19,7 @@ export function StagePicker({ label, value, onChange }: StagePickerProps) {
   const styles = useStyles();
   return (
     <View style={styles.wrap}>
-      <Text variant="station" color="secondary">
+      <Text variant="overline" color="secondary">
         {label}
       </Text>
       <View style={styles.chips}>

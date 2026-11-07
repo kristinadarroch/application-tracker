@@ -44,8 +44,8 @@ function Navigator() {
   );
 }
 
-/** Transit's two families, keyed by the names `fontFamily` tokens use. */
-const TRANSIT_FONTS = {
+/** The app's two font families, keyed by the names `fontFamily` tokens use. */
+const APP_FONTS = {
   Overpass_400Regular,
   Overpass_600SemiBold,
   Overpass_700Bold,
@@ -57,7 +57,7 @@ const TRANSIT_FONTS = {
 export default function RootLayout() {
   // The splash stays up until fonts load, then until saved data is restored. If fonts fail to
   // load, the app still starts with system fonts.
-  const [fontsLoaded, fontError] = useFonts(TRANSIT_FONTS);
+  const [fontsLoaded, fontError] = useFonts(APP_FONTS);
   if (!fontsLoaded && fontError === null) return null;
   return (
     <Provider store={store}>

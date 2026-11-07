@@ -7,7 +7,7 @@ import {
   Card,
   ErrorState,
   makeStyles,
-  ProgressStops,
+  ProgressSteps,
   Screen,
   Skeleton,
   Stack,
@@ -16,12 +16,11 @@ import {
 } from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
-import { lineFor } from '@/lib/lines';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
-import { LineHeading } from '../components/LineHeading';
+import { CompanyHeading } from '../components/CompanyHeading';
 import { TranscriptTurn } from '../components/TranscriptTurn';
 import { useAnswerMockInterviewTurn, useRouteApplication, useStartMockInterview } from '../hooks';
 import type { MockInterviewSession } from '../schema';
@@ -48,7 +47,6 @@ function MockInterview({ application }: { application: Application }) {
   // Ending clears the active session while this screen animates away; without this flag the
   // empty screen would immediately start a new session in the background.
   const [ending, setEnding] = useState(false);
-  const line = lineFor(application.id, application.company);
 
   const end = (active: MockInterviewSession) => {
     setEnding(true);
@@ -65,26 +63,26 @@ function MockInterview({ application }: { application: Application }) {
       {...(Platform.OS === 'ios' ? { behavior: 'padding' as const } : {})}
     >
       <Screen
-        header="sign"
-        eyebrow={`Line ${line.letter} · Practice loop`}
+        header="panel"
+        eyebrow={`${application.company} · Interview practice`}
         title={TITLE}
         onBack={router.back}
         scroll
         headerRight={
           session === undefined ? undefined : (
-            <Button label="End" variant="onSign" onPress={() => end(session)} />
+            <Button label="End" variant="onPanel" onPress={() => end(session)} />
           )
         }
         headerAccessory={
           session === undefined ? undefined : (
-            <ProgressStops
+            <ProgressSteps
               total={session.turns.length}
               done={session.turns.filter((turn) => turn.feedback !== undefined).length}
             />
           )
         }
       >
-        <LineHeading application={application} />
+        <CompanyHeading application={application} />
         {session !== undefined ? (
           <ActiveSession application={application} session={session} />
         ) : ending ? null : (

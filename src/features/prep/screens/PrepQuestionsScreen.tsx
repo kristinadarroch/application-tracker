@@ -14,12 +14,12 @@ import {
 } from '@/design-system';
 import type { Application } from '@/features/applications/model';
 import { selectAiAvailability } from '@/features/capabilities';
-import { lineFor } from '@/lib/lines';
+import { accentFor } from '@/lib/accents';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
-import { LineHeading } from '../components/LineHeading';
+import { CompanyHeading } from '../components/CompanyHeading';
 import { PracticeBar } from '../components/PracticeBar';
 import { QuestionRow } from '../components/QuestionRow';
 import { SectionHeader } from '../components/SectionHeader';
@@ -37,7 +37,7 @@ import { questionPracticeToggled } from '../slice';
 const TITLE = 'Prep questions';
 
 const useStyles = makeStyles((t) => ({
-  skeletonStop: { flexDirection: 'row', alignItems: 'center', gap: t.space[3] },
+  skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: t.space[3] },
   skeletonText: { flex: 1 },
 }));
 
@@ -52,7 +52,7 @@ function PrepQuestions({ application }: { application: Application }) {
   const set = useAppSelector((state) => selectQuestionSet(state, application.id));
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
-      <LineHeading application={application} />
+      <CompanyHeading application={application} />
       {set === undefined ? (
         <NoQuestionSet application={application} />
       ) : (
@@ -74,7 +74,7 @@ function PrepQuestions({ application }: { application: Application }) {
   );
 }
 
-/** Placeholder stops while the questions generate. */
+/** Placeholder rows while the questions generate. */
 function LoadingQuestions() {
   const styles = useStyles();
   return (
@@ -85,8 +85,8 @@ function LoadingQuestions() {
     >
       <Stack gap={4}>
         <Skeleton width="30%" height={16} />
-        {[0, 1, 2, 3].map((stop) => (
-          <View key={stop} style={styles.skeletonStop}>
+        {[0, 1, 2, 3].map((row) => (
+          <View key={row} style={styles.skeletonRow}>
             <Skeleton width={22} height={22} radius="pill" />
             <View style={styles.skeletonText}>
               <Skeleton width="100%" height={40} />
@@ -127,7 +127,7 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
   const ai = useAppSelector(selectAiAvailability);
   const progress = useAppSelector((state) => selectPrepProgress(state, application.id));
   const generate = useGeneratePrepQuestions(application);
-  const line = lineFor(application.id, application.company).index;
+  const accent = accentFor(application.id, application.company).index;
 
   // PREP-1: regenerating replaces the set and its practice progress, so ask first.
   const confirmRegenerate = () =>
@@ -143,8 +143,8 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
   return (
     <Stack gap={4}>
       <Stack gap={2}>
-        <Text variant="departure">{`${progress.practiced} / ${progress.total} practiced`}</Text>
-        <PracticeBar line={line} practiced={progress.practiced} total={progress.total} />
+        <Text variant="feature">{`${progress.practiced} / ${progress.total} practiced`}</Text>
+        <PracticeBar accent={accent} practiced={progress.practiced} total={progress.total} />
       </Stack>
       {ai?.status === 'unavailable' ? (
         <AiUnavailableNotice reason={ai.reason} variant="banner" />
@@ -171,7 +171,7 @@ function QuestionSet({ application, set }: { application: Application; set: Prep
               <QuestionRow
                 key={question.id}
                 question={question}
-                line={line}
+                accent={accent}
                 track={index === questions.length - 1 ? 'end' : 'continues'}
                 onToggle={() =>
                   dispatch(

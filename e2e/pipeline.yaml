@@ -2,7 +2,7 @@
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
-- assertVisible: No lines yet # PIPE-1 empty state
+- assertVisible: No applications yet # PIPE-1 empty state
 
 # UX-1 / demo data
 - tapOn: Open settings
@@ -10,13 +10,23 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: Dark
 - takeScreenshot: e2e/artifacts/pipeline-01-settings-dark
 - tapOn: System
-- tapOn: Back
+- tapOn:
+    text: Back
+    retryTapIfNoChange: true
 
-# PIPE-1: grouped by stage, PIPE-6: urgent badge from the seeded step due tomorrow
-- assertVisible: '.*Acme Health.*'
-- assertVisible: '.*Northwind Labs.*'
-- assertVisible: '.*Globex.*'
+# Prep-first home: the next interview leads, with its prep shortcuts
+- extendedWaitUntil:
+    visible: Next interview
+    timeout: 10000
+- assertVisible: Practice questions
 - assertVisible: '.*Due tomorrow.*'
+# PIPE-1: grouped by stage (rows sit below the prep and Up next cards), PIPE-6: urgent badge
+- scrollUntilVisible:
+    element: '.*Globex.*Stage: Saved.*'
+- scrollUntilVisible:
+    element: '.*Northwind Labs.*Stage: Applied.*'
+- scrollUntilVisible:
+    element: '.*Acme Health.*Stage: Interviewing.*Prep: .*'
 - takeScreenshot: e2e/artifacts/pipeline-02-seeded
 
 # PIPE-2: validation, then a valid manual add
@@ -89,7 +99,7 @@ appId: dev.kristinadarroch.applicationtracker
 - pressKey: Enter
 - tapOn: Today
 - tapOn: Add Next Step
-# The new step boards under the current station, above the form.
+# The new step shows under the current stage, above the form.
 - scrollUntilVisible:
     element: Mark “Send portfolio” done
     direction: UP

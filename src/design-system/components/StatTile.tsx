@@ -27,7 +27,7 @@ const useStyles = makeStyles((t) => ({
     backgroundColor: t.color.bg.surface,
   },
   text: { flex: 1 },
-  value: { ...t.type.departure, fontFamily: fontFamily.black, color: t.color.text.primary },
+  value: { ...t.type.feature, fontFamily: fontFamily.black, color: t.color.text.primary },
   label: { ...t.type.caption, color: t.color.text.secondary },
 }));
 
@@ -35,12 +35,12 @@ const useStyles = makeStyles((t) => ({
 export function StatTile({ icon, value, label }: StatTileProps) {
   const styles = useStyles();
   const theme = useTheme();
-  const iconSize = useScaledIconSize(22, 'departure');
+  const iconSize = useScaledIconSize(22, 'feature');
   return (
     <View style={styles.tile} accessible accessibilityLabel={`${value} ${label}`}>
       <Ionicons name={icon} size={iconSize} color={theme.color.text.primary} />
       <View style={styles.text}>
-        <RNText style={styles.value} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.departure}>
+        <RNText style={styles.value} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.feature}>
           {value}
         </RNText>
         <RNText style={styles.label} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.caption}>

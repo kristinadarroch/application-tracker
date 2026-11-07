@@ -38,10 +38,10 @@ export function SessionSummaryScreen() {
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
       <Stack gap={1}>
-        <Text variant="board" color="secondary">
+        <Text variant="mono" color="secondary">
           {formatSessionDate(session.startedAt)}
         </Text>
-        <Text variant="departure">
+        <Text variant="feature">
           {`${summary.answered} of ${session.turns.length} questions answered`}
         </Text>
       </Stack>

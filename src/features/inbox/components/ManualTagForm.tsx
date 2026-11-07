@@ -56,7 +56,7 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
     <Card variant="surface">
       <Stack gap={4}>
         <Stack gap={1}>
-          <Text variant="station" color="tertiary">
+          <Text variant="overline" color="tertiary">
             From this email
           </Text>
           <Text variant="heading">Tag manually</Text>
@@ -76,7 +76,7 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
           {...(errors.title === undefined ? {} : { error: errors.title })}
         />
         <Stack gap={2}>
-          <Text variant="station" color="secondary">
+          <Text variant="overline" color="secondary">
             Due
           </Text>
           <Stack direction="row" gap={2} wrap="wrap">
@@ -89,7 +89,7 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
               />
             ))}
           </Stack>
-          <Text variant="board" color="secondary">
+          <Text variant="mono" color="secondary">
             {formatDueDate(dueDate, now)}
           </Text>
         </Stack>

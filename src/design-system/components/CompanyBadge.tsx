@@ -4,43 +4,43 @@ import { Text as RNText, StyleSheet, View, type TextStyle, type ViewStyle } from
 import { assertNever } from '@/lib/assertNever';
 
 import { useTheme } from '../theme/useTheme';
-import type { LineIndex } from '../tokens/semantic';
+import type { AccentIndex } from '../tokens/semantic';
 import { fontFamily } from '../tokens/typography';
 
-export type LineRoundelSize = 'sm' | 'md' | 'lg';
-/** `sign`: drawn on a dark sign panel, so the roundel sits on a light plate (≥ 3:1 edge). */
-export type LineRoundelSurface = 'default' | 'sign';
+export type CompanyBadgeSize = 'sm' | 'md' | 'lg';
+/** `panel`: drawn on a dark panel, so the badge sits on a light plate (≥ 3:1 edge). */
+export type CompanyBadgeSurface = 'default' | 'panel';
 
-export interface LineRoundelProps {
-  line: LineIndex;
+export interface CompanyBadgeProps {
+  accent: AccentIndex;
   letter: string;
-  size?: LineRoundelSize;
-  surface?: LineRoundelSurface;
+  size?: CompanyBadgeSize;
+  surface?: CompanyBadgeSurface;
 }
 
-/** Plate margin around a roundel on a sign panel. */
+/** Plate margin around a badge on a dark panel. */
 const PLATE_INSET = 3;
 
-const SIZES: Record<LineRoundelSize, { box: number; font: number }> = {
+const SIZES: Record<CompanyBadgeSize, { box: number; font: number }> = {
   sm: { box: 24, font: 12 },
   md: { box: 32, font: 16 },
   lg: { box: 44, font: 22 },
 };
 
-interface RoundelLayout {
+interface BadgeLayout {
   box: ViewStyle;
   /** The colored shape, drawn behind the letter. */
   shape: ViewStyle;
-  /** Clip + horizontal squash that turns a rotated square into the triangle (line 2 only). */
+  /** Clip + horizontal squash that turns a rotated square into the triangle (accent 2 only). */
   clip: ViewStyle | null;
   letter: TextStyle;
 }
 
 /**
- * Shapes by line: 0 circle, 1 rounded square, 2 triangle, 3 diamond. The triangle is the top
+ * Shapes by accent: 0 circle, 1 rounded square, 2 triangle, 3 diamond. The triangle is the top
  * half of a 45°-rotated square, clipped and squashed horizontally (Views only, no SVG).
  */
-function layoutFor(line: LineIndex, box: number, font: number, color: string): RoundelLayout {
+function layoutFor(accent: AccentIndex, box: number, font: number, color: string): BadgeLayout {
   const container: ViewStyle = {
     width: box,
     height: box,
@@ -53,7 +53,7 @@ function layoutFor(line: LineIndex, box: number, font: number, color: string): R
     lineHeight: Math.round(font * 1.2),
     textAlign: 'center',
   };
-  switch (line) {
+  switch (accent) {
     case 0:
       return {
         box: container,
@@ -118,18 +118,23 @@ function layoutFor(line: LineIndex, box: number, font: number, color: string): R
       };
     }
     default:
-      return assertNever(line);
+      return assertNever(accent);
   }
 }
 
-/** Line badge: color + shape + letter, so color is never the only signal. Decorative. */
-export function LineRoundel({ line, letter, size = 'md', surface = 'default' }: LineRoundelProps) {
+/** Company badge: color + shape + letter, so color is never the only signal. Decorative. */
+export function CompanyBadge({
+  accent,
+  letter,
+  size = 'md',
+  surface = 'default',
+}: CompanyBadgeProps) {
   const theme = useTheme();
   const { box, font } = SIZES[size];
-  const pair = theme.color.line[line];
-  const plateColor = theme.color.sign.roundelPlate;
+  const pair = theme.color.accent[accent];
+  const plateColor = theme.color.panel.badgePlate;
   const layout = useMemo(() => {
-    const base = layoutFor(line, box, font, pair.bg);
+    const base = layoutFor(accent, box, font, pair.bg);
     const plateSize = box + PLATE_INSET * 2;
     return {
       ...base,
@@ -143,8 +148,8 @@ export function LineRoundel({ line, letter, size = 'md', surface = 'default' }: 
         justifyContent: 'center',
       } satisfies ViewStyle,
     };
-  }, [line, box, font, pair, plateColor]);
-  const roundel = (
+  }, [accent, box, font, pair, plateColor]);
+  const badge = (
     <View style={layout.box}>
       {layout.clip === null ? (
         <View style={layout.shape} />
@@ -160,7 +165,7 @@ export function LineRoundel({ line, letter, size = 'md', surface = 'default' }: 
   );
   return (
     <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {surface === 'sign' ? <View style={layout.plate}>{roundel}</View> : roundel}
+      {surface === 'panel' ? <View style={layout.plate}>{badge}</View> : badge}
     </View>
   );
 }

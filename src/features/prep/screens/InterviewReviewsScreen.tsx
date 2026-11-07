@@ -19,7 +19,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { AiUnavailableNotice } from '../components/AiUnavailableNotice';
 import { ApplicationNotFound } from '../components/ApplicationNotFound';
-import { LineHeading } from '../components/LineHeading';
+import { CompanyHeading } from '../components/CompanyHeading';
 import { SectionHeader } from '../components/SectionHeader';
 import { toAppError, useFindReviewQuestionsMutation } from '../api';
 import { useRouteApplication } from '../hooks';
@@ -47,7 +47,7 @@ function InterviewReviews({ application }: { application: Application }) {
 
   return (
     <Screen title={TITLE} onBack={router.back} scroll>
-      <LineHeading application={application} />
+      <CompanyHeading application={application} />
       <TextField
         label="Paste interview reviews"
         helperText="Paste reviews you found, for example on Glassdoor. Nothing is fetched from any site."

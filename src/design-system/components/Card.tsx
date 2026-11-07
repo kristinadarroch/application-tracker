@@ -5,10 +5,10 @@ import { makeStyles } from '../theme/makeStyles';
 import { Hatch } from './Hatch';
 
 /**
- * `surface` flat white card on the platform gray · `sign` dark sign panel ·
+ * `surface` flat white card on the paper gray · `panel` dark panel ·
  * `proposal` hatched fill with a dashed border (AI output not yet saved).
  */
-export type CardVariant = 'surface' | 'sign' | 'proposal';
+export type CardVariant = 'surface' | 'panel' | 'proposal';
 
 export interface CardProps {
   children: ReactNode;
@@ -26,8 +26,8 @@ const useStyles = makeStyles((t) => ({
   },
   surface: { backgroundColor: t.color.bg.surface },
   surfacePressed: { backgroundColor: t.color.bg.subtle },
-  sign: { backgroundColor: t.color.sign.bg },
-  signPressed: { opacity: 0.85 },
+  panel: { backgroundColor: t.color.panel.bg },
+  panelPressed: { opacity: 0.85 },
   proposal: {
     overflow: 'hidden',
     borderWidth: 2,

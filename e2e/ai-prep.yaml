@@ -8,9 +8,9 @@ appId: dev.kristinadarroch.applicationtracker
     text: Back
     retryTapIfNoChange: true
 - extendedWaitUntil:
-    visible: Your lines
+    visible: Your applications
     timeout: 10000
-# Open Acme from its line row (the departure board above also names Acme but isn't the row).
+# Open Acme from its application row (the cards above also name Acme but aren't the row).
 - scrollUntilVisible:
     element: '.*Acme Health.*Interviewing.*'
 - tapOn: '.*Acme Health.*Interviewing.*'
@@ -26,11 +26,22 @@ appId: dev.kristinadarroch.applicationtracker
     timeout: 90000
 - takeScreenshot: e2e/artifacts/prep-01-questions
 # PREP-2: mark the first behavioral question practiced
-- waitForAnimationToEnd
+# Right after the questions arrive, the first tap sometimes doesn't register (cause not found;
+# see docs/verification.md). Tap once more if the count didn't move.
 - tapOn:
     id: prep-question
     index: 0
-- assertVisible: '1 / .* practiced'
+- runFlow:
+    when:
+      notVisible: '1 / .* practiced'
+    commands:
+      - waitForAnimationToEnd
+      - tapOn:
+          id: prep-question
+          index: 0
+- extendedWaitUntil:
+    visible: '1 / .* practiced'
+    timeout: 5000
 - tapOn: Back
 # MOCK-1 / MOCK-2
 - scrollUntilVisible:
@@ -60,3 +71,30 @@ appId: dev.kristinadarroch.applicationtracker
     visible: '.*questions answered.*'
     timeout: 10000
 - takeScreenshot: e2e/artifacts/prep-04-summary
+# Prep-first home: the Next interview card shows this progress and opens both prep screens
+- openLink: applicationtracker://
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+# Home keeps its scroll position, so scroll back up to the card.
+- scrollUntilVisible:
+    element: Next interview
+    direction: UP
+    timeout: 20000
+- assertVisible: '1 of .* questions practiced · 1 mock interview'
+- takeScreenshot: e2e/artifacts/prep-05-home
+- tapOn: Practice questions
+- extendedWaitUntil:
+    visible: '1 / .* practiced'
+    timeout: 10000
+- tapOn: Back
+- extendedWaitUntil:
+    visible: Next interview
+    timeout: 10000
+- tapOn: Mock interview
+- extendedWaitUntil:
+    visible: Your answer
+    timeout: 90000
+- takeScreenshot: e2e/artifacts/prep-06-mock-from-home

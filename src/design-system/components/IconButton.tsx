@@ -10,9 +10,9 @@ import type { IconName } from './icons';
 
 /**
  * Always round. `primary` ink circle · `secondary` surface circle with a hairline ·
- * `ghost` bare glyph · `onSign` outlined circle for dark sign panels.
+ * `ghost` bare glyph · `onPanel` outlined circle for dark panels.
  */
-export type IconButtonVariant = 'primary' | 'secondary' | 'ghost' | 'onSign';
+export type IconButtonVariant = 'primary' | 'secondary' | 'ghost' | 'onPanel';
 
 export interface IconButtonProps {
   icon: IconName;
@@ -44,8 +44,8 @@ const useStyles = makeStyles((t) => ({
   secondaryPressed: { backgroundColor: t.color.bg.subtle },
   ghost: {},
   ghostPressed: { backgroundColor: t.color.bg.subtle },
-  onSign: { borderWidth: 2, borderColor: t.color.sign.fg },
-  onSignPressed: { opacity: 0.7 },
+  onPanel: { borderWidth: 2, borderColor: t.color.panel.fg },
+  onPanelPressed: { opacity: 0.7 },
   disabled: { opacity: 0.5 },
 }));
 
@@ -56,8 +56,8 @@ function foregroundColor(theme: Theme, variant: IconButtonVariant): string {
     case 'secondary':
     case 'ghost':
       return theme.color.text.primary;
-    case 'onSign':
-      return theme.color.sign.fg;
+    case 'onPanel':
+      return theme.color.panel.fg;
     default:
       return assertNever(variant);
   }

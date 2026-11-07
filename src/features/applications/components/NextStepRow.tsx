@@ -13,7 +13,7 @@ export interface NextStepRowProps {
   applicationId: ApplicationId;
   step: NextStep;
   now: Date;
-  /** Board eyebrow for open steps: "Next step" for the soonest, "Then" for the rest. */
+  /** Panel eyebrow for open steps: "Next step" for the soonest, "Then" for the rest. */
   eyebrow?: string;
 }
 
@@ -24,7 +24,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * One Next Step. Open steps are departure boards (dark sign panel, urgent yellow badge within
+ * One Next Step. Open steps are dark panels (urgent yellow badge within
  * 48 hours); completed steps are plain rows. Both toggle done and delete.
  */
 export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowProps) {
@@ -61,22 +61,22 @@ export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowPr
   }
 
   return (
-    <Card variant="sign">
+    <Card variant="panel">
       <View style={styles.row}>
         <View style={styles.text}>
           {eyebrow !== undefined ? (
-            <Text variant="board" color="onSignSecondary">
+            <Text variant="mono" color="onPanelSecondary">
               {eyebrow}
             </Text>
           ) : null}
-          <Text variant="departure" color="onSign">
+          <Text variant="feature" color="onPanel">
             {step.title}
           </Text>
           <View style={styles.due}>
             {isUrgent(step.dueDate, now) ? (
               <Badge tone="urgent" label={due} />
             ) : (
-              <Text variant="board" color="onSignSecondary">
+              <Text variant="mono" color="onPanelSecondary">
                 {due}
               </Text>
             )}
@@ -84,13 +84,13 @@ export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowPr
         </View>
         <IconButton
           icon="checkmark"
-          variant="onSign"
+          variant="onPanel"
           accessibilityLabel={`Mark “${step.title}” done`}
           onPress={toggle}
         />
         <IconButton
           icon="trash-outline"
-          variant="onSign"
+          variant="onPanel"
           accessibilityLabel={`Delete “${step.title}”`}
           onPress={remove}
         />

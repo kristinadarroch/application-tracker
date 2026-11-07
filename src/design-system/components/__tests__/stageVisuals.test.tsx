@@ -3,11 +3,11 @@ import type { ReactElement } from 'react';
 
 import {
   Button,
-  DepartureBoard,
+  SpotlightCard,
   FloatingTabBar,
-  ProgressStops,
+  ProgressSteps,
   ProposalCard,
-  RouteStation,
+  StageStep,
   Screen,
   Text,
   ThemeProvider,
@@ -17,26 +17,26 @@ function renderThemed(ui: ReactElement) {
   return render(<ThemeProvider preference="light">{ui}</ThemeProvider>);
 }
 
-describe('RouteStation', () => {
+describe('StageStep', () => {
   it('is a button named by its label that exposes the selected state', async () => {
     const onPress = jest.fn();
     await renderThemed(
       <>
-        <RouteStation stage="applied" state="passed" line={0} label="Applied" onPress={onPress} />
-        <RouteStation
+        <StageStep stage="applied" state="passed" accent={0} label="Applied" onPress={onPress} />
+        <StageStep
           stage="interviewing"
           state="current"
-          line={0}
+          accent={0}
           label="Interviewing"
-          accessibilityLabel="Interviewing, you are here"
-          tag="YOU ARE HERE"
+          accessibilityLabel="Interviewing, current"
+          tag="CURRENT"
           selected
           onPress={jest.fn()}
         />
       </>,
     );
     expect(screen.getByRole('button', { name: 'Applied' })).not.toBeSelected();
-    expect(screen.getByRole('button', { name: 'Interviewing, you are here' })).toBeSelected();
+    expect(screen.getByRole('button', { name: 'Interviewing, current' })).toBeSelected();
     await fireEvent.press(screen.getByRole('button', { name: 'Applied' }));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
@@ -44,9 +44,9 @@ describe('RouteStation', () => {
   it('is not a button without onPress and keeps its children reachable', async () => {
     const onDone = jest.fn();
     await renderThemed(
-      <RouteStation stage="offer" state="future" line={1} label="Offer" meta="NEXT STATION" last>
+      <StageStep stage="offer" state="future" accent={1} label="Offer" meta="NEXT STAGE" last>
         <Button label="Add Next Step" onPress={onDone} />
-      </RouteStation>,
+      </StageStep>,
     );
     expect(screen.getByText('Offer')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Offer' })).toBeNull();
@@ -82,14 +82,14 @@ describe('ProposalCard', () => {
   });
 });
 
-describe('ProgressStops', () => {
-  it('announces how many stops are practiced', async () => {
-    await renderThemed(<ProgressStops total={20} done={6} />);
+describe('ProgressSteps', () => {
+  it('announces how many steps are practiced', async () => {
+    await renderThemed(<ProgressSteps total={20} done={6} />);
     expect(screen.getByLabelText('6 of 20 practiced')).toBeOnTheScreen();
   });
 
   it('clamps done to the total', async () => {
-    await renderThemed(<ProgressStops total={3} done={5} />);
+    await renderThemed(<ProgressSteps total={3} done={5} />);
     expect(screen.getByLabelText('3 of 3 practiced')).toBeOnTheScreen();
   });
 });
@@ -137,35 +137,35 @@ describe('FloatingTabBar', () => {
   });
 });
 
-describe('DepartureBoard', () => {
+describe('SpotlightCard', () => {
   it('shows the urgent label and wires the action and done buttons', async () => {
-    const onBoard = jest.fn();
+    const onAction = jest.fn();
     const onDone = jest.fn();
     await renderThemed(
-      <DepartureBoard
-        eyebrow="NEXT DEPARTURE"
+      <SpotlightCard
+        eyebrow="UP NEXT"
         count="1 TODAY"
-        line={{ index: 0, letter: 'A' }}
+        accent={{ index: 0, letter: 'A' }}
         title="Book the onsite"
         subtitle="Acme Health · Senior RN Engineer"
         urgentLabel="Due tomorrow"
-        action={{ label: 'Board', onPress: onBoard }}
+        action={{ label: 'View', onPress: onAction }}
         onDone={onDone}
       />,
     );
     expect(screen.getByText('Due tomorrow')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Board' }));
-    expect(onBoard).toHaveBeenCalledTimes(1);
+    await fireEvent.press(screen.getByRole('button', { name: 'View' }));
+    expect(onAction).toHaveBeenCalledTimes(1);
     await fireEvent.press(screen.getByRole('button', { name: 'Mark Book the onsite done' }));
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 });
 
-describe('Screen sign header', () => {
+describe('Screen panel header', () => {
   it('keeps the header role on the title and the Back button on the panel', async () => {
     const onBack = jest.fn();
     await renderThemed(
-      <Screen header="sign" eyebrow="FRI 6 NOV" title="Mock interview" onBack={onBack}>
+      <Screen header="panel" eyebrow="FRI 6 NOV" title="Mock interview" onBack={onBack}>
         <Text>Body</Text>
       </Screen>,
     );

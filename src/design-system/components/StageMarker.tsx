@@ -4,35 +4,35 @@ import { assertNever } from '@/lib/assertNever';
 import type { Stage } from '@/lib/stage';
 
 import { makeStyles } from '../theme/makeStyles';
-import type { LineIndex } from '../tokens/semantic';
-import { MARKER_METRICS, StationGlyph, type GlyphKind, type GlyphTone } from './stationGlyph';
+import type { AccentIndex } from '../tokens/semantic';
+import { MARKER_METRICS, StageGlyph, type GlyphKind, type GlyphTone } from './stageGlyph';
 
-export type StationState = 'passed' | 'current' | 'future';
+export type StageState = 'passed' | 'current' | 'future';
 
-export interface StationMarkerProps {
+export interface StageMarkerProps {
   stage: Stage;
-  state: StationState;
+  state: StageState;
   /**
-   * The application's line, for passed stations on its route. Omit it when the marker stands for
-   * a stage across all lines (section headers): passed stations then draw in neutral ink.
+   * The application's accent, for stages it has passed. Omit it when the marker stands for a
+   * stage across all applications (section headers): passed stages then draw in neutral ink.
    */
-  line?: LineIndex;
+  accent?: AccentIndex;
 }
 
 /** B4 shapes: each stage has its own mark, so color is never the only signal. */
 export const STAGE_GLYPHS: Record<Stage, GlyphKind> = {
-  saved: 'stop',
-  applied: 'stop',
-  interviewing: 'interchange',
-  offer: 'terminal',
-  rejected: 'terminus',
-  withdrawn: 'branch',
+  saved: 'dot',
+  applied: 'dot',
+  interviewing: 'ring',
+  offer: 'star',
+  rejected: 'bar',
+  withdrawn: 'exit',
 };
 
-export function toneFor(state: StationState): GlyphTone {
+export function toneFor(state: StageState): GlyphTone {
   switch (state) {
     case 'passed':
-      return 'line';
+      return 'accent';
     case 'current':
       return 'ink';
     case 'future':
@@ -47,8 +47,8 @@ const useStyles = makeStyles(() => ({
   slot: { width: 30, minHeight: 26, alignItems: 'center', justifyContent: 'center' },
 }));
 
-/** Decorative station mark; the adjacent stage word carries the meaning. */
-export function StationMarker({ stage, state, line }: StationMarkerProps) {
+/** Decorative stage mark; the adjacent stage word carries the meaning. */
+export function StageMarker({ stage, state, accent }: StageMarkerProps) {
   const styles = useStyles();
   return (
     <View
@@ -56,10 +56,10 @@ export function StationMarker({ stage, state, line }: StationMarkerProps) {
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <StationGlyph
+      <StageGlyph
         kind={STAGE_GLYPHS[stage]}
-        tone={state === 'passed' && line === undefined ? 'ink' : toneFor(state)}
-        line={line ?? 0}
+        tone={state === 'passed' && accent === undefined ? 'ink' : toneFor(state)}
+        accent={accent ?? 0}
         metrics={MARKER_METRICS}
         dashed={stage === 'saved'}
         halo={state === 'current'}

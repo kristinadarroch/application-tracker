@@ -18,8 +18,8 @@ export function DraftsBanner() {
   return (
     <Card variant="proposal">
       <Stack gap={2}>
-        <Text variant="board" color="secondary">
-          Proposed · new lines
+        <Text variant="mono" color="secondary">
+          Proposed · new applications
         </Text>
         <Text variant="heading">
           {drafts.length === 1 ? '1 draft to review' : `${drafts.length} drafts to review`}

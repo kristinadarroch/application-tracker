@@ -36,16 +36,16 @@ describe('Application detail (PIPE-4)', () => {
     for (const text of [
       'Acme Health',
       'Senior React Native Engineer',
-      'Austin, TX',
       '$150k',
       'https://acme.com/jobs/1',
       'Referred by Sam.',
       '• TypeScript',
-      'Line A · Austin, TX',
       'No open Next Steps.',
     ]) {
       expect(screen.getByText(text)).toBeOnTheScreen();
     }
+    // The location heads the identity block and repeats under Details.
+    expect(screen.getAllByText('Austin, TX')).toHaveLength(2);
     expect(screen.getByLabelText('Stage: Saved')).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Open listing' }));
@@ -80,7 +80,7 @@ describe('Change stage (PIPE-3)', () => {
     );
   });
 
-  it('ends the route as Rejected, and the route stations reopen it', async () => {
+  it('closes the application as Rejected, and the stage steps reopen it', async () => {
     const { store } = await openAcmeFromPipeline();
     await fireEvent.press(screen.getByRole('button', { name: 'Rejected' }));
     expect(selectAllApplications(store.getState())[0]?.stage).toBe('rejected');

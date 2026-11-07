@@ -37,7 +37,7 @@ appId: dev.kristinadarroch.applicationtracker
 - extendedWaitUntil:
     visible: Edit application
     timeout: 10000
-# The accepted step boards under the current station (its title comes from the model, so the
-# check is the board label; the unit tests cover the exact step).
+# The accepted step shows under the current stage (its title comes from the model, so the
+# check is the Next Step label; the unit tests cover the exact step).
 - assertVisible: '(?i)next step'
 - takeScreenshot: e2e/artifacts/inbox-03-step-on-application

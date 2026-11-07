@@ -1,15 +1,19 @@
 import { Pressable, View } from 'react-native';
 
-import { Badge, LineRoundel, LineStrip, makeStyles, Text } from '@/design-system';
-import { lineFor } from '@/lib/lines';
+import { Badge, CompanyBadge, StageProgress, makeStyles, Text } from '@/design-system';
+import { accentFor } from '@/lib/accents';
 import { STAGE_LABELS } from '@/lib/stage';
 
+import { prepAccessibilityText, prepRowText } from '../prepProgress';
 import type { Application } from '../schema';
+import type { PrepSummary } from '../selectors';
 
-export interface LineRowProps {
+export interface ApplicationRowProps {
   application: Application;
   /** Set when the application has an urgent open Next Step, e.g. "Due tomorrow". */
   urgentLabel: string | undefined;
+  /** Prep progress; shown only while the application is Interviewing. */
+  prep: PrepSummary;
   onPress: () => void;
 }
 
@@ -28,21 +32,23 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * One application as a transit line: roundel, company, role, and its strip of stations.
- * Text wraps instead of truncating so large text never hides the company, role, or stage (UX-2);
- * the strip is decorative, so the accessible label carries the stage.
+ * One application: company badge, company, role, prep progress while Interviewing, and its
+ * stage progress strip. Text wraps instead of truncating so large text never hides the company,
+ * role, or stage (UX-2); the strip is decorative, so the accessible label carries the stage.
  */
-export function LineRow({ application, urgentLabel, onPress }: LineRowProps) {
+export function ApplicationRow({ application, urgentLabel, prep, onPress }: ApplicationRowProps) {
   const styles = useStyles();
   const { id, company, role, location, stage } = application;
-  const line = lineFor(id, company);
+  const accent = accentFor(id, company);
   const closed = stage === 'rejected' || stage === 'withdrawn';
+  const interviewing = stage === 'interviewing';
   const accessibilityLabel = [
     company,
     role,
     location,
     `Stage: ${STAGE_LABELS[stage]}`,
     urgentLabel === undefined ? undefined : `Urgent: ${urgentLabel}`,
+    interviewing ? prepAccessibilityText(prep) : undefined,
   ]
     .filter((part) => part !== undefined)
     .join(', ');
@@ -54,7 +60,7 @@ export function LineRow({ application, urgentLabel, onPress }: LineRowProps) {
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed ? styles.pressed : null]}
     >
-      <LineRoundel line={line.index} letter={line.letter} size="md" />
+      <CompanyBadge accent={accent.index} letter={accent.letter} size="md" />
       <View style={styles.body}>
         <Text variant="bodyStrong">{company}</Text>
         <View style={styles.meta}>
@@ -67,12 +73,17 @@ export function LineRow({ application, urgentLabel, onPress }: LineRowProps) {
             </Text>
           ) : null}
         </View>
-        <LineStrip stage={stage} line={line.index} />
+        {interviewing ? (
+          <Text variant="bodySmall" color="secondary">
+            {prepRowText(prep)}
+          </Text>
+        ) : null}
+        <StageProgress stage={stage} accent={accent.index} />
         {closed || urgentLabel !== undefined ? (
           <View style={styles.footer}>
             {closed ? (
-              <Text variant="station" color="secondary">
-                {stage === 'rejected' ? 'Route complete' : 'Left the line'}
+              <Text variant="overline" color="secondary">
+                {stage === 'rejected' ? 'Closed: rejected' : 'Closed: withdrawn'}
               </Text>
             ) : null}
             {urgentLabel !== undefined ? <Badge tone="urgent" label={urgentLabel} /> : null}

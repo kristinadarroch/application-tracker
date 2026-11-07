@@ -45,12 +45,12 @@ appId: dev.kristinadarroch.applicationtracker
     centerElement: true
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline-card-badge
 # At the largest sizes the row is taller than the screen, so the harness can't tap it reliably.
-# Open the same application through the departure board's Board button instead.
+# Open the same application through the Up next card's View button instead.
 - scrollUntilVisible:
-    element: Board
+    element: View
     direction: UP
     timeout: 60000
-- tapOn: Board
+- tapOn: View
 - extendedWaitUntil:
     visible: Edit application
     timeout: 10000

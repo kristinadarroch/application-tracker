@@ -25,8 +25,8 @@ export interface ListingIntakeScreenProps {
 
 /**
  * Add a job from its link (the default) or pasted text, read it on the device, and open the draft
- * for review (INT-1 – INT-3, INT-5, UX-7). A pasted link starts reading on its own. Transit look:
- * a sign panel says a new line is being drawn and that reading stays on the device.
+ * for review (INT-1 – INT-3, INT-5, UX-7). A pasted link starts reading on its own. A dark
+ * panel says a new application is being added and that reading stays on the device.
  */
 export function ListingIntakeScreen({
   title,
@@ -47,12 +47,12 @@ export function ListingIntakeScreen({
       onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       scroll
     >
-      <Card variant="sign">
+      <Card variant="panel">
         <Stack gap={1}>
-          <Text variant="board" color="onSignSecondary">
-            {origin === 'shared' ? 'New line · shared with the app' : 'New line'}
+          <Text variant="mono" color="onPanelSecondary">
+            {origin === 'shared' ? 'New application · shared with the app' : 'New application'}
           </Text>
-          <Text variant="bodyStrong" color="onSign">
+          <Text variant="bodyStrong" color="onPanel">
             {origin === 'shared'
               ? 'The shared listing is read on this device, then you check the draft before anything is saved.'
               : 'Paste the job’s link or its text. The listing is read on this device, then you check the draft before anything is saved.'}
@@ -165,7 +165,7 @@ export function ListingIntakeScreen({
             onPress={intake.submit}
           />
           {reading ? (
-            <Text variant="board" color="secondary" align="center">
+            <Text variant="mono" color="secondary" align="center">
               {intake.mode === 'url'
                 ? 'Reading the page on this device…'
                 : 'Reading the listing on this device…'}

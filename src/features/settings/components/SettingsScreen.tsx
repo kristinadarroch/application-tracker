@@ -41,12 +41,12 @@ const useStyles = makeStyles((t) => ({
   heading: { gap: t.space[1] },
 }));
 
-/** Card heading: a station-style eyebrow over the section title. */
+/** Card heading: an overline eyebrow over the section title. */
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   const styles = useStyles();
   return (
     <View style={styles.heading}>
-      <Text variant="station" color="secondary">
+      <Text variant="overline" color="secondary">
         {eyebrow}
       </Text>
       <Text variant="heading">{title}</Text>

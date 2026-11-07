@@ -66,7 +66,7 @@ function MessageDetail({ message }: { message: InboxMessage }) {
   return (
     <Stack gap={4}>
       <Stack gap={1}>
-        <Text variant="board" color="tertiary">
+        <Text variant="mono" color="tertiary">
           {new Date(message.receivedAt).toLocaleString(undefined, {
             weekday: 'short',
             day: 'numeric',
@@ -130,7 +130,7 @@ function MessageDetail({ message }: { message: InboxMessage }) {
 
       <Card variant="surface">
         <Stack gap={2}>
-          <Text variant="station" color="tertiary">
+          <Text variant="overline" color="tertiary">
             Email
           </Text>
           <Text>{message.bodyText}</Text>
@@ -167,7 +167,7 @@ function TriagePanel({
     return (
       <Card variant="surface">
         <Stack gap={3}>
-          <Text variant="board" color="tertiary">
+          <Text variant="mono" color="tertiary">
             Waiting to analyze
           </Text>
           <Text color="secondary">Messages are analyzed one at a time.</Text>
@@ -184,7 +184,7 @@ function TriagePanel({
       return (
         <Card variant="surface" accessibilityLabel="Analyzing message">
           <Stack gap={2}>
-            <Text variant="board" color="secondary">
+            <Text variant="mono" color="secondary">
               Analyzing…
             </Text>
             <Skeleton width="70%" height={16} />

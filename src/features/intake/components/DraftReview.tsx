@@ -5,9 +5,9 @@ import {
   Banner,
   Button,
   Card,
-  LineRoundel,
-  LineStrip,
-  LineStripLegend,
+  CompanyBadge,
+  StageProgress,
+  StageProgressLegend,
   ProposalCard,
   Screen,
   Stack,
@@ -15,8 +15,8 @@ import {
   TextField,
 } from '@/design-system';
 import { applicationAdded, applicationSaved } from '@/features/applications/model';
+import { accentFor } from '@/lib/accents';
 import { ApplicationIdSchema, createId } from '@/lib/ids';
-import { lineFor } from '@/lib/lines';
 import { useAppDispatch } from '@/store/hooks';
 
 import { draftRemoved, draftUpdated } from '../draftsSlice';
@@ -36,7 +36,7 @@ export interface DraftReviewProps {
 /**
  * Every extracted field, editable, inside a proposal card: the draft is unconfirmed AI output.
  * Only Confirm turns the draft into an Application (INT-4); edits are saved to the draft on blur so
- * the user can come back later (INT-6). A preview shows the line it would ride, starting at Saved.
+ * the user can come back later (INT-6). A preview shows its badge and progress, starting at Saved.
  */
 export function DraftReview({ draft }: DraftReviewProps) {
   const router = useRouter();
@@ -81,7 +81,7 @@ export function DraftReview({ draft }: DraftReviewProps) {
     router.dismissTo('/');
   };
 
-  const line = lineFor(draft.id, values.company);
+  const accent = accentFor(draft.id, values.company);
   const company = values.company.trim();
   const role = values.role.trim();
 
@@ -95,10 +95,10 @@ export function DraftReview({ draft }: DraftReviewProps) {
       <Card>
         <Stack gap={3}>
           <Stack direction="row" gap={3} align="center">
-            <LineRoundel line={line.index} letter={line.letter} size="lg" />
+            <CompanyBadge accent={accent.index} letter={accent.letter} size="lg" />
             <Stack gap={1} flex={1}>
-              <Text variant="station" color="secondary">
-                New line
+              <Text variant="overline" color="secondary">
+                New application
               </Text>
               <Text variant="bodyStrong">
                 {role === '' || company === '' ? 'New application' : `${role} at ${company}`}
@@ -106,8 +106,8 @@ export function DraftReview({ draft }: DraftReviewProps) {
             </Stack>
           </Stack>
           <Stack gap={1}>
-            <LineStripLegend />
-            <LineStrip stage="saved" line={line.index} />
+            <StageProgressLegend />
+            <StageProgress stage="saved" accent={accent.index} />
           </Stack>
           <Text variant="bodySmall" color="secondary">
             Confirm adds it to your pipeline at Saved.

@@ -9,7 +9,7 @@ import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
 import type { IconName } from './icons';
 
-/** `urgent` is signal yellow with ink board text: due within 48 hours or overdue. */
+/** `urgent` is highlight yellow with ink mono text: due within 48 hours or overdue. */
 export type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'urgent';
 
 export interface BadgeProps {
@@ -39,7 +39,7 @@ const useStyles = makeStyles((t) => ({
     paddingBottom: 3,
   },
   label: { ...t.type.caption, flexShrink: 1 },
-  urgentLabel: { ...t.type.board, flexShrink: 1 },
+  urgentLabel: { ...t.type.mono, flexShrink: 1 },
   neutral: { backgroundColor: t.color.bg.subtle },
   info: { backgroundColor: t.color.feedback.info.bg },
   success: { backgroundColor: t.color.feedback.success.bg },
@@ -74,7 +74,7 @@ export function Badge({ tone = 'neutral', label, icon }: BadgeProps) {
   const styles = useStyles();
   const theme = useTheme();
   const urgent = tone === 'urgent';
-  const variant = urgent ? 'board' : 'caption';
+  const variant = urgent ? 'mono' : 'caption';
   const iconSize = useScaledIconSize(14, variant);
   const iconName = icon ?? (urgent ? 'time-outline' : undefined);
   return (

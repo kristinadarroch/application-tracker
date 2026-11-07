@@ -80,6 +80,23 @@ describe('Prep questions screen', () => {
     expect(screen.getByText('1 / 4 practiced')).toBeOnTheScreen();
   });
 
+  it('generates once on open, so a second run never wipes practice progress (PREP-1, PREP-2)', async () => {
+    // Every call succeeds: a second run would replace the set and reset "practiced".
+    fakeGenerate.mockResolvedValue(ok(generatedQuestions));
+    await renderPrepRoute(PREP_URL, makePrepStore());
+    expect(await screen.findByText('0 / 4 practiced')).toBeOnTheScreen();
+
+    await fireEvent.press(
+      screen.getByRole('checkbox', { name: 'How would you debug a slow FlatList?' }),
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(screen.getByText('1 / 4 practiced')).toBeOnTheScreen();
+    expect(fakeGenerate).toHaveBeenCalledTimes(1);
+  });
+
   it('shows Retry when generating on open fails, without retrying on its own (PREP-3)', async () => {
     fakeGenerate.mockResolvedValueOnce(err({ kind: 'timeout', afterMs: 45_000 }));
     await renderPrepRoute(PREP_URL, makePrepStore());

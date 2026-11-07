@@ -6,14 +6,14 @@ import {
   Card,
   ErrorState,
   IconButton,
-  LineRoundel,
+  CompanyBadge,
   makeStyles,
   Screen,
   Stack,
   StagePill,
   Text,
 } from '@/design-system';
-import { lineFor } from '@/lib/lines';
+import { accentFor } from '@/lib/accents';
 import type { Stage } from '@/lib/stage';
 import { useAppDispatch } from '@/store/hooks';
 
@@ -23,7 +23,7 @@ import { useNow } from '../hooks/useNow';
 import { applicationRemoved, stageChanged } from '../slice';
 import { AddNextStepForm } from './AddNextStepForm';
 import { NextStepRow } from './NextStepRow';
-import { RouteCard } from './RouteCard';
+import { StageCard } from './StageCard';
 
 const useStyles = makeStyles((t) => ({
   identity: { flexDirection: 'row', alignItems: 'flex-start', gap: t.space[3] },
@@ -34,7 +34,7 @@ const useStyles = makeStyles((t) => ({
 function DetailField({ label, value }: { label: string; value: string | undefined }) {
   return (
     <Stack gap={1}>
-      <Text variant="station" color="secondary">
+      <Text variant="overline" color="secondary">
         {label}
       </Text>
       <Text color={value === undefined ? 'tertiary' : 'primary'}>{value ?? 'Not added'}</Text>
@@ -51,8 +51,8 @@ async function openListing(url: string) {
 }
 
 /**
- * One application as a line: its route of stations with Next Steps departing from the current
- * one, then details, notes, prep, and delete (PIPE-3–6).
+ * One application: its stages with Next Steps under the current one, then details, notes,
+ * prep, and delete (PIPE-3–6).
  */
 export function ApplicationDetailScreen() {
   const router = useRouter();
@@ -72,7 +72,7 @@ export function ApplicationDetailScreen() {
 
   const { id, company, role, location, salary, listingUrl, stage, notes, requirements } =
     application;
-  const line = lineFor(id, company);
+  const accent = accentFor(id, company);
   const completed = application.nextSteps
     .filter((step) => step.done)
     .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));
@@ -111,22 +111,24 @@ export function ApplicationDetailScreen() {
       }
     >
       <View style={styles.identity}>
-        <LineRoundel line={line.index} letter={line.letter} size="lg" />
+        <CompanyBadge accent={accent.index} letter={accent.letter} size="lg" />
         <View style={styles.identityText}>
-          <Text variant="board" color="secondary">
-            {[`Line ${line.letter}`, location].filter((part) => part !== undefined).join(' · ')}
-          </Text>
+          {location !== undefined ? (
+            <Text variant="mono" color="secondary">
+              {location}
+            </Text>
+          ) : null}
           <Text variant="title">{company}</Text>
           <Text color="secondary">{role}</Text>
           <StagePill stage={stage} />
         </View>
       </View>
 
-      <RouteCard application={application} line={line} now={now} onStageChange={changeStage} />
+      <StageCard application={application} accent={accent} now={now} onStageChange={changeStage} />
 
       <Stack gap={1}>
-        <Text variant="station" color="secondary">
-          End the trip
+        <Text variant="overline" color="secondary">
+          Close this application
         </Text>
         <View style={styles.closeLinks}>
           {stage !== 'rejected' ? (

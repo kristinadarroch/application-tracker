@@ -6,19 +6,19 @@ import { makeStyles } from '../theme/makeStyles';
 import { IconButton } from './IconButton';
 import { Text } from './Text';
 
-/** `plain`: title on the platform gray · `sign`: dark rounded sign panel (tab roots, B1). */
-export type ScreenHeader = 'plain' | 'sign';
+/** `plain`: title on the paper gray · `panel`: dark rounded panel (tab roots, B1). */
+export type ScreenHeader = 'plain' | 'panel';
 
 export interface ScreenProps {
   title?: string;
-  /** Small line above the title: a date on sign headers ("FRI 6 NOV"), context on plain ones. */
+  /** Small line above the title: a date on panel headers ("FRI 6 NOV"), context on plain ones. */
   eyebrow?: string;
   headerRight?: ReactNode;
   /** Renders a round "Back" button at the start of the header. */
   onBack?: () => void;
   scroll?: boolean;
   header?: ScreenHeader;
-  /** Full-width content under the title row, inside the sign panel (e.g. `ProgressStops`). */
+  /** Full-width content under the title row, inside the panel (e.g. `ProgressSteps`). */
   headerAccessory?: ReactNode;
   children: ReactNode;
 }
@@ -31,7 +31,7 @@ const useStyles = makeStyles((t) => ({
     paddingTop: t.space[2],
     paddingBottom: t.space[3],
   },
-  sign: {
+  panel: {
     gap: t.space[3],
     marginHorizontal: t.space[4],
     marginTop: t.space[2],
@@ -39,9 +39,9 @@ const useStyles = makeStyles((t) => ({
     paddingVertical: t.space[3],
     paddingHorizontal: t.space[4],
     borderRadius: t.radius.lg,
-    backgroundColor: t.color.sign.bg,
+    backgroundColor: t.color.panel.bg,
   },
-  signWithBack: { paddingLeft: t.space[2] },
+  panelWithBack: { paddingLeft: t.space[2] },
   row: { flexDirection: 'row', alignItems: 'center', gap: t.space[3] },
   toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   titleWrap: { flex: 1 },
@@ -58,27 +58,27 @@ interface HeaderProps {
   headerAccessory: ReactNode;
 }
 
-function SignHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: HeaderProps) {
+function PanelHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: HeaderProps) {
   const styles = useStyles();
   return (
-    <View style={[styles.sign, onBack !== undefined ? styles.signWithBack : null]}>
+    <View style={[styles.panel, onBack !== undefined ? styles.panelWithBack : null]}>
       <View style={styles.row}>
         {onBack !== undefined ? (
           <IconButton
             icon="chevron-back"
             accessibilityLabel="Back"
             onPress={onBack}
-            variant="onSign"
+            variant="onPanel"
           />
         ) : null}
         <View style={styles.titleWrap}>
           {eyebrow !== undefined ? (
-            <Text variant="board" color="onSignSecondary">
+            <Text variant="mono" color="onPanelSecondary">
               {eyebrow}
             </Text>
           ) : null}
           {title !== undefined ? (
-            <Text variant={onBack === undefined ? 'display' : 'title'} color="onSign">
+            <Text variant={onBack === undefined ? 'display' : 'title'} color="onPanel">
               {title}
             </Text>
           ) : null}
@@ -110,7 +110,7 @@ function PlainHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: H
         <View style={styles.row}>
           <View style={styles.titleWrap}>
             {eyebrow !== undefined ? (
-              <Text variant="station" color="secondary">
+              <Text variant="overline" color="secondary">
                 {eyebrow}
               </Text>
             ) : null}
@@ -146,8 +146,8 @@ export function Screen({
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       {hasHeader ? (
-        header === 'sign' ? (
-          <SignHeader {...headerProps} />
+        header === 'panel' ? (
+          <PanelHeader {...headerProps} />
         ) : (
           <PlainHeader {...headerProps} />
         )

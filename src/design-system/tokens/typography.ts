@@ -1,9 +1,9 @@
 import type { TextStyle } from 'react-native';
 
 /**
- * Overpass (the U.S. highway-sign face, open source) for display and body; Overpass Mono for
- * boards, dates, and codes. Custom fonts carry their weight in the family name, so no
- * `fontWeight` is set. Families are loaded in `src/app/_layout.tsx` (`TRANSIT_FONTS`).
+ * Overpass (open source) for display and body; Overpass Mono for dates, codes, and short
+ * labels. Custom fonts carry their weight in the family name, so no `fontWeight` is set.
+ * Families are loaded in `src/app/_layout.tsx` (`APP_FONTS`).
  */
 export const fontFamily = {
   regular: 'Overpass_400Regular',
@@ -17,14 +17,14 @@ export const fontFamily = {
 export type TypographyVariant =
   | 'display'
   | 'title'
-  | 'departure'
+  | 'feature'
   | 'heading'
   | 'body'
   | 'bodyStrong'
   | 'bodySmall'
   | 'caption'
-  | 'station'
-  | 'board';
+  | 'overline'
+  | 'mono';
 
 type TypeStyle = Pick<
   TextStyle,
@@ -32,28 +32,28 @@ type TypeStyle = Pick<
 >;
 
 export const typography: Record<TypographyVariant, TypeStyle> = {
-  /** Sign titles on tab roots ("Today") and empty-state heroes. */
+  /** Panel titles on tab roots ("Today") and empty-state heroes. */
   display: { fontFamily: fontFamily.black, fontSize: 34, lineHeight: 40 },
   /** Screen titles ("Acme Health"). */
   title: { fontFamily: fontFamily.black, fontSize: 28, lineHeight: 34 },
-  /** The next departure and other single most-important lines ("Book the onsite"). */
-  departure: { fontFamily: fontFamily.extrabold, fontSize: 22, lineHeight: 28 },
+  /** The next step and other single most-important lines ("Book the onsite"). */
+  feature: { fontFamily: fontFamily.extrabold, fontSize: 22, lineHeight: 28 },
   /** Card titles and section headers. */
   heading: { fontFamily: fontFamily.extrabold, fontSize: 18, lineHeight: 24 },
   body: { fontFamily: fontFamily.regular, fontSize: 16, lineHeight: 22 },
   bodyStrong: { fontFamily: fontFamily.bold, fontSize: 16, lineHeight: 22 },
   bodySmall: { fontFamily: fontFamily.regular, fontSize: 14, lineHeight: 20 },
   caption: { fontFamily: fontFamily.semibold, fontSize: 12, lineHeight: 16 },
-  /** Station names and section eyebrows: SAVED · APPLIED · INTERVIEW. */
-  station: {
+  /** Stage names and section eyebrows: SAVED · APPLIED · INTERVIEW. */
+  overline: {
     fontFamily: fontFamily.extrabold,
     fontSize: 12,
     lineHeight: 16,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  /** Departure-board text: DUE TOMORROW · SAT 7 NOV. */
-  board: {
+  /** Monospace labels: DUE TOMORROW · SAT 7 NOV. */
+  mono: {
     fontFamily: fontFamily.mono,
     fontSize: 13,
     lineHeight: 18,
@@ -66,12 +66,12 @@ export const typography: Record<TypographyVariant, TypeStyle> = {
 export const maxFontSizeMultiplier: Record<TypographyVariant, number> = {
   display: 1.6,
   title: 1.6,
-  departure: 1.8,
+  feature: 1.8,
   heading: 0,
   body: 0,
   bodyStrong: 0,
   bodySmall: 0,
   caption: 1.6,
-  station: 1.6,
-  board: 1.6,
+  overline: 1.6,
+  mono: 1.6,
 };

@@ -7,7 +7,7 @@ export type { SpaceToken } from './tokens/spacing';
 export type { RadiusToken } from './tokens/radii';
 export type { TypographyVariant } from './tokens/typography';
 export type { ElevationLevel } from './tokens/elevation';
-export type { FeedbackTone, LineIndex } from './tokens/semantic';
+export type { FeedbackTone, AccentIndex } from './tokens/semantic';
 
 export { Text } from './components/Text';
 export type { TextAlign, TextColor, TextProps } from './components/Text';
@@ -39,26 +39,26 @@ export { Banner } from './components/Banner';
 export type { BannerAction, BannerProps, BannerTone } from './components/Banner';
 export { Chip } from './components/Chip';
 export type { ChipProps } from './components/Chip';
-export { LineRoundel } from './components/LineRoundel';
+export { CompanyBadge } from './components/CompanyBadge';
 export type {
-  LineRoundelProps,
-  LineRoundelSize,
-  LineRoundelSurface,
-} from './components/LineRoundel';
-export { StationMarker } from './components/StationMarker';
-export type { StationMarkerProps, StationState } from './components/StationMarker';
-export { LineStrip, LineStripLegend } from './components/LineStrip';
-export type { LineStripProps } from './components/LineStrip';
-export { RouteStation } from './components/RouteStation';
-export type { RouteStationProps } from './components/RouteStation';
-export { DepartureBoard } from './components/DepartureBoard';
-export type { DepartureBoardAction, DepartureBoardProps } from './components/DepartureBoard';
+  CompanyBadgeProps,
+  CompanyBadgeSize,
+  CompanyBadgeSurface,
+} from './components/CompanyBadge';
+export { StageMarker } from './components/StageMarker';
+export type { StageMarkerProps, StageState } from './components/StageMarker';
+export { StageProgress, StageProgressLegend } from './components/StageProgress';
+export type { StageProgressProps } from './components/StageProgress';
+export { StageStep } from './components/StageStep';
+export type { StageStepProps } from './components/StageStep';
+export { SpotlightCard } from './components/SpotlightCard';
+export type { SpotlightCardAction, SpotlightCardProps } from './components/SpotlightCard';
 export { ProposalCard } from './components/ProposalCard';
 export type { ProposalCardProps } from './components/ProposalCard';
 export { StatTile } from './components/StatTile';
 export type { StatTileProps } from './components/StatTile';
-export { ProgressStops } from './components/ProgressStops';
-export type { ProgressStopsProps } from './components/ProgressStops';
+export { ProgressSteps } from './components/ProgressSteps';
+export type { ProgressStepsProps } from './components/ProgressSteps';
 export { FloatingTabBar } from './components/FloatingTabBar';
 export type {
   FloatingTab,

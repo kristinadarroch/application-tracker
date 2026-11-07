@@ -30,7 +30,7 @@ const useStyles = makeStyles((t) => ({
 const shortDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
-/** One Inbox Message as a white card: subject, sender, Triage status, and matched line (INBX-1). */
+/** One Inbox Message as a white card: subject, sender, Triage status, and application (INBX-1). */
 export function MessageRow({
   message,
   triage,
@@ -66,7 +66,7 @@ function TriageStatus({
 }: Pick<MessageRowProps, 'triage' | 'canTriage' | 'onOpen' | 'onRetry'>) {
   if (triage === undefined || (triage.status === 'failed' && !canTriage)) {
     return canTriage ? (
-      <Text variant="board" color="tertiary">
+      <Text variant="mono" color="tertiary">
         Waiting to analyze
       </Text>
     ) : (
@@ -76,7 +76,7 @@ function TriageStatus({
   switch (triage.status) {
     case 'pending':
       return (
-        <Text variant="board" color="secondary">
+        <Text variant="mono" color="secondary">
           Analyzing…
         </Text>
       );

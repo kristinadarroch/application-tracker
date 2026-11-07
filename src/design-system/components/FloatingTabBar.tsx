@@ -101,7 +101,7 @@ const useStyles = makeStyles((t) => ({
     borderRadius: t.radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: t.color.sign.bg,
+    backgroundColor: t.color.panel.bg,
     ...t.elevation[2],
   },
   fabPressed: { opacity: 0.85 },

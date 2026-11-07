@@ -1,4 +1,4 @@
-# Screenshot tour of the Transit screens in one theme. Run twice:
+# Screenshot tour of the app's screens in one theme. Run twice:
 #   maestro test -e THEME=Light e2e/tour.yaml
 #   maestro test -e THEME=Dark e2e/tour.yaml
 appId: dev.kristinadarroch.applicationtracker
@@ -15,7 +15,7 @@ appId: dev.kristinadarroch.applicationtracker
     text: Back
     retryTapIfNoChange: true
 - extendedWaitUntil:
-    visible: Your lines
+    visible: Your applications
     timeout: 10000
 - waitForAnimationToEnd
 - takeScreenshot: e2e/artifacts/tour-${THEME}-pipeline

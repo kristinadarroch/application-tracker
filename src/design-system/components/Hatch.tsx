@@ -22,7 +22,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * "Track under construction": diagonal stripes behind a proposal's content. Built from Views
+ * The AI-proposal fill: diagonal stripes behind a proposal's content. Built from Views
  * (a square of vertical stripes rotated 45°, clipped by the parent), sized from layout so it
  * always covers the box. Purely decorative; the parent clips it with `overflow: 'hidden'`.
  */

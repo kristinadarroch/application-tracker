@@ -9,7 +9,7 @@ import { fontFamily } from '../tokens/typography';
 import { Hatch } from './Hatch';
 
 export interface ProposalCardProps {
-  /** Board text naming the source, e.g. "PROPOSED · FROM EMAIL". */
+  /** Overline text naming the source, e.g. "PROPOSED · FROM EMAIL". */
   eyebrow: string;
   /** Shows a lock + "ON-DEVICE" when the proposal was produced on this device. */
   onDevice?: boolean;
@@ -34,7 +34,7 @@ const useStyles = makeStyles((t) => ({
     justifyContent: 'space-between',
     gap: t.space[2],
   },
-  eyebrow: { ...t.type.board, color: t.color.text.primary, flexShrink: 1 },
+  eyebrow: { ...t.type.mono, color: t.color.text.primary, flexShrink: 1 },
   device: { flexDirection: 'row', alignItems: 'center', gap: t.space[1] },
   deviceLabel: {
     ...t.type.caption,
@@ -45,7 +45,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * AI output not yet saved: "track under construction" (dashed border over a hatched fill).
+ * AI output not yet saved, shown hatched (dashed border over a striped fill).
  * The container is labelled "Proposal, not saved: …" but stays non-accessible, so controls
  * inside remain individually reachable; the eyebrow row is what screen readers announce.
  */
@@ -62,7 +62,7 @@ export function ProposalCard({ eyebrow, onDevice = false, children }: ProposalCa
     >
       <Hatch />
       <View style={styles.header} accessible accessibilityLabel={`${source}, not saved`}>
-        <RNText style={styles.eyebrow} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.board}>
+        <RNText style={styles.eyebrow} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.mono}>
           {eyebrow}
         </RNText>
         {onDevice ? (

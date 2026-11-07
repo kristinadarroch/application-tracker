@@ -38,7 +38,7 @@ export function ConnectGmailScreen({
         <Card variant="surface">
           <Stack gap={3}>
             <Stack direction="row" gap={2} align="center" justify="between" wrap="wrap">
-              <Text variant="station" color="secondary">
+              <Text variant="overline" color="secondary">
                 Email Source
               </Text>
               <Badge
@@ -97,7 +97,7 @@ function SetupNeeded() {
         <Text variant="heading">Gmail isn’t set up in this build</Text>
         {SETUP_STEPS.map((step, index) => (
           <Stack key={step} direction="row" gap={3} align="start">
-            <Text variant="board" color="tertiary">{`${index + 1}`}</Text>
+            <Text variant="mono" color="tertiary">{`${index + 1}`}</Text>
             <Stack flex={1}>
               <Text>{step}</Text>
             </Stack>

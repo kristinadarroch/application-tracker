@@ -12,9 +12,9 @@ import type { IconName } from './icons';
 
 /**
  * `primary` ink pill · `secondary` 2px outline pill · `ghost` underlined link text ·
- * `destructive` danger outline pill · `onSign` white pill for dark sign panels.
+ * `destructive` danger outline pill · `onPanel` white pill for dark panels.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'onSign';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'onPanel';
 export type ButtonSize = 'md' | 'lg';
 
 export interface ButtonProps {
@@ -24,7 +24,7 @@ export interface ButtonProps {
   size?: ButtonSize;
   /** Icon before the label. */
   icon?: IconName;
-  /** Icon after the label ("Board →"). */
+  /** Icon after the label ("View →"). */
   trailingIcon?: IconName;
   loading?: boolean;
   disabled?: boolean;
@@ -64,8 +64,8 @@ const useStyles = makeStyles((t) => ({
   ghostPressed: { opacity: 0.7 },
   destructive: { backgroundColor: t.color.bg.surface, borderColor: t.color.feedback.danger.fg },
   destructivePressed: { backgroundColor: t.color.feedback.danger.bg },
-  onSign: { backgroundColor: t.color.sign.fg, borderColor: t.color.sign.fg },
-  onSignPressed: { opacity: 0.85 },
+  onPanel: { backgroundColor: t.color.panel.fg, borderColor: t.color.panel.fg },
+  onPanelPressed: { opacity: 0.85 },
   disabled: { opacity: 0.5 },
   label: {
     ...t.type.bodyStrong,
@@ -77,7 +77,7 @@ const useStyles = makeStyles((t) => ({
   secondaryLabel: { color: t.color.text.primary },
   ghostLabel: { color: t.color.text.link, textDecorationLine: 'underline' },
   destructiveLabel: { color: t.color.feedback.danger.fg },
-  onSignLabel: { color: t.color.sign.bg },
+  onPanelLabel: { color: t.color.panel.bg },
   content: { flexDirection: 'row', alignItems: 'center', gap: t.space[2], flexShrink: 1 },
   hidden: { opacity: 0 },
   spinner: { position: 'absolute' },
@@ -93,8 +93,8 @@ function foregroundColor(theme: Theme, variant: ButtonVariant): string {
       return theme.color.text.link;
     case 'destructive':
       return theme.color.feedback.danger.fg;
-    case 'onSign':
-      return theme.color.sign.bg;
+    case 'onPanel':
+      return theme.color.panel.bg;
     default:
       return assertNever(variant);
   }

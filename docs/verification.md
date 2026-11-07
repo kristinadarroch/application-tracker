@@ -10,19 +10,26 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
-## Latest end-to-end results (2026-11-06, Transit design)
+## Latest end-to-end results (2026-11-06, plain wording and prep-first home)
 
-All rows below ran on the Transit redesign (ADR 0006), except the model checks, which ran at `7cf0ac3`; the model prompts and tasks have not changed since. Flow changes for the redesign: the detail screen is recognised by "Edit application"; Acme is opened from its line row (`.*Acme Health.*Interviewing.*`), because the departure board above also names Acme; "Analyzing" waits became case-insensitive, and the inbox flow now waits for the finished result ("Next Step proposed") before opening the message.
+All rows below ran on the current app: the ADR 0006 visual design with plain wording and the prep-first home (Next interview card first). The model checks ran at `7cf0ac3`; the model prompts and tasks have not changed since.
+
+Flow changes in this round:
+
+- Home rows sit below the Next interview and Up next cards, so `pipeline.yaml` checks the prep card ("Next interview", "Practice questions") and then scrolls to each row by its full label, including the Acme row's ", Prep: …" part.
+- `ai-prep.yaml` taps the first question as soon as the questions show and waits up to 5 s for "1 / N practiced". With a `waitForAnimationToEnd` before the tap, the check failed 3 times in a row: the question stayed unchecked. The same tap in a probe flow checked the question, and it stayed checked after 45 s, so the cause was in the flow's timing, not the app. A Jest test now also guards that the questions generate only once on open, so practice progress is never wiped.
+- Earlier redesign fixes still apply: the detail screen is recognised by "Edit application"; Acme opens from its application row (`.*Acme Health.*Interviewing.*`); the inbox flow waits for "Next Step proposed".
+- Each Maestro run now has a hard time limit (`perl -e 'alarm shift; exec @ARGV' 400 maestro …`). A launch-time hierarchy crash (`kAXErrorInvalidUIElement`) hung one batch for 50 minutes; it's a tooling failure, not an app failure.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
-| `pipeline.yaml` | Pass | Pass |
+| `pipeline.yaml` | Pass, after the scroll fix above | Pass |
 | `tour.yaml` (screenshots of every main screen) | Pass in Light and Dark | — |
 | `ai-intake.yaml` | Pass | — (AI is iOS only) |
-| `ai-prep.yaml` | Pass, after the flow fix to open Acme from its row | — |
-| `ai-inbox.yaml` | Pass, after the flow fix above. One attempt stopped at launch: Maestro's own hierarchy request failed (`kAXErrorInvalidUIElement`) and hung; the rerun passed | — |
+| `ai-prep.yaml` | Pass, after the tap-timing fix above. First attempt hung at launch (Maestro hierarchy crash) | — |
+| `ai-inbox.yaml` | Pass | — |
 | `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5), after one app fix (below) | Pass (font scale 2.0) |
+| `a11y-large-text.yaml` | Pass (AX5) | Pass (font scale 2.0) |
 | `demo.yaml` | Pass | — |
 | `new-experience.yaml` | Pass (sample listing served from `e2e/fixtures` on `127.0.0.1:8099`) | — |
 | `ai-checks.yaml` | 2 / 2 consecutive runs, every group "0 failed" (at `7cf0ac3`) | — |
@@ -81,9 +88,9 @@ Screens: settings, pipeline with demo data, application detail, Next Step form, 
 
 Found and fixed in the first pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
 
-Found and fixed in the Transit pass: at AX5 the Inbox buttons ("Receive next email", "Connect Gmail") grew wider than the screen and were clipped. `Button` now never exceeds its container (`maxWidth: '100%'`, shrinking label), so the label wraps inside the pill.
+Found and fixed in the redesign pass: at AX5 the Inbox buttons ("Receive next email", "Connect Gmail") grew wider than the screen and were clipped. `Button` now never exceeds its container (`maxWidth: '100%'`, shrinking label), so the label wraps inside the pill.
 
-Harness limit at AX5 on iOS: a line row is taller than the screen, and Maestro's taps on it scrolled the list instead of opening it. The flow opens Acme's detail through the departure board's "Board" button instead, so the row itself was checked for layout (screenshot) but not activated at AX5. On Android at 2.0, an earlier run of this pass opened the row directly.
+Harness limit at AX5 on iOS: an application row is taller than the screen, and Maestro's taps on it scrolled the list instead of opening it. The flow opens Acme's detail through the Up next card's "View" button instead, so the row itself was checked for layout (screenshot) but not activated at AX5. On Android at 2.0, an earlier run of this pass opened the row directly.
 
 To repeat: set the size (`xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large` or `adb shell settings put system font_scale 2.0`), run the flow with `-e PLATFORM=ios|android`, review `e2e/artifacts/a11y-*.png`, then reset (`content_size large`, `font_scale 1.0`).
 

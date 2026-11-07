@@ -40,7 +40,7 @@ export function InboxScreen({ onOpenMessage, onOpenGmailSettings }: InboxScreenP
   const autoTriage = useAutoTriage();
 
   return (
-    <Screen header="sign" title="Inbox" eyebrow={source === 'gmail' ? 'GMAIL' : 'SAMPLE EMAILS'}>
+    <Screen header="panel" title="Inbox" eyebrow={source === 'gmail' ? 'GMAIL' : 'SAMPLE EMAILS'}>
       <FlatList
         data={messages}
         keyExtractor={(message) => message.id}

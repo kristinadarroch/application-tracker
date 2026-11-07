@@ -19,8 +19,8 @@ export interface TriageResultPanelProps {
 }
 
 /**
- * A finished Triage: category and matched application, then the proposed Next Step as track
- * under construction until the user accepts or dismisses it (INBX-2–4).
+ * A finished Triage: category and matched application, then the proposed Next Step, shown
+ * hatched until the user accepts or dismisses it (INBX-2–4).
  */
 export function TriageResultPanel({
   result,
@@ -127,8 +127,8 @@ function ProposedStep({
   const step = (
     <Stack gap={1}>
       <Text variant="heading">Proposed Next Step</Text>
-      <Text variant="departure">{title}</Text>
-      <Text variant="board" color="secondary">{`Due: ${due}`}</Text>
+      <Text variant="feature">{title}</Text>
+      <Text variant="mono" color="secondary">{`Due: ${due}`}</Text>
     </Stack>
   );
   if (decision === 'open') {

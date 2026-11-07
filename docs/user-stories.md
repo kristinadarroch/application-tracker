@@ -105,6 +105,11 @@ As a job seeker, I want my applications grouped by stage, so that I can see wher
 - **When** I open the Pipeline tab, **then** applications are grouped in stage order (Saved, Applied, Interviewing, Offer, Rejected, Withdrawn), with a count per stage.
 - **Given** no applications, **then** I see an empty state led by "Add from a link", with "Add application" for entering one by hand.
 - **Given** a stage has no applications, **then** that group shows its count of 0 and takes minimal space.
+- **When** I open the Pipeline tab, **then** a "Next interview" card comes first, showing the Interviewing application with the soonest open Next Step (ties: most recently updated), its company and role, prep progress ("4 of 10 questions practiced · 1 mock interview" or "Prep not started"), and "Practice questions" and "Mock interview" buttons that open that application's prep and mock interview.
+- **Given** more than one application is Interviewing, **then** the card shows how many others there are ("+N MORE").
+- **Given** no application is Interviewing, **then** the card reads "No interviews yet" with "Move an application to Interviewing and its prep questions show up here." and no buttons.
+- **When** I look below the Next interview card, **then** I see the "Up next" Next Step, then "Your applications" ("3 active · 0 closed"), then stats with questions practiced first.
+- **Given** an application is Interviewing, **then** its row shows its prep progress ("4 of 10 practiced · 1 mock" or "Prep not started"), and the row's screen-reader label ends with ", Prep: 4 of 10 questions practiced" (or ", Prep: not started").
 
 ### PIPE-2 · Add an application by hand
 
