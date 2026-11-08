@@ -4,12 +4,18 @@ import type { Stage } from '@/lib/stage';
 
 import type { EmailUpdate, TriageCategory } from './schema';
 
+/** Rejected and Withdrawn: email never changes these applications on its own (ADR 0007). */
+export function isClosedStage(stage: Stage): boolean {
+  return stage === 'rejected' || stage === 'withdrawn';
+}
+
 /**
- * The Stage an email moves an application to, decided in code (never by the model), or
- * `undefined` when the stage stays. Only forward moves, except a rejection; closed applications
- * (Rejected, Withdrawn) never move (ADR 0007).
+ * The Stage an email moves an application to, or `undefined` when the stage stays. The model only
+ * classifies the email; this maps that category to a bounded transition: only forward moves,
+ * except a rejection; closed applications (Rejected, Withdrawn) never move (ADR 0007).
  */
 export function stageFromTriage(category: TriageCategory, current: Stage): Stage | undefined {
+  if (isClosedStage(current)) return undefined;
   switch (category) {
     case 'interview_invite':
     case 'scheduling':
@@ -20,7 +26,7 @@ export function stageFromTriage(category: TriageCategory, current: Stage): Stage
         ? 'offer'
         : undefined;
     case 'rejection':
-      return current === 'rejected' || current === 'withdrawn' ? undefined : 'rejected';
+      return 'rejected';
     case 'recruiter_followup':
     case 'unrelated':
       return undefined;

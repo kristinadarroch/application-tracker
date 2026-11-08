@@ -16,6 +16,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 import { Button, Screen, Text, ThemeProvider, useTheme } from '@/design-system';
 import { useAiAvailabilitySync } from '@/features/capabilities';
+import { useEmailReading } from '@/features/inbox';
 import { selectThemePreference } from '@/features/settings';
 import { persistor, store } from '@/store/appStore';
 import { useAppSelector } from '@/store/hooks';
@@ -27,6 +28,15 @@ function ThemedApp({ children }: { children: ReactNode }) {
   const preference = useAppSelector(selectThemePreference);
   useAiAvailabilitySync();
   return <ThemeProvider preference={preference}>{children}</ThemeProvider>;
+}
+
+/**
+ * Triages new email and applies confident updates on every screen, including ones opened straight
+ * from a link with no tabs underneath (INBX-8). Mounted once, above the navigator.
+ */
+function EmailReader() {
+  useEmailReading();
+  return null;
 }
 
 function Navigator() {
@@ -63,6 +73,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <PersistGate persistor={persistor} onBeforeLift={() => SplashScreen.hideAsync()}>
         <ThemedApp>
+          <EmailReader />
           <Navigator />
         </ThemedApp>
       </PersistGate>

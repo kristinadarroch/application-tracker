@@ -13,6 +13,7 @@ import type { AppDispatch, RootState } from '@/store/store';
 
 import type { EmailSource, EmailSourceError } from './emailSource';
 import {
+  selectEmailSource,
   selectEmailUpdate,
   selectInboxMessages,
   selectIsTriageRunning,
@@ -29,7 +30,7 @@ import {
   messageTaggedManually,
   proposalDecided,
 } from './slice';
-import { stageFromTriage } from './stageFromTriage';
+import { isClosedStage, stageFromTriage } from './stageFromTriage';
 import { triageApi } from './triageApi';
 
 type Thunk<R> = (dispatch: AppDispatch, getState: () => RootState) => R;
@@ -56,9 +57,10 @@ export function startTriage(messageId: MessageId): Thunk<Promise<void>> {
 
 /**
  * Applies a confident Triage right away (ADR 0007): high confidence and a matched application
- * that still exists. Moves the Stage (decided by `stageFromTriage`, never by the model) and adds
- * the proposed Next Step, then records an Email Update so the change shows in the log and can be
- * undone. Unsure or unmatched results stay open proposals for the user (INBX-4).
+ * that still exists and is still open. Moves the Stage (`stageFromTriage` maps the model's
+ * category to a bounded transition) and adds the proposed Next Step, then records an Email Update
+ * so the change shows in the log and can be undone. Unsure or unmatched results, and anything
+ * about a closed (Rejected or Withdrawn) application, stay open proposals for the user (INBX-4).
  */
 export function applyConfidentTriage({
   messageId,
@@ -75,7 +77,7 @@ export function applyConfidentTriage({
     const { result } = triage;
     if (result.confidence !== 'high' || result.applicationId === null) return;
     const application = selectApplicationById(state, result.applicationId);
-    if (application === undefined) return;
+    if (application === undefined || isClosedStage(application.stage)) return;
     const newStage = stageFromTriage(result.category, application.stage);
     const step =
       result.proposedNextStep === undefined
@@ -226,7 +228,11 @@ export function tagManually({
 /** How far back the first sync reads (matches the Gmail `newer_than:30d` query). */
 const SYNC_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
-/** Fetches Gmail messages newer than the newest one already in the inbox. Resolves to the count added. */
+/**
+ * Fetches Gmail messages newer than the newest one already in the inbox. Resolves to the count
+ * added. Drops the result if Gmail was disconnected while the request was in flight, so a late
+ * response never brings Gmail mail back after it was cleared.
+ */
 export function syncGmail(
   source: EmailSource,
   now: Date,
@@ -236,6 +242,7 @@ export function syncGmail(
     const since = newestGmail?.receivedAt ?? new Date(now.getTime() - SYNC_WINDOW_MS).toISOString();
     const result = await source.listRecent(since);
     if (!result.ok) return result;
+    if (selectEmailSource(getState()) !== 'gmail') return ok(0);
     dispatch(messagesReceived(result.value));
     return ok(result.value.length);
   };

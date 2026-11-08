@@ -21,9 +21,9 @@ Until then every Triage result was a proposal the user had to accept, so the pip
 
 ## Guardrails
 
-- **Code decides the Stage, not the model.** `stageFromTriage(category, currentStage)`: an interview invite, scheduling, or take-home email moves a Saved or Applied application to Interviewing; an offer moves an application before Offer to Offer; a rejection moves it to Rejected. Recruiter follow-ups and unrelated email never move a Stage.
+- **The model classifies the email; code maps that category to a bounded Stage change.** `stageFromTriage(category, currentStage)`: an interview invite, scheduling, or take-home email moves a Saved or Applied application to Interviewing; an offer moves an application before Offer to Offer; a rejection moves it to Rejected. Recruiter follow-ups and unrelated email never move a Stage. A wrong category from the model still produces a wrong (but bounded) change, which Undo reverts.
 - **Only forward moves, except a rejection.** No email moves an application back.
-- **Closed applications never move.** Rejected and Withdrawn stay as they are.
+- **Closed applications are never changed by email.** For a Rejected or Withdrawn application nothing is applied, not even a Next Step; the email waits as a proposal the user can accept or dismiss.
 - **The matched application must be a real candidate.** Triage only matches one of the user's applications that the email names (guardrails 3 and 6 in [`docs/architecture.md`](../architecture.md#guardrails)), and the application must still exist when the update is applied.
 - **Undo is exact.** The Stage goes back only if the application is still at the Stage the email set; the Next Step is removed only if it still exists and isn't done. Anything the user changed since stays. Undoing twice does nothing.
 

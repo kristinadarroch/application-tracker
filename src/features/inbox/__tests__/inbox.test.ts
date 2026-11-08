@@ -29,7 +29,7 @@ import {
   proposalDecided,
 } from '../slice';
 import { stageFromTriage } from '../stageFromTriage';
-import { acceptProposal, startTriage, undoEmailUpdate } from '../thunks';
+import { acceptProposal, startTriage, syncGmail, undoEmailUpdate } from '../thunks';
 
 const mockGenerate = jest.fn();
 jest.mock('@/services/ai/foundationModels', () => ({
@@ -273,15 +273,13 @@ describe('confident updates apply by themselves (INBX-7)', () => {
     expect(selectEmailUpdate(store.getState(), inviteId)).not.toHaveProperty('newStage');
   });
 
-  it('never moves a closed application', async () => {
+  it('never changes a closed application: the email waits as a proposal instead', async () => {
     const store = await triagedStore(inviteOutput, { acmeStage: 'withdrawn' });
 
     expect(acme(store).stage).toBe('withdrawn');
-    expect(selectEmailUpdate(store.getState(), inviteId)).toMatchObject({
-      previousStage: 'withdrawn',
-      nextStepTitle: 'Book interview',
-    });
-    expect(selectEmailUpdate(store.getState(), inviteId)).not.toHaveProperty('newStage');
+    expect(acme(store).nextSteps).toEqual([]);
+    expect(selectTriage(store.getState(), inviteId)).toMatchObject({ decision: 'open' });
+    expect(selectEmailUpdate(store.getState(), inviteId)).toBeUndefined();
   });
 
   it('leaves a low-confidence match as a proposal', async () => {
@@ -470,5 +468,33 @@ describe('Email Source', () => {
 
     expect(selectInboxMessages(store.getState()).map((m) => m.id)).toEqual([inviteId]);
     expect(store.getState().inbox.source).toBe('mock');
+  });
+
+  it('drops a Gmail sync that finishes after Gmail was disconnected', async () => {
+    const store = setup();
+    store.dispatch(emailSourceChanged('gmail'));
+    let respond: (messages: InboxMessage[]) => void = () => undefined;
+    const source = {
+      listRecent: () =>
+        new Promise<ReturnType<typeof ok<InboxMessage[]>>>((resolve) => {
+          respond = (messages) => resolve(ok(messages));
+        }),
+    };
+    const sync = store.dispatch(syncGmail(source, new Date('2026-11-05T14:00:00.000Z')));
+
+    store.dispatch(emailSourceChanged('mock'));
+    respond([
+      {
+        id: MessageIdSchema.parse('gmail_late'),
+        from: 'someone@example.com',
+        subject: 'Late',
+        receivedAt: '2026-11-05T13:30:00.000Z',
+        bodyText: 'Hi',
+        origin: 'gmail',
+      },
+    ]);
+
+    expect(await sync).toEqual(ok(0));
+    expect(selectInboxMessages(store.getState())).toEqual([]);
   });
 });

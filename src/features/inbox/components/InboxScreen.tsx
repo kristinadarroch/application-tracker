@@ -36,7 +36,7 @@ const useStyles = makeStyles((t) => ({
 
 /**
  * Inbox tab: messages newest first with their Triage status (INBX-1). Triage and Gmail reading run
- * app-wide (`useEmailReading` in the tabs layout); pulling down reads new Gmail messages (INBX-8).
+ * app-wide (`useEmailReading` in the root layout); pulling down reads new Gmail messages (INBX-8).
  */
 export function InboxScreen({ onOpenMessage, onOpenGmailSettings }: InboxScreenProps) {
   const styles = useStyles();

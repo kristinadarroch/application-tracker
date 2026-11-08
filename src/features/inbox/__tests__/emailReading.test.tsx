@@ -11,7 +11,7 @@ import { renderWithProviders } from '@/test/renderWithProviders';
 import { setGmailAccessToken } from '../gmail/gmailSession';
 import { useEmailReading } from '../hooks/useEmailReading';
 import { selectEmailUpdate, selectInboxMessages } from '../selectors';
-import { nextFixtureReceived } from '../slice';
+import { emailSourceChanged, nextFixtureReceived } from '../slice';
 
 const mockGenerate = jest.fn();
 jest.mock('@/services/ai/foundationModels', () => ({
@@ -126,6 +126,7 @@ describe('Gmail reading on foreground (INBX-8)', () => {
 
   it('reads Gmail when the token arrives and each time the app comes back', async () => {
     const store = makeStore();
+    store.dispatch(emailSourceChanged('gmail'));
     await renderWithProviders(<EmailReader />, { store });
     await foreground('active');
     expect(fetchMock).not.toHaveBeenCalled();

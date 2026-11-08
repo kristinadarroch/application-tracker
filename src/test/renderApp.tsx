@@ -10,9 +10,12 @@ import EditApplicationRoute from '@/app/application/[id]/edit';
 import NewApplicationRoute from '@/app/application/new';
 import SettingsRoute from '@/app/settings';
 import { Text, ThemeProvider } from '@/design-system';
+import { useEmailReading } from '@/features/inbox';
 import { makeStore, type RootState, type TestStore } from '@/store/store';
 
+/** Mirrors the real root layout: the inbox reader runs above every route. */
 function RootStack() {
+  useEmailReading();
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 

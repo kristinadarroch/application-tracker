@@ -61,10 +61,20 @@ appId: dev.kristinadarroch.applicationtracker
 # when the model was unsure).
 - tapOn: 'Pipeline.*'
 - waitForAnimationToEnd
+# Center the row so the floating tab bar doesn't cover the tap point.
 - scrollUntilVisible:
     element: '.*Northwind Labs.*Stage: Interviewing.*'
+    centerElement: true
 - takeScreenshot: e2e/artifacts/inbox-03-pipeline-updated
 - tapOn: '.*Northwind Labs.*Stage: Interviewing.*'
+# Same lost-first-tap pattern as ai-prep.yaml (see docs/verification.md): tap once more if the
+# detail screen didn't open.
+- runFlow:
+    when:
+      visible: Filter by stage
+    commands:
+      - waitForAnimationToEnd
+      - tapOn: '.*Northwind Labs.*Stage: Interviewing.*'
 - extendedWaitUntil:
     visible: Edit application
     timeout: 10000
@@ -72,7 +82,12 @@ appId: dev.kristinadarroch.applicationtracker
 - scrollUntilVisible:
     element: Updates from email
 - takeScreenshot: e2e/artifacts/inbox-04-log
-# Undo puts Northwind back at Applied (only offered for an auto-applied update).
+# Undo puts Northwind back at Applied (only offered for an auto-applied update). It sits below
+# the log heading, so bring it on screen first; absent after a manual Accept.
+- scrollUntilVisible:
+    element: Undo
+    timeout: 5000
+    optional: true
 - runFlow:
     when:
       visible: Undo
