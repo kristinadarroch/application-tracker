@@ -10,7 +10,7 @@ export interface EmailReading {
 }
 
 /**
- * The inbox's app-wide reader, mounted once in the tabs layout (INBX-8). New messages are triaged
+ * The inbox's app-wide reader, mounted once in the root layout (INBX-8). New messages are triaged
  * and confident updates applied even when the Inbox tab isn't open. With a Gmail token it reads
  * new mail when the app opens (the token arrives) and whenever the app returns to the foreground.
  * No timers: reading only happens on those events, Inbox focus, and pull-to-refresh.

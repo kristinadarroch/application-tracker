@@ -72,7 +72,7 @@ function setup({
   return store;
 }
 
-/** The app-wide reader the tabs layout mounts; the Inbox only shows its results. */
+/** The app-wide reader the root layout mounts; the Inbox only shows its results. */
 function EmailReader() {
   useEmailReading();
   return null;
