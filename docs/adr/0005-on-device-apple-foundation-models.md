@@ -45,4 +45,4 @@ Provider limits found: availability is a boolean (no reason), errors carry no st
 - **Works offline.** Extraction of pasted text, triage, prep, and mock interviews need no network. Only URL fetch does.
 - **Dependency risk.** `@react-native-ai/apple` is a small community project pinned to `ai@6`. The adapter keeps a library swap to one file (`src/services/ai/foundationModels.ios.ts`).
 - The model changes with OS updates (Apple's Foundation Models release notes), so prompts are re-checked after each major iOS release.
-- **Carried over from ADR 0003:** every model result is validated with Zod, and AI output only lands as a draft or proposal the user confirms.
+- **Carried over from ADR 0003:** every model result is validated with Zod, and AI output only lands as a draft or proposal the user confirms. One later, narrow exception: an email update Triage is confident about applies itself, logged with Undo ([ADR 0007](0007-auto-apply-confident-email-updates.md)).

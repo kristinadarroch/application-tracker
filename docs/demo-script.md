@@ -19,7 +19,7 @@ The brief asks for three things in the interview: a live demo, a code walkthroug
 | 0:45 | Share the listing from Safari → app opens and reads the page → draft review → confirm (or **Add from a link** and paste the URL: it starts reading by itself). Optional: a LinkedIn link shows "LinkedIn doesn’t let apps read its job pages" and switches to Paste text | AI intake, human-in-the-loop drafts, respecting site terms |
 | 2:00 | The application just confirmed → Prep questions are already generating (started on Confirm) → Mock interview asks its first question on open → one answer with feedback | AI prep, no extra taps |
 | 3:30 | Inbox → "Receive next email" ×3 → the Northwind scheduling email moves Northwind Applied → Interviewing by itself ("Updated: Interviewing") → open Northwind → "Updates from email" log → Undo. If the model is unsure, it asks which application, then Accept | Email Source interface, triage, auto-apply with Undo (ADR 0007), Redux |
-| 4:30 | Add from a link → Paste text → draft appears with no API call → play the offline clip | On-device AI: no metered per-token cost, private, works offline |
+| 4:30 | Add from a link → Paste text → draft appears with no network or cloud AI call → play the offline clip | On-device AI: no metered per-token cost, private, works offline |
 | 5:00 | Android Emulator → Inbox shows "Tag manually"; prep shows why AI is unavailable | Error handling, capability gating |
 | 5:15 | Settings → dark mode; dev gallery screen | Design system, theming |
 
@@ -27,7 +27,7 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 
 ## Dry run
 
-`e2e/demo.yaml` runs the in-app part of the table above in order, with the real on-device model: load demo data, paste a listing → draft → confirm, prep questions, one mock-interview turn, inbox triage → accept, dark mode. Not in it: the Safari share sheet, Android, the offline clip.
+`e2e/demo.yaml` runs the in-app part of the table above in order, with the real on-device model: load demo data, paste a listing → draft → confirm, prep questions, one mock-interview turn, the Acme invite email (applied by itself when the model is sure, otherwise picked and accepted), dark mode. Not in it: the Safari share sheet, Android, the offline clip, the LinkedIn link (see `link-import.yaml`), and Undo (see `ai-inbox.yaml`).
 
 | Date | Result | Wall time (incl. app launch) |
 |---|---|---|
