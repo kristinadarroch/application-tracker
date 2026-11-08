@@ -26,3 +26,26 @@ describe('persist migration to version 2', () => {
     expect(migrated).toEqual({ _persist: v1, applications });
   });
 });
+
+describe('persist migration to version 3', () => {
+  const v2 = { version: 2, rehydrated: false };
+
+  it('adds an empty Email Update log and no acknowledged time-out to a version 2 inbox', () => {
+    const inbox = {
+      messages: { ids: [], entities: {} },
+      triage: {},
+      fixtureCursor: 3,
+      source: 'mock',
+    };
+    const migrated = migrations[3]?.({ _persist: v2, inbox } as PersistedState);
+    expect(migrated).toEqual({
+      _persist: v2,
+      inbox: { ...inbox, updates: {}, acknowledgedTimeoutAt: null },
+    });
+  });
+
+  it('keeps a payload without an inbox as it is', () => {
+    const payload = { _persist: v2, settings: { theme: 'dark', aiReplay: false } };
+    expect(migrations[3]?.(payload as PersistedState)).toEqual(payload);
+  });
+});

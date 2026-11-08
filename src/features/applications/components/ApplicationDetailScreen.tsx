@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Alert, Linking, View } from 'react-native';
 
 import {
@@ -14,6 +15,7 @@ import {
   Text,
 } from '@/design-system';
 import { accentFor } from '@/lib/accents';
+import type { ApplicationId } from '@/lib/ids';
 import type { Stage } from '@/lib/stage';
 import { useAppDispatch } from '@/store/hooks';
 
@@ -50,11 +52,20 @@ async function openListing(url: string) {
   }
 }
 
+export interface ApplicationDetailScreenProps {
+  /**
+   * The "Updates from email" log for this application. The inbox owns it; the route passes it in
+   * so this feature doesn't import the inbox (whose selectors reach settings, which imports this
+   * feature's barrel).
+   */
+  emailUpdates: (applicationId: ApplicationId) => ReactNode;
+}
+
 /**
- * One application: its stages with Next Steps under the current one, then details, notes,
- * prep, and delete (PIPE-3–6).
+ * One application: its stages with Next Steps under the current one, then updates from email,
+ * details, notes, prep, and delete (PIPE-3–6, INBX-7).
  */
-export function ApplicationDetailScreen() {
+export function ApplicationDetailScreen({ emailUpdates }: ApplicationDetailScreenProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const styles = useStyles();
@@ -153,6 +164,8 @@ export function ApplicationDetailScreen() {
           ))}
         </Card>
       ) : null}
+
+      {emailUpdates(id)}
 
       <Card>
         <Text variant="heading">Details</Text>

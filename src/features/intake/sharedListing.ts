@@ -8,6 +8,8 @@ export type SharedListing =
   | { kind: 'nothing' };
 
 const WEB_LINK = /https?:\/\/[^\s<>"']+/i;
+/** Sentence punctuation after a link in shared text ("…/jobs/view/42.") isn't part of it. */
+const TRAILING_PUNCTUATION = /[.,;:!?)\]]+$/;
 
 /**
  * Reads the first shared item. Browsers share a URL, or text that contains one;
@@ -18,7 +20,7 @@ export function readSharedListing(payloads: readonly SharePayload[]): SharedList
   const payload = payloads[0];
   if (payload === undefined) return { kind: 'nothing' };
   const value = payload.value.trim();
-  const link = WEB_LINK.exec(value)?.[0];
+  const link = WEB_LINK.exec(value)?.[0].replace(TRAILING_PUNCTUATION, '');
   if (payload.shareType === 'url') {
     return link === undefined ? { kind: 'unsupported' } : { kind: 'url', url: link, text: '' };
   }

@@ -20,7 +20,7 @@ User stories are the source of truth for **what** the app does and how we know i
 | [Intake](#intake) | INT-1 – INT-6 | 2 | Must |
 | [Prep questions](#prep-questions) | PREP-1 – PREP-3 | 2 | Must |
 | [Mock interview](#mock-interview) | MOCK-1 – MOCK-5 | 3 | Should |
-| [Inbox](#inbox) | INBX-1 – INBX-6 | 4 | Should |
+| [Inbox](#inbox) | INBX-1 – INBX-8 | 4 | Should |
 | [Later](#later) | LATER-1 – LATER-2 | Stretch | Could |
 
 ## Shared rules
@@ -155,14 +155,14 @@ As a job seeker, I want my data saved on my device, so that nothing is lost when
 
 - **When** I force-quit and reopen the app, **then** all applications, drafts, Next Steps, prep questions, sessions, and settings are restored.
 
-### PIPE-8 · Filter my applications by status
+### PIPE-8 · Filter my applications by stage
 
-As a job seeker, I want to show only the applications in one status, so that I can focus on, say, everything I'm interviewing for.
+As a job seeker, I want to show only the applications at one Stage, so that I can focus on, say, everything I'm interviewing for.
 
-- **When** I open the Pipeline tab, **then** "Your applications" has a filter row: "All" plus one chip per status that has applications, each with its count ("Interviewing · 2"), with "All" selected.
-- **When** I pick a status, **then** only that status's group and rows show, and the chip is announced as selected.
+- **When** I open the Pipeline tab, **then** "Your applications" has a "Filter by stage" row: "All" plus one chip per Stage that has applications, each with its count ("Interviewing · 2"), with "All" selected.
+- **When** I pick a Stage, **then** only that Stage's group and rows show, and the chip is announced as selected.
 - **When** I pick "All", **then** every group shows again.
-- **Given** I filtered to a status and its last application moves away, **then** its chip stays selected with a count of 0 and the list says "No applications in this status."
+- **Given** I filtered to a Stage and its last application moves away, **then** its chip stays selected with a count of 0 and the list says "No applications in this stage."
 - **When** I filter, **then** the Next interview and Up next cards don't change.
 
 ---
@@ -174,6 +174,7 @@ As a job seeker, I want to show only the applications in one status, so that I c
 As a job seeker, I want to share a job listing straight from my browser, so that saving a role takes one tap.
 
 - **Given** I'm viewing a listing in Safari (iOS) or Chrome (Android), **when** I share it to Application Tracker, **then** the app opens on the share-received screen with the URL filled in.
+- **Given** I'm viewing a job in the LinkedIn app or on linkedin.com, **when** I share it to Application Tracker, **then** the app never loads the LinkedIn page (LinkedIn's terms don't allow it, and the repo rule is not to scrape sites that forbid it): it opens in "Paste text" with the notice "LinkedIn doesn't let apps read its job pages" and keeps the job link for the draft. If the share came with text (Android shares text like "Check out this job at Acme: … https://www.linkedin.com/jobs/view/…"), that text without the link fills "Listing text" and drafting starts on its own; a bare link (iOS) waits for me to paste the description.
 - **When** the shared content isn't a URL or text, **then** I see "This can't be imported" and a link to add the job from its link instead.
 
 ### INT-2 · Paste a listing's text
@@ -191,6 +192,8 @@ As a job seeker, I want to give the app a job's link and have it fill in the res
 - **When** I open "Add from a link", **then** the link field is shown first; pasting text is the fallback.
 - **When** I paste a whole link into the empty field, **then** the app starts loading and reading the page without another tap, and I get an Application Draft with the listing link stored.
 - **Given** the page is blocked, empty, behind a login, or needs JavaScript, **then** I see "Couldn't read this page" and the screen switches to paste mode with the URL kept.
+- **Given** the link is a LinkedIn link (`linkedin.com` or any subdomain, or `lnkd.in`), **when** I paste it or tap "Create draft", **then** nothing is loaded from LinkedIn (its terms; the repo rule against scraping sites that forbid it): the screen switches to "Paste text", shows "LinkedIn doesn't let apps read its job pages" with "Paste the job description from LinkedIn, or fill in the details yourself.", keeps "Fill in manually", and saves the link with the draft as `https://www.linkedin.com/jobs/view/<id>/` when the job ID is known (`/jobs/view/<id>` with or without a title, `/comm/jobs/view/<id>`, `currentJobId=<id>`), else as given.
+- **When** another app or a shortcut opens `applicationtracker://intake/new?url=<encoded job link>`, **then** "Add from a link" opens with the link filled in and starts reading, the same as a pasted link (a LinkedIn link opens in "Paste text" as above and waits). **Given** `url` is missing or isn't an `http`/`https` link, **then** the screen opens empty as usual.
 
 ### INT-4 · Review a draft before saving ★
 
@@ -294,9 +297,10 @@ As a job seeker, I want my job-search email in one place, so that I can see what
 
 As a job seeker, I want the app to spot what an email asks me to do, so that I can act without re-reading it.
 
-- **Given** an interview-invite message from a company I have an application for, **when** triage finishes, **then** I see a proposed Next Step with a due date, linked to that application.
-- **When** I accept the proposal, **then** the Next Step is added to that application.
+- **Given** an interview-invite message from a company I have an application for and triage isn't sure about the match, **when** triage finishes, **then** I see a proposed Next Step with a due date, and the Stage change it would make once I pick the application.
+- **When** I accept the proposal, **then** the Next Step is added to that application and its Stage moves as the email says (see INBX-7 for which moves are allowed).
 - **When** I dismiss it, **then** nothing changes.
+- **Given** triage is sure about the match, **then** the change is applied without asking (INBX-7).
 
 ### INBX-3 · Ignore unrelated email
 
@@ -308,7 +312,7 @@ As a job seeker, I want unrelated email set aside, so that the inbox stays focus
 
 As a job seeker, I want to choose the application myself when the app isn't sure, so that next steps land in the right place.
 
-- **Given** a low-confidence match, **then** I'm asked to choose from my applications before accepting.
+- **Given** a low-confidence match, or no match, **then** nothing changes until I choose from my applications and accept.
 - **Given** the AI returns an application that doesn't exist, **then** the result is treated as an unexpected response, never shown as a match.
 
 ### INBX-5 · Tag an email by hand ★
@@ -325,6 +329,26 @@ As the presenter, I want to deliver the next sample email on demand, so that I c
 - **Given** a development build, **when** I tap "Receive next email", **then** the next sample message appears and triage starts.
 - **Given** AI Replay is on, **then** every replayed result shows a "Replayed" badge.
 - **Given** all sample messages are delivered, **then** the button is disabled with "No more sample emails".
+- **Given** AI Replay is on and a replayed result is sure about the match, **then** it updates the application the same way as live triage (INBX-7), and the update shows "Replayed".
+
+### INBX-7 · Inbox updates my applications
+
+As a job seeker, I want interview updates in my email to update my applications by themselves, so that my pipeline stays current without retyping what an email says.
+
+- **Given** triage finished with high confidence and matched one of my applications, **when** the email moves the process forward, **then** the application's Stage changes and the proposed Next Step is added at once, without Accept ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)).
+- **Given** an interview invite, scheduling, or take-home email, **then** a Saved or Applied application moves to Interviewing; an offer moves an application before Offer to Offer; a rejection moves it to Rejected. **Given** a Rejected or Withdrawn application, **then** its Stage never changes. The app decides the Stage, never the AI.
+- **When** an email updated an application, **then** its Inbox row shows "Updated: Interviewing" (the new Stage), or "Updated: Next Step added" when the Stage stayed.
+- **When** I open that message, **then** I see "Updated from email" with what changed and an **Undo** button instead of Accept and Dismiss.
+- **When** I tap Undo, **then** the Stage goes back only if the application is still at the Stage the email set, and the Next Step is removed only if it still exists and isn't done; anything I changed since stays. Tapping Undo again changes nothing.
+- **When** I open the application, **then** "Updates from email" lists each update newest first (date, subject, what changed), with Undo while there's something to undo.
+
+### INBX-8 · Inbox reads new email by itself
+
+As a job seeker, I want new email read without opening the Inbox, so that updates land while I'm doing something else.
+
+- **Given** a new message arrives, **when** any tab is open, **then** it is triaged, and applied if triage is sure (INBX-7).
+- **Given** Gmail is connected, **when** the app opens, comes back to the foreground, or I open the Inbox tab or pull down on it, **then** new Gmail messages are read. The app never checks on a timer.
+- **Given** Gmail isn't connected, **then** nothing is fetched; sample email still arrives with "Receive next email" (INBX-6).
 
 ---
 

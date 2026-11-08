@@ -3,8 +3,9 @@ import type { SharePayload, UseIncomingShareResult } from 'expo-sharing';
 
 import { ok } from '@/lib/result';
 
+import { selectAllDrafts } from '../draftsSlice';
 import { fakeModel, type FakeModel } from '../testing/fakeModel';
-import { ACME_EXTRACTION, LISTING_PAGE_HTML } from '../testing/fixtures';
+import { ACME_EXTRACTION, LISTING_PAGE_HTML, LISTING_TEXT } from '../testing/fixtures';
 import { renderIntake } from '../testing/renderIntake';
 
 jest.mock('@/services/ai/foundationModels', () => ({
@@ -75,5 +76,50 @@ describe('Share a listing from my browser (INT-1)', () => {
     );
     expect(screen.getByRole('button', { name: 'Continue manually' })).toBeOnTheScreen();
     expect(fakeModel.prompts).toHaveLength(0);
+  });
+});
+
+describe('Share a LinkedIn job (INT-1)', () => {
+  const NOTICE = 'LinkedIn doesn’t let apps read its job pages';
+  const CANONICAL = 'https://www.linkedin.com/jobs/view/4426021931/';
+
+  it('waits for the description when iOS shares only the link, and loads nothing', async () => {
+    mockSharedPayloads = [
+      {
+        shareType: 'url',
+        value:
+          'https://www.linkedin.com/jobs/view/4426021931/?trackingId=Qx2b%2FJ3k%3D%3D&refId=wZu5%3D%3D&trk=flagship3_job_home_savedjobs',
+      },
+    ];
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    await renderIntake('/intake/share');
+
+    expect(screen.getByText(NOTICE)).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
+    expect(screen.getByLabelText('Listing text')).toHaveDisplayValue('');
+    expect(
+      screen.getByText(`The link ${CANONICAL} will be saved with this listing.`),
+    ).toBeOnTheScreen();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts).toHaveLength(0);
+  });
+
+  it('drafts from the text Android shares with the link, and loads nothing', async () => {
+    mockSharedPayloads = [
+      {
+        shareType: 'text',
+        value: `Check out this job at Acme Health: ${LISTING_TEXT} https://www.linkedin.com/jobs/view/4426021931.`,
+      },
+    ];
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    const { store } = await renderIntake('/intake/share');
+
+    expect(await screen.findByText('Review draft')).toBeOnTheScreen();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts[0]).toContain('Check out this job at Acme Health:');
+    expect(fakeModel.prompts[0]).not.toContain('linkedin.com');
+    const [draft] = selectAllDrafts(store.getState());
+    expect(draft?.listingUrl).toBe(CANONICAL);
+    expect(draft?.source).toBe('shared');
   });
 });

@@ -1,0 +1,51 @@
+# INT-1 / INT-3 deep links with the real on-device model.
+# 1. A web job link through the app link reads the page on its own (no tap) and drafts it.
+# 2. A LinkedIn job link loads nothing: the screen asks for the description, keeps the link,
+#    and drafts from the pasted text.
+# Needs the sample listing served from the Mac:
+#   python3 -m http.server 8099 --bind 127.0.0.1 --directory e2e/fixtures
+appId: dev.kristinadarroch.applicationtracker
+---
+- runFlow: launch.yaml
+
+# 1. Web link
+- openLink: applicationtracker://intake/new?url=http%3A%2F%2Flocalhost%3A8099%2Fjob-listing.html
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 60000
+- takeScreenshot: e2e/artifacts/link-01-web-draft
+- tapOn: Back
+- runFlow:
+    when:
+      visible: Discard
+    commands:
+      - tapOn: Discard
+
+# 2. LinkedIn link
+- openLink: applicationtracker://intake/new?url=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2F4426021931%2F%3FtrackingId%3Dabc%26refId%3Dxyz
+- runFlow:
+    when:
+      visible: Open
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible: '.*let apps read its job pages.*'
+    timeout: 10000
+- assertVisible: Listing text
+- assertVisible: '.*linkedin.com/jobs/view/4426021931/.*'
+- takeScreenshot: e2e/artifacts/link-02-linkedin-notice
+- waitForAnimationToEnd
+- tapOn: 'Listing text Paste the job listing here'
+- waitForAnimationToEnd
+- inputText: 'Senior Mobile Engineer (React Native) at dYdX, New York, NY. Build and ship our React Native trading app with TypeScript and Redux. 5+ years of mobile experience.'
+- assertVisible: '.*Senior Mobile Engineer.*'
+- tapOn: Create draft
+- extendedWaitUntil:
+    visible: Review draft
+    timeout: 60000
+- takeScreenshot: e2e/artifacts/link-03-linkedin-draft

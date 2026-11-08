@@ -44,9 +44,9 @@ appId: dev.kristinadarroch.applicationtracker
     visibilityPercentage: 30
     centerElement: true
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline-card-badge
-# PIPE-8: the status filter chips wrap at large text
+# PIPE-8: the Stage filter chips wrap at large text
 - scrollUntilVisible:
-    element: Filter by status
+    element: Filter by stage
     direction: UP
     timeout: 60000
     centerElement: true

@@ -29,7 +29,7 @@ appId: dev.kristinadarroch.applicationtracker
     element: '.*Acme Health.*Stage: Interviewing.*Prep: .*'
 - takeScreenshot: e2e/artifacts/pipeline-02-seeded
 
-# PIPE-8: filter the list to one status, then back to All
+# PIPE-8: filter the list to one Stage, then back to All
 - scrollUntilVisible:
     element: 'Interviewing · 1'
     direction: UP

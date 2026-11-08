@@ -246,7 +246,7 @@ describe('Applications card', () => {
   });
 });
 
-describe('Status filter (PIPE-8)', () => {
+describe('Stage filter (PIPE-8)', () => {
   const filterState = {
     applications: applicationsState(
       makeApplication({ id: ApplicationIdSchema.parse('acme'), stage: 'interviewing' }),
@@ -266,9 +266,9 @@ describe('Status filter (PIPE-8)', () => {
   const row = (company: string) =>
     screen.queryByRole('button', { name: new RegExp(`^${company},`) });
 
-  it('offers All plus each status that has applications, with counts, All selected', async () => {
+  it('offers All plus each Stage that has applications, with counts, All selected', async () => {
     await renderApp('/', { preloadedState: filterState });
-    expect(screen.getByText('Filter by status')).toBeOnTheScreen();
+    expect(screen.getByText('Filter by stage')).toBeOnTheScreen();
     expect(chip('All · 3')).toBeSelected();
     expect(chip('Applied · 1')).not.toBeSelected();
     expect(chip('Interviewing · 2')).not.toBeSelected();
@@ -292,7 +292,7 @@ describe('Status filter (PIPE-8)', () => {
     expect(row('Northwind Labs')).toBeOnTheScreen();
   });
 
-  it('keeps an emptied status selected and says it has no applications', async () => {
+  it('keeps an emptied Stage selected and says it has no applications', async () => {
     const { store } = await renderApp('/', { preloadedState: filterState });
     await fireEvent.press(chip('Applied · 1'));
 
@@ -307,7 +307,7 @@ describe('Status filter (PIPE-8)', () => {
     });
 
     expect(chip('Applied · 0')).toBeSelected();
-    expect(screen.getByText('No applications in this status.')).toBeOnTheScreen();
+    expect(screen.getByText('No applications in this stage.')).toBeOnTheScreen();
     expect(row('Northwind Labs')).toBeNull();
   });
 });

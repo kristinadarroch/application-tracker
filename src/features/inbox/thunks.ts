@@ -1,4 +1,9 @@
-import { selectApplicationById, nextStepAdded } from '@/features/applications/model';
+import {
+  nextStepAdded,
+  nextStepRemoved,
+  selectApplicationById,
+  stageChanged,
+} from '@/features/applications/model';
 import { selectAiReplay } from '@/features/settings';
 import type { IsoDate } from '@/lib/dates';
 import type { AppError } from '@/lib/errors';
@@ -8,14 +13,23 @@ import type { AppDispatch, RootState } from '@/store/store';
 
 import type { EmailSource, EmailSourceError } from './emailSource';
 import {
+  selectEmailUpdate,
   selectInboxMessages,
   selectIsTriageRunning,
   selectMessageById,
   selectMessagesToTriage,
   selectTriage,
   selectTriageCandidates,
+  selectUndoPlan,
 } from './selectors';
-import { messagesReceived, messageTaggedManually, proposalDecided } from './slice';
+import {
+  emailUpdateApplied,
+  emailUpdateUndone,
+  messagesReceived,
+  messageTaggedManually,
+  proposalDecided,
+} from './slice';
+import { stageFromTriage } from './stageFromTriage';
 import { triageApi } from './triageApi';
 
 type Thunk<R> = (dispatch: AppDispatch, getState: () => RootState) => R;
@@ -36,6 +50,86 @@ export function startTriage(messageId: MessageId): Thunk<Promise<void>> {
     await request;
     // The outcome now lives in `inbox.triage`; drop the request cache entry.
     request.reset();
+    dispatch(applyConfidentTriage({ messageId, now: new Date().toISOString() }));
+  };
+}
+
+/**
+ * Applies a confident Triage right away (ADR 0007): high confidence and a matched application
+ * that still exists. Moves the Stage (decided by `stageFromTriage`, never by the model) and adds
+ * the proposed Next Step, then records an Email Update so the change shows in the log and can be
+ * undone. Unsure or unmatched results stay open proposals for the user (INBX-4).
+ */
+export function applyConfidentTriage({
+  messageId,
+  now,
+}: {
+  messageId: MessageId;
+  now: string;
+}): Thunk<void> {
+  return (dispatch, getState) => {
+    const state = getState();
+    const triage = selectTriage(state, messageId);
+    const message = selectMessageById(state, messageId);
+    if (triage?.status !== 'done' || triage.decision !== 'open' || message === undefined) return;
+    const { result } = triage;
+    if (result.confidence !== 'high' || result.applicationId === null) return;
+    const application = selectApplicationById(state, result.applicationId);
+    if (application === undefined) return;
+    const newStage = stageFromTriage(result.category, application.stage);
+    const step =
+      result.proposedNextStep === undefined
+        ? undefined
+        : { ...result.proposedNextStep, id: createId(NextStepIdSchema, 'step') };
+    if (newStage === undefined && step === undefined) return;
+
+    if (newStage !== undefined) {
+      dispatch(stageChanged({ id: application.id, stage: newStage, now }));
+    }
+    if (step !== undefined) {
+      dispatch(
+        nextStepAdded({ applicationId: application.id, ...step, source: 'inbox', messageId, now }),
+      );
+    }
+    dispatch(
+      emailUpdateApplied({
+        messageId,
+        applicationId: application.id,
+        subject: message.subject,
+        previousStage: application.stage,
+        ...(newStage === undefined ? {} : { newStage }),
+        ...(step === undefined ? {} : { nextStepId: step.id, nextStepTitle: step.title }),
+        replayed: triage.replayed,
+        appliedAt: now,
+      }),
+    );
+  };
+}
+
+/**
+ * Reverts exactly what an Email Update applied: the Stage goes back only if the application is
+ * still at the Stage the email set, and the Next Step is removed only if it still exists and
+ * isn't done. Anything the user changed since stays. Undoing twice does nothing.
+ */
+export function undoEmailUpdate({
+  messageId,
+  now,
+}: {
+  messageId: MessageId;
+  now: string;
+}): Thunk<void> {
+  return (dispatch, getState) => {
+    const state = getState();
+    const update = selectEmailUpdate(state, messageId);
+    if (update === undefined || update.undoneAt !== undefined) return;
+    const plan = selectUndoPlan(state, messageId);
+    if (plan.restoreStage) {
+      dispatch(stageChanged({ id: update.applicationId, stage: update.previousStage, now }));
+    }
+    if (plan.removeStep && update.nextStepId !== undefined) {
+      dispatch(nextStepRemoved({ applicationId: update.applicationId, id: update.nextStepId }));
+    }
+    dispatch(emailUpdateUndone({ messageId, now }));
   };
 }
 
@@ -53,7 +147,10 @@ export function triageNextMessage(): Thunk<Promise<void>> {
   };
 }
 
-/** Adds the proposed Next Step to the chosen application (INBX-2, INBX-4). */
+/**
+ * Applies a proposal to the chosen application (INBX-2, INBX-4): the Stage change decided by
+ * `stageFromTriage`, and the proposed Next Step.
+ */
 export function acceptProposal({
   messageId,
   applicationId,
@@ -66,22 +163,27 @@ export function acceptProposal({
   return (dispatch, getState) => {
     const state = getState();
     const triage = selectTriage(state, messageId);
-    if (triage?.status !== 'done' || triage.result.proposedNextStep === undefined) {
+    if (triage?.status !== 'done') return err({ kind: 'not_found', entity: 'message' });
+    const application = selectApplicationById(state, applicationId);
+    if (application === undefined) return err({ kind: 'not_found', entity: 'application' });
+    const newStage = stageFromTriage(triage.result.category, application.stage);
+    const step = triage.result.proposedNextStep;
+    if (newStage === undefined && step === undefined) {
       return err({ kind: 'not_found', entity: 'message' });
     }
-    if (selectApplicationById(state, applicationId) === undefined) {
-      return err({ kind: 'not_found', entity: 'application' });
+    if (newStage !== undefined) dispatch(stageChanged({ id: applicationId, stage: newStage, now }));
+    if (step !== undefined) {
+      dispatch(
+        nextStepAdded({
+          applicationId,
+          id: createId(NextStepIdSchema, 'step'),
+          ...step,
+          source: 'inbox',
+          messageId,
+          now,
+        }),
+      );
     }
-    dispatch(
-      nextStepAdded({
-        applicationId,
-        id: createId(NextStepIdSchema, 'step'),
-        ...triage.result.proposedNextStep,
-        source: 'inbox',
-        messageId,
-        now,
-      }),
-    );
     dispatch(proposalDecided({ messageId, decision: 'accepted' }));
     return ok(undefined);
   };

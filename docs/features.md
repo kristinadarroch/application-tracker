@@ -48,7 +48,7 @@ flowchart LR
 
 ## Tier 1 — Pipeline
 
-- Pipeline tab (home), prep-first: a **Next interview** card (prep progress, "Practice questions", "Mock interview"), then the "Up next" Next Step, then applications grouped by **Stage** with counts and an empty state, with a status filter ("All" plus one chip per status that has applications).
+- Pipeline tab (home), prep-first: a **Next interview** card (prep progress, "Practice questions", "Mock interview"), then the "Up next" Next Step, then applications grouped by **Stage** with counts and an empty state, with a Stage filter ("All" plus one chip per Stage that has applications).
 - Create an application manually (form validated by the `Application` Zod schema).
 - Application detail: fields, stage changer, notes, **Next Steps** list (add, complete).
 - Edit and delete with confirmation.
@@ -63,6 +63,8 @@ flowchart LR
 - Dev build with the `expo-sharing` plugin enabled (iOS share extension, Android intent filter for `text/plain` URLs).
 - `+native-intent.ts` routes incoming shares to `/intake/share`.
 - New-application screen: paste a URL or the listing text.
+- LinkedIn links are never loaded (LinkedIn's terms; AGENTS.md "Don't scrape sites that forbid it"): typed, shared, or deep-linked LinkedIn links switch intake to "Paste text" with an info notice, keep the link (canonical `https://www.linkedin.com/jobs/view/<id>/` when the job ID is known), and draft from any text shared with the link.
+- Deep link `applicationtracker://intake/new?url=<encoded link>` opens "Add from a link" with the link filled in and starts reading (`http`/`https` only).
 - `OnDeviceModel` adapter (`foundationModels.ios.ts`, non-iOS stub `foundationModels.ts`), `capabilities` slice, and `selectAiAvailability`.
 - `extractListing` task: fetch URL on device (if given) → readability check → trim to context budget → on-device extraction → **Application Draft**.
 - Review-draft screen: every extracted field is editable; confirm creates the application.
@@ -89,9 +91,10 @@ flowchart LR
 - Inbox tab: messages with triage status (pending, done, failed).
 - Dev-only "Receive next email" button appends the next fixture.
 - `triage-message` endpoint: category, matched application (or none), proposed next step with due date, confidence.
-- Accepting a proposed next step adds it to the matched application; low-confidence matches ask the user to choose.
+- Accepting a proposed next step adds it to the matched application and applies the Stage change; low-confidence matches ask the user to choose.
+- Confident triage (high confidence, matched application) updates the application by itself: Stage decided in code and the Next Step, shown as "Updated from email" with one-tap Undo, and logged under "Updates from email" on the application ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)). New email is read and triaged app-wide; Gmail is read on open, foreground, Inbox focus, and pull-to-refresh, never on a timer.
 
-**Stories:** [INBX-1 – INBX-6](user-stories.md#inbox).
+**Stories:** [INBX-1 – INBX-8](user-stories.md#inbox).
 
 **Engineering done when:** triage matching has unit tests driven by the fixture messages, including an unknown application ID.
 

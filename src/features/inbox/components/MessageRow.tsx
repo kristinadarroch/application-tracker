@@ -3,15 +3,23 @@ import { View } from 'react-native';
 import { Badge, Button, ListItem, makeStyles, Stack, Text } from '@/design-system';
 import { assertNever } from '@/lib/assertNever';
 
-import type { InboxMessage, TriageCandidate, TriageState } from '../schema';
+import type { EmailUpdate, InboxMessage, TriageCandidate, TriageState } from '../schema';
 import { MatchedApplication } from './MatchedApplication';
-import { CATEGORY_LABELS, CATEGORY_TONES, REPLAYED_LABEL } from './triageCopy';
+import {
+  CATEGORY_LABELS,
+  CATEGORY_TONES,
+  emailUpdateBadge,
+  REPLAYED_LABEL,
+  shortDate,
+} from './triageCopy';
 
 export interface MessageRowProps {
   message: InboxMessage;
   triage: TriageState | undefined;
   /** The application Triage matched, when it is one of the candidates. */
   matched: TriageCandidate | undefined;
+  /** What this message changed by itself, if Triage was confident (INBX-7). */
+  update: EmailUpdate | undefined;
   /** Whether Triage can run for this message; when it can't, the row offers "Tag manually" (UX-7). */
   canTriage: boolean;
   onOpen: () => void;
@@ -27,14 +35,12 @@ const useStyles = makeStyles((t) => ({
   status: { paddingHorizontal: t.space[4], paddingBottom: t.space[4], gap: t.space[2] },
 }));
 
-const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-
 /** One Inbox Message as a white card: subject, sender, Triage status, and application (INBX-1). */
 export function MessageRow({
   message,
   triage,
   matched,
+  update,
   canTriage,
   onOpen,
   onRetry,
@@ -51,7 +57,13 @@ export function MessageRow({
         accessibilityHint="Opens the message"
       />
       <View style={styles.status}>
-        <TriageStatus triage={triage} canTriage={canTriage} onOpen={onOpen} onRetry={onRetry} />
+        <TriageStatus
+          triage={triage}
+          update={update}
+          canTriage={canTriage}
+          onOpen={onOpen}
+          onRetry={onRetry}
+        />
         {showMatch ? <MatchedApplication application={matched} prefix="For" /> : null}
       </View>
     </View>
@@ -60,10 +72,11 @@ export function MessageRow({
 
 function TriageStatus({
   triage,
+  update,
   canTriage,
   onOpen,
   onRetry,
-}: Pick<MessageRowProps, 'triage' | 'canTriage' | 'onOpen' | 'onRetry'>) {
+}: Pick<MessageRowProps, 'triage' | 'update' | 'canTriage' | 'onOpen' | 'onRetry'>) {
   if (triage === undefined || (triage.status === 'failed' && !canTriage)) {
     return canTriage ? (
       <Text variant="mono" color="tertiary">
@@ -95,16 +108,49 @@ function TriageStatus({
             label={CATEGORY_LABELS[triage.result.category]}
           />
           {triage.replayed ? <Badge tone="warning" label={REPLAYED_LABEL} /> : null}
-          {triage.decision === 'accepted' ? (
-            <Badge tone="success" icon="checkmark" label="Next Step added" />
-          ) : triage.decision === 'open' && triage.result.proposedNextStep !== undefined ? (
-            <Badge tone="neutral" icon="construct-outline" label="Next Step proposed" />
-          ) : null}
+          <DecisionBadge triage={triage} update={update} />
         </Stack>
       );
     case 'manual':
       return <Badge tone="success" icon="pricetag-outline" label="Tagged manually" />;
     default:
       return assertNever(triage);
+  }
+}
+
+/** What happened to the proposal: added, proposed, or updated by itself (INBX-2, INBX-7). */
+function DecisionBadge({
+  triage,
+  update,
+}: {
+  triage: Extract<TriageState, { status: 'done' }>;
+  update: EmailUpdate | undefined;
+}) {
+  switch (triage.decision) {
+    case 'open':
+      return triage.result.proposedNextStep === undefined ? null : (
+        <Badge tone="neutral" icon="construct-outline" label="Next Step proposed" />
+      );
+    case 'accepted':
+      return (
+        <Badge
+          tone="success"
+          icon="checkmark"
+          label={triage.result.proposedNextStep === undefined ? 'Accepted' : 'Next Step added'}
+        />
+      );
+    case 'auto_applied':
+    case 'undone':
+      return update === undefined ? null : (
+        <Badge
+          tone={triage.decision === 'undone' ? 'neutral' : 'success'}
+          icon={triage.decision === 'undone' ? 'arrow-undo-outline' : 'checkmark'}
+          label={emailUpdateBadge(update)}
+        />
+      );
+    case 'dismissed':
+      return null;
+    default:
+      return assertNever(triage.decision);
   }
 }

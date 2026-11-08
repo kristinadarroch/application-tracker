@@ -1,4 +1,5 @@
-# INBX-1, INBX-2, INBX-3, INBX-6 with the real on-device model.
+# INBX-1, INBX-2, INBX-3, INBX-6, INBX-7 with the real on-device model.
+# Demo data: Acme Interviewing, Northwind Applied, Globex Saved.
 appId: dev.kristinadarroch.applicationtracker
 ---
 - runFlow: launch.yaml
@@ -7,37 +8,81 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: Back
 - tapOn: 'Inbox.*'
 - assertVisible: No messages yet
-# INBX-6: deliver the first sample email (Acme Health interview invite)
+
+# INBX-6: deliver the first three sample emails: Acme invite, a newsletter, Northwind scheduling.
 - tapOn: Receive next email
-# Wait for the finished result, not just the absence of "Analyzing" (which can pass before it starts).
-- extendedWaitUntil:
-    visible: '(?i).*next step proposed.*'
-    timeout: 60000
-- takeScreenshot: e2e/artifacts/inbox-01-triaged
 - waitForAnimationToEnd
-- tapOn:
-    text: 'Interview invitation.*'
-    retryTapIfNoChange: true
-# INBX-2: proposal linked to the application, accept adds the Next Step
+- tapOn: Receive next email
+- waitForAnimationToEnd
+- tapOn: Receive next email
+# Wait for the finished Northwind result, not just the absence of "Analyzing".
 - extendedWaitUntil:
-    visible: Proposed Next Step
+    visible: '(?i).*(updated: interviewing|next step proposed|proposed change).*'
+    timeout: 120000
+- extendedWaitUntil:
+    notVisible: '(?i).*analyzing.*'
+    timeout: 120000
+- takeScreenshot: e2e/artifacts/inbox-01-triaged
+
+# INBX-7: a confident match updates the application by itself. When the model was unsure,
+# the same change waits as a proposal: pick Northwind and Accept, which applies it too.
+- waitForAnimationToEnd
+- tapOn: 'Next steps for Frontend Engineer.*'
+- runFlow:
+    when:
+      visible: Receive next email
+    commands:
+      - waitForAnimationToEnd
+      - tapOn: 'Next steps for Frontend Engineer.*'
+- extendedWaitUntil:
+    visible: '(?i)(updated from email|proposed next step|proposed change)'
     timeout: 10000
-- assertVisible: '.*Acme Health.*'
-- takeScreenshot: e2e/artifacts/inbox-02-proposal
-- scrollUntilVisible:
-    element: Accept
-- tapOn: Accept
-- assertVisible: '.*Next Step added.*'
+- runFlow:
+    when:
+      visible: Updated from email
+    commands:
+      - assertVisible: '.*Applied → Interviewing.*'
+- takeScreenshot: e2e/artifacts/inbox-02-update
+- runFlow:
+    when:
+      visible: Which application is this about?
+    commands:
+      - tapOn: Northwind Labs — Frontend Engineer (React)
+- runFlow:
+    when:
+      visible: Accept
+    commands:
+      - scrollUntilVisible:
+          element: Accept
+      - tapOn: Accept
 - tapOn: Back
+
+# The Pipeline shows Northwind at Interviewing without any edit by hand (or after one Accept
+# when the model was unsure).
 - tapOn: 'Pipeline.*'
 - waitForAnimationToEnd
 - scrollUntilVisible:
-    element: '.*Acme Health.*Interviewing.*'
-- tapOn: '.*Acme Health.*Interviewing.*'
+    element: '.*Northwind Labs.*Stage: Interviewing.*'
+- takeScreenshot: e2e/artifacts/inbox-03-pipeline-updated
+- tapOn: '.*Northwind Labs.*Stage: Interviewing.*'
 - extendedWaitUntil:
     visible: Edit application
     timeout: 10000
-# The accepted step shows under the current stage (its title comes from the model, so the
-# check is the Next Step label; the unit tests cover the exact step).
-- assertVisible: '(?i)next step'
-- takeScreenshot: e2e/artifacts/inbox-03-step-on-application
+# The application keeps a log of what email changed.
+- scrollUntilVisible:
+    element: Updates from email
+- takeScreenshot: e2e/artifacts/inbox-04-log
+# Undo puts Northwind back at Applied (only offered for an auto-applied update).
+- runFlow:
+    when:
+      visible: Undo
+    commands:
+      - tapOn: Undo
+      - extendedWaitUntil:
+          visible: '(?i).*undone.*'
+          timeout: 5000
+      - tapOn: Back
+      - waitForAnimationToEnd
+      - scrollUntilVisible:
+          element: '.*Northwind Labs.*Stage: Applied.*'
+      - takeScreenshot: e2e/artifacts/inbox-05-undone

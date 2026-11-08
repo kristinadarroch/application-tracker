@@ -10,7 +10,13 @@ import type { AppError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';
 
 import { deliverFixture } from './mockEmailSource';
-import type { EmailSourceKind, InboxMessage, ProposalDecision, TriageState } from './schema';
+import type {
+  EmailSourceKind,
+  EmailUpdate,
+  InboxMessage,
+  ProposalDecision,
+  TriageState,
+} from './schema';
 import { triageApi } from './triageApi';
 
 /** Newest first (INBX-1). */
@@ -27,6 +33,10 @@ export interface InboxState {
   fixtureCursor: number;
   /** The Email Source new messages come from. */
   source: EmailSourceKind;
+  /** Changes confident Triage applied by itself, keyed by message (ADR 0007). The log on each application. */
+  updates: Partial<Record<MessageId, EmailUpdate>>;
+  /** Start of the time-out the user last resumed after ("Analyze remaining"); older ones don't pause. */
+  acknowledgedTimeoutAt: number | null;
 }
 
 const initialState: InboxState = {
@@ -34,6 +44,8 @@ const initialState: InboxState = {
   triage: {},
   fixtureCursor: 0,
   source: 'mock',
+  updates: {},
+  acknowledgedTimeoutAt: null,
 };
 
 const { matchPending, matchFulfilled, matchRejected } = triageApi.endpoints.triageMessage;
@@ -56,11 +68,43 @@ export const inboxSlice = createSlice({
     },
     proposalDecided(
       state,
-      action: PayloadAction<{ messageId: MessageId; decision: Exclude<ProposalDecision, 'open'> }>,
+      action: PayloadAction<{
+        messageId: MessageId;
+        decision: Extract<ProposalDecision, 'accepted' | 'dismissed'>;
+      }>,
     ) {
       const triage = state.triage[action.payload.messageId];
       if (triage?.status !== 'done') return;
       triage.decision = action.payload.decision;
+    },
+    /** Confident Triage applied its change by itself (ADR 0007). */
+    emailUpdateApplied(state, action: PayloadAction<EmailUpdate>) {
+      const update = action.payload;
+      state.updates[update.messageId] = update;
+      const triage = state.triage[update.messageId];
+      if (triage?.status === 'done') triage.decision = 'auto_applied';
+    },
+    /** The user undid an Email Update; the applications actions already reverted what was still there. */
+    emailUpdateUndone(state, action: PayloadAction<{ messageId: MessageId; now: string }>) {
+      const update = state.updates[action.payload.messageId];
+      if (update === undefined || update.undoneAt !== undefined) return;
+      update.undoneAt = action.payload.now;
+      const triage = state.triage[action.payload.messageId];
+      if (triage?.status === 'done' && triage.decision === 'auto_applied') {
+        triage.decision = 'undone';
+      }
+    },
+    /** "Analyze remaining": time-outs up to now no longer pause automatic Triage. */
+    triageResumed(state) {
+      for (const triage of Object.values(state.triage)) {
+        if (triage?.status !== 'failed' || triage.error.kind !== 'timeout') continue;
+        if (
+          state.acknowledgedTimeoutAt === null ||
+          triage.startedAt > state.acknowledgedTimeoutAt
+        ) {
+          state.acknowledgedTimeoutAt = triage.startedAt;
+        }
+      }
     },
     messageTaggedManually(state, action: PayloadAction<MessageId>) {
       state.triage[action.payload] = { status: 'manual' };
@@ -115,6 +159,9 @@ export const {
   nextFixtureReceived,
   messagesReceived,
   proposalDecided,
+  emailUpdateApplied,
+  emailUpdateUndone,
+  triageResumed,
   messageTaggedManually,
   emailSourceChanged,
 } = inboxSlice.actions;

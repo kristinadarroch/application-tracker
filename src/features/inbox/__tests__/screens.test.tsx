@@ -6,11 +6,13 @@ import { ApplicationIdSchema, MessageIdSchema, type ApplicationId } from '@/lib/
 import { err, ok } from '@/lib/result';
 import type { AiAvailability } from '@/services/ai/model';
 import { makeStore, type TestStore } from '@/store/store';
+import { renderApp } from '@/test/renderApp';
 import { renderWithProviders } from '@/test/renderWithProviders';
 
 import { ConnectGmailScreen } from '../components/ConnectGmailScreen';
 import { InboxScreen } from '../components/InboxScreen';
 import { MessageDetailScreen } from '../components/MessageDetailScreen';
+import { useEmailReading } from '../hooks/useEmailReading';
 import { FIXTURE_MESSAGES } from '../mockEmailSource';
 import { nextFixtureReceived } from '../slice';
 import { startTriage } from '../thunks';
@@ -70,10 +72,20 @@ function setup({
   return store;
 }
 
+/** The app-wide reader the tabs layout mounts; the Inbox only shows its results. */
+function EmailReader() {
+  useEmailReading();
+  return null;
+}
+
 const renderInbox = (store: TestStore) =>
-  renderWithProviders(<InboxScreen onOpenMessage={jest.fn()} onOpenGmailSettings={jest.fn()} />, {
-    store,
-  });
+  renderWithProviders(
+    <>
+      <EmailReader />
+      <InboxScreen onOpenMessage={jest.fn()} onOpenGmailSettings={jest.fn()} />
+    </>,
+    { store },
+  );
 
 const renderMessage = (store: TestStore, id: string) =>
   renderWithProviders(
@@ -143,6 +155,13 @@ describe('Inbox tab', () => {
     expect(screen.getByText('Interview invite')).toBeOnTheScreen();
     expect(mockGenerate).not.toHaveBeenCalled();
   });
+
+  it('badges a message that updated an application by itself (INBX-7)', async () => {
+    // Acme is Applied, so the confident invite moves it to Interviewing.
+    await renderInbox(setup({ ai: UNAVAILABLE, replay: true, received: 1 }));
+
+    expect(await screen.findByText('Updated: Interviewing')).toBeOnTheScreen();
+  });
 });
 
 describe('automatic Triage queue', () => {
@@ -201,15 +220,26 @@ describe('automatic Triage queue', () => {
 });
 
 describe('Message detail', () => {
-  it('shows a dated proposal linked to the matched application (INBX-2)', async () => {
+  it('shows what a confident email changed, and Undo puts it back (INBX-7)', async () => {
     const store = setup({ ai: UNAVAILABLE, replay: true, received: 1 });
     await store.dispatch(startTriage(MessageIdSchema.parse('msg_fixture_acme_invite')));
     await renderMessage(store, 'msg_fixture_acme_invite');
 
     expect(screen.getByText('For: Acme Health — Senior React Native Engineer')).toBeOnTheScreen();
-    expect(screen.getByText('Book technical interview')).toBeOnTheScreen();
-    expect(screen.getByText(/^Due: /)).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Accept' })).toBeEnabled();
+    expect(screen.getByText('Updated from email')).toBeOnTheScreen();
+    expect(screen.getByText('Stage: Applied → Interviewing')).toBeOnTheScreen();
+    expect(screen.getByText('Next Step added: Book technical interview')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(store.getState().applications.entities[acmeId]).toMatchObject({
+      stage: 'applied',
+      nextSteps: [],
+    });
+    expect(screen.getByText('Undone. Changes you made yourself were kept.')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
 
   it('requires choosing the application for a low-confidence match before accepting (INBX-4)', async () => {
@@ -235,9 +265,9 @@ describe('Message detail', () => {
   });
 
   it('dismissing a proposal changes nothing (INBX-2)', async () => {
-    const store = setup({ ai: UNAVAILABLE, replay: true, received: 1 });
-    await store.dispatch(startTriage(MessageIdSchema.parse('msg_fixture_acme_invite')));
-    await renderMessage(store, 'msg_fixture_acme_invite');
+    const store = setup({ ai: UNAVAILABLE, replay: true, received: 5 });
+    await store.dispatch(startTriage(MessageIdSchema.parse('msg_fixture_recruiter_followup')));
+    await renderMessage(store, 'msg_fixture_recruiter_followup');
     const before = store.getState().applications;
 
     await fireEvent.press(screen.getByRole('button', { name: 'Dismiss' }));
@@ -269,6 +299,36 @@ describe('Message detail', () => {
       }),
     ]);
     expect(screen.getByText('Tagged manually')).toBeOnTheScreen();
+  });
+});
+
+describe('Updates from email on the application (INBX-7)', () => {
+  it('logs what the email changed, with Undo while there is something to undo', async () => {
+    const store = setup({ ai: UNAVAILABLE, replay: true, received: 1 });
+    await store.dispatch(startTriage(MessageIdSchema.parse('msg_fixture_acme_invite')));
+    await renderApp('/application/app_acme', { store });
+
+    expect(screen.getByText('Updates from email')).toBeOnTheScreen();
+    expect(
+      screen.getByText('Interview invitation: Senior React Native Engineer'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Stage: Applied → Interviewing')).toBeOnTheScreen();
+    expect(screen.getByText('Next Step added: Book technical interview')).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(store.getState().applications.entities[acmeId]).toMatchObject({
+      stage: 'applied',
+      nextSteps: [],
+    });
+    expect(screen.getByText('Undone')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
+  it('shows nothing for an application no email has changed', async () => {
+    await renderApp('/application/app_globex', { store: setup({ received: 0 }) });
+
+    expect(screen.queryByText('Updates from email')).toBeNull();
   });
 });
 

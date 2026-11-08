@@ -3,8 +3,10 @@ import { useState, type ReactNode } from 'react';
 import { Badge, Banner, Button, Card, ProposalCard, Stack, Text } from '@/design-system';
 import { formatDueDate } from '@/lib/dates';
 import type { ApplicationId } from '@/lib/ids';
+import { STAGE_LABELS, type Stage } from '@/lib/stage';
 
 import type { ProposalDecision, TriageCandidate, TriageResult } from '../schema';
+import { canChangeStage, stageFromTriage } from '../stageFromTriage';
 import { ApplicationPicker } from './ApplicationPicker';
 import { MatchedApplication } from './MatchedApplication';
 import { CATEGORY_LABELS, CATEGORY_TONES, REPLAYED_LABEL } from './triageCopy';
@@ -14,19 +16,23 @@ export interface TriageResultPanelProps {
   replayed: boolean;
   decision: ProposalDecision;
   applications: readonly TriageCandidate[];
+  /** Current Stage of each application, to show the Stage change accepting would make. */
+  stages: Partial<Record<ApplicationId, Stage>>;
   onAccept: (applicationId: ApplicationId) => void;
   onDismiss: () => void;
 }
 
 /**
- * A finished Triage: category and matched application, then the proposed Next Step, shown
- * hatched until the user accepts or dismisses it (INBX-2–4).
+ * A finished Triage: category and matched application, then the proposal (Stage change and Next
+ * Step), shown hatched until the user accepts or dismisses it (INBX-2–4). Changes a confident
+ * Triage applied by itself are shown by `EmailUpdatePanel` instead (INBX-7).
  */
 export function TriageResultPanel({
   result,
   replayed,
   decision,
   applications,
+  stages,
   onAccept,
   onDismiss,
 }: TriageResultPanelProps) {
@@ -38,6 +44,20 @@ export function TriageResultPanel({
   const target = applications.find((a) => a.id === targetId);
   const step = result.proposedNextStep;
   const related = result.category !== 'unrelated';
+  const targetStage = targetId === null ? undefined : stages[targetId];
+  const newStage =
+    targetStage === undefined ? undefined : stageFromTriage(result.category, targetStage);
+  // Before an application is chosen, and after the user decided, show the proposal whenever this
+  // kind of email can move an application; while open, only when it would move the chosen one.
+  const proposesStage =
+    targetStage === undefined || decision !== 'open'
+      ? canChangeStage(result.category)
+      : newStage !== undefined;
+  const showProposal =
+    related &&
+    (step !== undefined || proposesStage) &&
+    decision !== 'auto_applied' &&
+    decision !== 'undone';
 
   return (
     <Stack gap={3}>
@@ -70,10 +90,18 @@ export function TriageResultPanel({
         </Stack>
       </Card>
 
-      {related && step !== undefined ? (
-        <ProposedStep
-          title={step.title}
-          due={formatDueDate(step.dueDate, new Date())}
+      {showProposal ? (
+        <Proposal
+          step={
+            step === undefined
+              ? undefined
+              : { title: step.title, due: formatDueDate(step.dueDate, new Date()) }
+          }
+          stageChange={
+            targetStage === undefined || newStage === undefined
+              ? undefined
+              : `Stage: ${STAGE_LABELS[targetStage]} → ${STAGE_LABELS[newStage]}`
+          }
           decision={decision}
           replayed={replayed}
           targetCompany={target?.company}
@@ -99,36 +127,44 @@ export function TriageResultPanel({
             />
             <Button label="Dismiss" variant="secondary" onPress={onDismiss} />
           </Stack>
-        </ProposedStep>
+        </Proposal>
       ) : null}
     </Stack>
   );
 }
 
 /**
- * The proposed Next Step. While undecided it is a `ProposalCard` (not saved); once accepted or
- * dismissed it is a plain card, because nothing is pending any more.
+ * The proposal: the Next Step and, once the application is known, the Stage change. While
+ * undecided it is a `ProposalCard` (not saved); once accepted or dismissed it is a plain card,
+ * because nothing is pending any more.
  */
-function ProposedStep({
-  title,
-  due,
+function Proposal({
+  step,
+  stageChange,
   decision,
   replayed,
   targetCompany,
   children,
 }: {
-  title: string;
-  due: string;
+  step: { title: string; due: string } | undefined;
+  stageChange: string | undefined;
   decision: ProposalDecision;
   replayed: boolean;
   targetCompany: string | undefined;
   children: ReactNode;
 }) {
-  const step = (
+  const proposal = (
     <Stack gap={1}>
-      <Text variant="heading">Proposed Next Step</Text>
-      <Text variant="feature">{title}</Text>
-      <Text variant="mono" color="secondary">{`Due: ${due}`}</Text>
+      {step === undefined ? (
+        <Text variant="heading">Proposed change</Text>
+      ) : (
+        <>
+          <Text variant="heading">Proposed Next Step</Text>
+          <Text variant="feature">{step.title}</Text>
+          <Text variant="mono" color="secondary">{`Due: ${step.due}`}</Text>
+        </>
+      )}
+      {stageChange !== undefined ? <Text>{stageChange}</Text> : null}
     </Stack>
   );
   if (decision === 'open') {
@@ -136,20 +172,21 @@ function ProposedStep({
       // Replayed results were recorded earlier, so they don't claim to be on-device output (INBX-6).
       <ProposalCard eyebrow="PROPOSED · FROM EMAIL" onDevice={!replayed}>
         <Stack gap={4}>
-          {step}
+          {proposal}
           {children}
         </Stack>
       </ProposalCard>
     );
   }
+  const where = targetCompany === undefined ? '' : ` to ${targetCompany}`;
   return (
     <Card variant="surface">
       <Stack gap={3}>
-        {step}
+        {proposal}
         {decision === 'accepted' ? (
           <Banner
             tone="success"
-            title={`Next Step added${targetCompany === undefined ? '' : ` to ${targetCompany}`}`}
+            title={step === undefined ? `Change applied${where}` : `Next Step added${where}`}
           />
         ) : (
           <Text color="secondary">Dismissed. Nothing was changed.</Text>

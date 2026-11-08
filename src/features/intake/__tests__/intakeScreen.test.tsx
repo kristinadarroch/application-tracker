@@ -64,6 +64,95 @@ describe('Add from a link (INT-3)', () => {
   });
 });
 
+const LINKEDIN_LINK =
+  'https://www.linkedin.com/jobs/view/senior-react-native-engineer-at-acme-4426021931/?trk=public_jobs&refId=abc%3D%3D';
+const LINKEDIN_CANONICAL = 'https://www.linkedin.com/jobs/view/4426021931/';
+const LINKEDIN_NOTICE = 'LinkedIn doesn’t let apps read its job pages';
+
+describe('LinkedIn links (INT-3)', () => {
+  it('never loads a pasted LinkedIn link and asks for the description instead', async () => {
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    const { store } = await renderIntake('/intake/new');
+    await fireEvent.changeText(screen.getByLabelText('Job link'), LINKEDIN_LINK);
+
+    expect(screen.getByText(LINKEDIN_NOTICE)).toBeOnTheScreen();
+    expect(
+      screen.getByText('Paste the job description from LinkedIn, or fill in the details yourself.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
+    expect(screen.getByLabelText('Listing text')).toHaveDisplayValue('');
+    expect(screen.getByRole('button', { name: 'Fill in manually' })).toBeOnTheScreen();
+    expect(fakeModel.prompts).toHaveLength(0);
+
+    await fireEvent.changeText(screen.getByLabelText('Listing text'), LISTING_TEXT);
+    await press('Create draft');
+    expect(await screen.findByText('Review draft')).toBeOnTheScreen();
+    expect(selectAllDrafts(store.getState())[0]?.listingUrl).toBe(LINKEDIN_CANONICAL);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('switches a typed LinkedIn link to paste mode on Create draft', async () => {
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    await renderIntake('/intake/new');
+    for (const partial of ['h', 'https://lnkd.in/gAbC12', 'https://lnkd.in/gAbC123x']) {
+      await fireEvent.changeText(screen.getByLabelText('Job link'), partial);
+    }
+    await press('Create draft');
+
+    expect(screen.getByText(LINKEDIN_NOTICE)).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
+    expect(
+      screen.getByText('The link https://lnkd.in/gAbC123x will be saved with this listing.'),
+    ).toBeOnTheScreen();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('Open a job link in the app (INT-3)', () => {
+  it('fills in the link from intake/new?url= and reads it with no tap', async () => {
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(LISTING_PAGE_HTML, { headers: { 'content-type': 'text/html' } }),
+      );
+    const { store, getPathname } = await renderIntake(
+      `/intake/new?url=${encodeURIComponent(LINK)}`,
+    );
+
+    expect(await screen.findByText('Review draft')).toBeOnTheScreen();
+    expect(fetchMock).toHaveBeenCalledWith(LINK, expect.anything());
+    const [draft] = selectAllDrafts(store.getState());
+    expect(draft?.listingUrl).toBe(LINK);
+    expect(draft?.source).toBe('pasted_url');
+    expect(getPathname()).toBe(`/intake/review/${draft?.id}`);
+  });
+
+  it('opens a LinkedIn link in paste mode without loading it, and waits', async () => {
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    await renderIntake(`/intake/new?url=${encodeURIComponent(LINKEDIN_LINK)}`);
+
+    expect(screen.getByText(LINKEDIN_NOTICE)).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
+    expect(
+      screen.getByText(`The link ${LINKEDIN_CANONICAL} will be saved with this listing.`),
+    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Create draft' })).toBeDisabled();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts).toHaveLength(0);
+  });
+
+  it.each([['javascript:alert(1)'], ['file:///etc/hosts'], ['']])(
+    'ignores url=%p and opens an empty link field',
+    async (param) => {
+      const fetchMock = jest.spyOn(globalThis, 'fetch');
+      await renderIntake(`/intake/new?url=${encodeURIComponent(param)}`);
+      expect(screen.getByLabelText('Job link')).toHaveDisplayValue('');
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(fakeModel.prompts).toHaveLength(0);
+    },
+  );
+});
+
 describe('Paste a listing (INT-2)', () => {
   it('keeps Create draft disabled for empty or whitespace-only text', async () => {
     await renderIntake('/intake/new');

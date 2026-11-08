@@ -1,6 +1,7 @@
 import type { AppError } from '@/lib/errors';
 import { err, ok, type Result } from '@/lib/result';
 
+import { isLinkedInLink } from './linkedInJob';
 import { readListingHtml } from './listingText';
 
 export const LISTING_FETCH_TIMEOUT_MS = 10_000;
@@ -16,11 +17,14 @@ export interface FetchListingOptions {
 /**
  * Loads a Job Listing page on the device and returns its readable text.
  * Never throws: every failure is a `network`, `timeout`, or `listing_unreadable` error.
+ * LinkedIn links are never loaded (LinkedIn's terms); intake asks for the pasted text instead.
  */
 export async function fetchListing(
   url: string,
   { timeoutMs = LISTING_FETCH_TIMEOUT_MS, signal }: FetchListingOptions = {},
 ): Promise<Result<string, AppError>> {
+  if (isLinkedInLink(url)) return err({ kind: 'listing_unreadable', reason: 'blocked' });
+
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {

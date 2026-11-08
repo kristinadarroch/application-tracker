@@ -10,26 +10,27 @@ How every user story is proven, and the latest results. Three layers:
 
 E2E and model checks need a dev build installed and Metro running (`npm start`).
 
-## Latest end-to-end results (2026-11-06, plain wording and prep-first home)
+## Latest end-to-end results (2026-11-07, link import and email updates)
 
-All rows below ran on the current app: the ADR 0006 visual design with plain wording and the prep-first home (Next interview card first). The model checks ran at `7cf0ac3`; the model prompts and tasks have not changed since.
+All rows below ran on the current app (prep-first home, Stage filter, LinkedIn-aware link import, email updates), except where a row says otherwise. The model checks ran at `7cf0ac3`; the model prompts and tasks have not changed since.
 
 Flow changes in this round:
 
-- Home rows sit below the Next interview and Up next cards, so `pipeline.yaml` checks the prep card ("Next interview", "Practice questions") and then scrolls to each row by its full label, including the Acme row's ", Prep: …" part.
-- `ai-prep.yaml`: right after the generated questions appear, the flow's first tap on a question sometimes didn't register; the question stayed unchecked (3 failures with a `waitForAnimationToEnd` before the tap, 1 failure in 2 runs without it). A probe flow tapped the same question on the settled screen: it checked, and it stayed checked after 45 s. So practice progress isn't being reset, but the cause of the lost tap is **not found**. The flow now waits for the screen to settle and taps once more only if the count is still 0. A Jest test guards that the questions generate only once on open, so a second run can't wipe practice progress.
-- Earlier redesign fixes still apply: the detail screen is recognised by "Edit application"; Acme opens from its application row (`.*Acme Health.*Interviewing.*`); the inbox flow waits for "Next Step proposed".
-- Each Maestro run now has a hard time limit (`perl -e 'alarm shift; exec @ARGV' 400 maestro …`). A launch-time hierarchy crash (`kAXErrorInvalidUIElement`) hung one batch for 50 minutes; it's a tooling failure, not an app failure.
+- New `link-import.yaml`: opens the app link with a web job page (it drafts with no tap), then with a LinkedIn job link (notice, Paste text, canonical link kept, draft from pasted text).
+- `ai-inbox.yaml` now proves email updates: three sample emails, then the Northwind scheduling email has moved Northwind to Interviewing, the application's "Updates from email" log shows it, and Undo moves it back to Applied. In one run the model was unsure of the Northwind match, so the flow picked Northwind and tapped Accept; in the next run the update applied by itself.
+- `ai-inbox.yaml`, `demo.yaml`, `tour.yaml` wait for either "Updated:" or "Next Step proposed", since a confident match no longer shows a proposal.
+- Still in place from earlier rounds: hard time limit per Maestro run (`perl -e 'alarm shift; exec @ARGV' 400 maestro …`); the `ai-prep.yaml` second tap when the first doesn't register (cause **not found**); detail recognised by "Edit application"; Acme opened from its application row.
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
-| `pipeline.yaml` | Pass, after the scroll fix above | Pass |
-| `tour.yaml` (screenshots of every main screen) | Pass in Light and Dark | — |
+| `pipeline.yaml` | Pass | Pass |
+| `tour.yaml` (screenshots of every main screen) | Pass in Light and Dark, after the wait fix above | — |
+| `link-import.yaml` | Pass, after two flow fixes (field selector, focus wait) | — |
 | `ai-intake.yaml` | Pass | — (AI is iOS only) |
-| `ai-prep.yaml` | Pass, after the tap-timing fix above. First attempt hung at launch (Maestro hierarchy crash) | — |
-| `ai-inbox.yaml` | Pass | — |
+| `ai-prep.yaml` | Pass | — |
+| `ai-inbox.yaml` | Pass: Northwind Applied → Interviewing from email, log, Undo | — |
 | `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5) | Pass (font scale 2.0) |
+| `a11y-large-text.yaml` | Pass (AX5), at `86c5cd2`, before the email and link changes | Pass (font scale 2.0), at `86c5cd2` |
 | `demo.yaml` | Pass | — |
 | `new-experience.yaml` | Pass (sample listing served from `e2e/fixtures` on `127.0.0.1:8099`) | — |
 | `ai-checks.yaml` | 2 / 2 consecutive runs, every group "0 failed" (at `7cf0ac3`) | — |
@@ -46,14 +47,16 @@ Flow changes in this round:
 | UX-6 gallery | Gallery renders (DS tests) | Settings → Design system gallery |
 | UX-7 AI unavailable | Intake, inbox, prep screen tests | `android-ai-off.yaml` |
 | PIPE-1–6 | `pipeline`, `applicationForm`, `applicationDetail`, selector and slice tests | `pipeline.yaml` |
-| PIPE-8 status filter | `pipeline.test.tsx` "Status filter": chips with counts, only non-empty statuses, selection narrows the list, All restores it, an emptied status stays selected with "No applications in this status." | `pipeline.yaml` (filters to Interviewing and back to All) |
+| PIPE-8 Stage filter | `pipeline.test.tsx` "Stage filter": chips with counts, only Stages that have applications, selection narrows the list, All restores it, an emptied Stage stays selected with "No applications in this stage." | `pipeline.yaml` (filters to Interviewing and back to All) |
 | PIPE-8 at large text | — | `a11y-large-text.yaml` captures the filter row: pass on iOS AX5 and Android 2.0, after one fix (below) |
 | PIPE-7 persistence | `persistence.test.tsx` (real redux-persist config), `persistConfig.test.ts` (migration) | Data survives relaunch (manual) |
-| INT-1 share sheet | `shareScreen`, `routing` tests | Manual: share from Safari / Chrome |
-| INT-2–6 | `intakeScreen` (link field first; a pasted link loads and drafts with no tap), `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml` (pasted text; a live link needs the network), model checks (listings) |
+| INT-1 share sheet | `shareScreen`, `routing` tests, including LinkedIn share payloads (iOS link, Android text) that never load a LinkedIn page | Manual: share from Safari / Chrome / the LinkedIn app |
+| INT-2–6 | `intakeScreen` (link field first; a pasted link loads and drafts with no tap; a LinkedIn link loads nothing, switches to Paste text with a notice, keeps the canonical link), `linkedInJob` (link shapes), `reviewScreen`, `extractListing`, `fetchListing`, `listingText` tests | `ai-intake.yaml`, `link-import.yaml` (app link `applicationtracker://intake/new?url=…`: a web page drafts with no tap; a LinkedIn link shows the notice, keeps the link, drafts from pasted text), model checks (listings) |
 | PREP-1–3 | Prep slice, task, and screen tests; `autoPrep.test.ts` (generates when a job is saved, not for demo data or without AI); questions generate on open, failures show Retry without retrying on their own | `ai-prep.yaml`, `demo.yaml` (no Generate tap), model checks (prep) |
 | MOCK-1–5 | Prep session tests (first question on open, only once; transcript restore; answer kept on failure; ending doesn't start a new session) | `ai-prep.yaml` (no Start tap), model checks (mock turn) |
 | INBX-1–6 | Inbox slice, triage, screen, replay tests | `ai-inbox.yaml`, model checks (triage) |
+| INBX-7 email updates | `stageFromTriage` table, auto-apply only for a confident match, exact and repeat-safe Undo, row badge, "Updated from email" panel, "Updates from email" log, persist migration v3 | `ai-inbox.yaml`: the Northwind scheduling email moves Northwind Applied → Interviewing and adds a Next Step (or, when the model is unsure, after one Accept); the log shows it; Undo puts Northwind back at Applied |
+| INBX-8 reading on its own | Triage runs with the Inbox tab closed (app-wide hook); Gmail reads on sign-in, app foreground, Inbox focus, pull-to-refresh, with mocked `AppState` and `fetch` | Sample inbox only; live Gmail is blocked (below) |
 | LATER-1 reviews | `quotes.test.ts`, task + screen tests | Model checks (interview reviews) |
 | LATER-2 Gmail | Paging, decoding, HTML fallback, 401/offline/503 with injected fetch | **Blocked:** live sign-in needs Google OAuth client IDs (see README) |
 
@@ -92,7 +95,7 @@ Found and fixed in the first pass: icons stayed at their base size beside very l
 
 Found and fixed in the redesign pass: at AX5 the Inbox buttons ("Receive next email", "Connect Gmail") grew wider than the screen and were clipped. `Button` now never exceeds its container (`maxWidth: '100%'`, shrinking label), so the label wraps inside the pill.
 
-Found and fixed with the status filter (PIPE-8): at AX5 the "Interviewing · 1" chip ran past the card's edge. `Chip` now has the same bound as `Button`, so the label wraps inside the chip. At AX5 long single words still break mid-word ("Interviewin/g"), as do the progress legend captions ("APPLIE/D") at both AX5 and Android 2.0; nothing is clipped.
+Found and fixed with the Stage filter (PIPE-8): at AX5 the "Interviewing · 1" chip ran past the card's edge. `Chip` now has the same bound as `Button`, so the label wraps inside the chip. At AX5 long single words still break mid-word ("Interviewin/g"), as do the progress legend captions ("APPLIE/D") at both AX5 and Android 2.0; nothing is clipped.
 
 Harness limit at AX5 on iOS: an application row is taller than the screen, and Maestro's taps on it scrolled the list instead of opening it. The flow opens Acme's detail through the Up next card's "View" button instead, so the row itself was checked for layout (screenshot) but not activated at AX5. On Android at 2.0, an earlier run of this pass opened the row directly.
 

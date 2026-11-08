@@ -14,5 +14,8 @@ export {
   applicationSaved,
   applicationsAdapter,
   nextStepAdded,
+  nextStepRemoved,
+  nextStepToggled,
+  stageChanged,
 } from './slice';
 export { selectAllApplications, selectApplicationById } from './selectors';

@@ -149,6 +149,8 @@ interface RootState {
     messages: EntityState<InboxMessage, MessageId>;
     triage: Record<MessageId, TriageState>;               // idle | pending | done(result) | failed(AppError)
     fixtureCursor: number;                                // next mock message to "receive"
+    updates: Record<MessageId, EmailUpdate>;              // what confident Triage applied by itself; the log + Undo (ADR 0007)
+    acknowledgedTimeoutAt: number | null;                 // "Analyze remaining" un-pauses Triage after a time-out
   };
   prep: {
     questionSets: Record<ApplicationId, PrepQuestionSet>;
@@ -163,7 +165,7 @@ interface RootState {
 ### Why this shape
 
 - **Entity adapters** for anything listed or looked up by ID: O(1) lookups, ready-made CRUD reducers, normalized state.
-- **Drafts are a separate slice.** AI output never writes straight into `applications`. The user confirms a draft, which dispatches `applicationAdded` and `draftRemoved`. This is the human-in-the-loop boundary in code.
+- **Drafts are a separate slice.** AI output never writes straight into `applications`. The user confirms a draft, which dispatches `applicationAdded` and `draftRemoved`. This is the human-in-the-loop boundary in code. The one exception is a confident Triage, which applies its Stage change and Next Step itself and records an `EmailUpdate` that can be undone ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)).
 - **Triage state lives next to messages**, keyed by ID, so one failed message doesn't affect others.
 - **RTK Query** owns request lifecycle (loading, error, dedupe) for AI calls. Its results are copied into domain slices on success via `extraReducers` or `onQueryStarted`, so domain data persists even though the RTK Query cache doesn't.
 
@@ -267,6 +269,7 @@ URL intake fetches the page on the device, strips it to text, and checks the res
 6. **Small-model compensation, in code, not prompts alone.** Extraction keeps company, location, salary, and role only when they appear in the listing; triage matches an application only when the email names its company, fills a default Next Step title for action categories, and never proposes a step for a rejection. String limits are enforced in code, not in the model schema, because one violation fails the whole response. All unit-tested.
 7. Per-task time limit and a Retry action. Intake and triage also offer the manual path; prep and mock interview keep state for retry.
 8. **AI replay** (`settings.aiReplay`, dev only): replays recorded triage results for the sample inbox. The UI shows a "Replayed" badge on any replayed result. It is a demo safety net, never presented as live output.
+9. **Confident email updates apply themselves, with Undo** ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)). Only when Triage returns `confidence: 'high'` and a matched application that is one of the candidates and still exists. The Stage comes from `stageFromTriage` in code, never from the model: only forward moves, except a rejection, and Rejected or Withdrawn applications never move. Each change is recorded as an `EmailUpdate` (`inbox.updates`); Undo reverts only what is still as the email left it (the Stage, if unchanged since; the Next Step, if it still exists and isn't done). Low-confidence and unmatched results stay proposals.
 
 ## Inbox
 
@@ -277,7 +280,9 @@ export interface EmailSource {
 }
 ```
 
-The demo uses `MockEmailSource`, backed by `fixtures/inbox.json` (about 8 messages: interview invite, scheduling link, take-home, rejection, offer, recruiter follow-up, newsletter, receipt). A dev-only "Receive next email" action appends the next fixture so the app can react live. A Gmail implementation can be added behind the same interface. See [ADR 0002](adr/0002-mock-email-source-behind-interface.md).
+The demo uses `MockEmailSource`, backed by `fixtures/inbox.json` (about 8 messages: interview invite, scheduling link, take-home, rejection, offer, recruiter follow-up, newsletter, receipt). A dev-only "Receive next email" action appends the next fixture so the app can react live. `GmailEmailSource` reads a connected Gmail inbox behind the same interface. See [ADR 0002](adr/0002-mock-email-source-behind-interface.md).
+
+Reading is app-wide: the tabs layout mounts `useEmailReading`, which runs the one-at-a-time Triage queue (so new messages are triaged and confident updates applied on any tab) and, while a Gmail token exists, reads Gmail when the token arrives and when the app returns to the foreground. The Inbox tab also reads Gmail when it is focused and on pull-to-refresh. There are no polling timers (INBX-8).
 
 ## Requirement 4 — AI in development
 

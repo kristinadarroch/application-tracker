@@ -59,16 +59,16 @@ appId: dev.kristinadarroch.applicationtracker
     timeout: 10000
 - tapOn: Back
 - tapOn: Back
-# 3:30 Inbox triage proposes a Next Step; accept it
+# 3:30 Inbox: the email updates Acme by itself when the model is sure; otherwise accept it
 - tapOn: 'Inbox.*'
 - tapOn: Receive next email
 - extendedWaitUntil:
-    notVisible: '(?i).*analyzing.*'
+    visible: '(?i).*(updated:|next step proposed).*'
     timeout: 60000
 - waitForAnimationToEnd
 - tapOn: 'Interview invitation.*'
 - extendedWaitUntil:
-    visible: Proposed Next Step
+    visible: '(?i)(updated from email|proposed next step)'
     timeout: 10000
 # INBX-4: when the model is unsure of the match, Accept stays disabled until an application is
 # chosen. (Saving a second "Senior … React Native" job earlier in the demo makes this likely.)
@@ -77,9 +77,11 @@ appId: dev.kristinadarroch.applicationtracker
       visible: Which application is this about?
     commands:
       - tapOn: Acme Health — Senior React Native Engineer
-- scrollUntilVisible:
-    element: Accept
-- tapOn: Accept
+- runFlow:
+    when:
+      visible: Accept
+    commands:
+      - tapOn: Accept
 - assertVisible: '.*Next Step added.*'
 - tapOn: Back
 # 5:15 Theming

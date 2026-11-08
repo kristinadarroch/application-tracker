@@ -36,13 +36,13 @@ appId: dev.kristinadarroch.applicationtracker
 - tapOn: 'Inbox.*'
 - tapOn: Receive next email
 - extendedWaitUntil:
-    notVisible: '(?i).*analyzing.*'
+    visible: '(?i).*(updated:|next step proposed).*'
     timeout: 60000
 - waitForAnimationToEnd
 - takeScreenshot: e2e/artifacts/tour-${THEME}-inbox
 - tapOn: 'Interview invitation.*'
 - extendedWaitUntil:
-    visible: Proposed Next Step
+    visible: '(?i)(updated from email|proposed next step)'
     timeout: 10000
 - takeScreenshot: e2e/artifacts/tour-${THEME}-message
 - tapOn: Back

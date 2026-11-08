@@ -7,17 +7,21 @@ import { describeError, type AppError } from '@/lib/errors';
 import type { MessageId } from '@/lib/ids';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
-import type { InboxMessage, TriageCandidate, TriageState } from '../schema';
+import type { EmailUpdate, InboxMessage, TriageCandidate, TriageState } from '../schema';
 import {
   selectCanTriage,
+  selectCanUndo,
+  selectEmailUpdate,
   selectMessageById,
+  selectStageByApplication,
   selectTriage,
   selectTriageCandidates,
 } from '../selectors';
 import { proposalDecided } from '../slice';
-import { acceptProposal, startTriage, tagManually } from '../thunks';
+import { acceptProposal, startTriage, tagManually, undoEmailUpdate } from '../thunks';
+import { EmailUpdatePanel } from './EmailUpdatePanel';
 import { ManualTagForm, type ManualTag } from './ManualTagForm';
-import { TriageResultPanel } from './TriageResultPanel';
+import { TriageResultPanel, type TriageResultPanelProps } from './TriageResultPanel';
 
 export interface MessageDetailScreenProps {
   messageId: MessageId;
@@ -44,6 +48,9 @@ function MessageDetail({ message }: { message: InboxMessage }) {
   const canTriage = useAppSelector((state) => selectCanTriage(state, message.id));
   const availability = useAppSelector(selectAiAvailability);
   const applications = useAppSelector(selectTriageCandidates);
+  const stages = useAppSelector(selectStageByApplication);
+  const update = useAppSelector((state) => selectEmailUpdate(state, message.id));
+  const canUndo = useAppSelector((state) => selectCanUndo(state, message.id));
   const [tagging, setTagging] = useState(false);
   const [actionError, setActionError] = useState<AppError | null>(null);
 
@@ -110,6 +117,12 @@ function MessageDetail({ message }: { message: InboxMessage }) {
         <TriagePanel
           triage={triage}
           applications={applications}
+          stages={stages}
+          update={update}
+          canUndo={canUndo}
+          onUndo={() =>
+            dispatch(undoEmailUpdate({ messageId: message.id, now: new Date().toISOString() }))
+          }
           onRetry={() => void dispatch(startTriage(message.id))}
           onAccept={(applicationId) => {
             const result = dispatch(
@@ -143,6 +156,10 @@ function MessageDetail({ message }: { message: InboxMessage }) {
 function TriagePanel({
   triage,
   applications,
+  stages,
+  update,
+  canUndo,
+  onUndo,
   onRetry,
   onAccept,
   onDismiss,
@@ -150,6 +167,10 @@ function TriagePanel({
 }: {
   triage: TriageState | undefined;
   applications: readonly TriageCandidate[];
+  stages: TriageResultPanelProps['stages'];
+  update: EmailUpdate | undefined;
+  canUndo: boolean;
+  onUndo: () => void;
   onRetry: () => void;
   onAccept: (applicationId: TriageCandidate['id']) => void;
   onDismiss: () => void;
@@ -201,7 +222,8 @@ function TriagePanel({
           </Stack>
         </Card>
       );
-    case 'done':
+    case 'done': {
+      const updated = triage.decision === 'auto_applied' || triage.decision === 'undone';
       return (
         <Stack gap={3}>
           <TriageResultPanel
@@ -209,12 +231,17 @@ function TriagePanel({
             replayed={triage.replayed}
             decision={triage.decision}
             applications={applications}
+            stages={stages}
             onAccept={onAccept}
             onDismiss={onDismiss}
           />
-          {triage.decision === 'accepted' ? null : tagButton}
+          {updated && update !== undefined ? (
+            <EmailUpdatePanel update={update} canUndo={canUndo} onUndo={onUndo} />
+          ) : null}
+          {triage.decision === 'accepted' || triage.decision === 'auto_applied' ? null : tagButton}
         </Stack>
       );
+    }
     case 'manual':
       return <Banner tone="success" title="Tagged manually" body="The Next Step was added." />;
     default:

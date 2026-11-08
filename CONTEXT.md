@@ -50,6 +50,10 @@ _Avoid_: Scan, parse, sort
 Where Inbox Messages come from; the demo uses a fixed sample set.
 _Avoid_: Provider, integration, connector
 
+**Email Update**:
+A change an Inbox Message made to an Application by itself, because Triage was confident; shown as "Updated from email" and can be undone.
+_Avoid_: Auto-update, sync, change log
+
 ### Prep
 
 **Prep Question**:

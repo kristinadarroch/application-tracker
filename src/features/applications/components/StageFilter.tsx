@@ -3,13 +3,13 @@ import { View } from 'react-native';
 import { Chip, makeStyles, STAGE_ICONS, Text } from '@/design-system';
 import { STAGE_LABELS, STAGES, type Stage } from '@/lib/stage';
 
-/** "all", or the one status the list is narrowed to (PIPE-8). */
-export type StatusFilterValue = 'all' | Stage;
+/** "all", or the one Stage the list is narrowed to (PIPE-8). */
+export type StageFilterValue = 'all' | Stage;
 
-export interface StatusFilterProps {
+export interface StageFilterProps {
   counts: Record<Stage, number>;
-  value: StatusFilterValue;
-  onChange: (value: StatusFilterValue) => void;
+  value: StageFilterValue;
+  onChange: (value: StageFilterValue) => void;
 }
 
 const useStyles = makeStyles((t) => ({
@@ -18,17 +18,17 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * "All" plus one chip per status that has applications, each with its count. The selected status
+ * "All" plus one chip per Stage that has applications, each with its count. The selected Stage
  * keeps its chip even after its count drops to 0, so the user can see what the list is showing.
  */
-export function StatusFilter({ counts, value, onChange }: StatusFilterProps) {
+export function StageFilter({ counts, value, onChange }: StageFilterProps) {
   const styles = useStyles();
   const total = STAGES.reduce((sum, stage) => sum + counts[stage], 0);
   const shown = STAGES.filter((stage) => counts[stage] > 0 || stage === value);
   return (
     <View style={styles.wrap}>
       <Text variant="overline" color="secondary">
-        Filter by status
+        Filter by stage
       </Text>
       <View style={styles.chips}>
         <Chip label={`All · ${total}`} selected={value === 'all'} onPress={() => onChange('all')} />

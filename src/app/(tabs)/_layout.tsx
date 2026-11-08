@@ -2,6 +2,7 @@ import { router, Tabs } from 'expo-router';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 
 import { FloatingTabBar, type IconName } from '@/design-system';
+import { useEmailReading } from '@/features/inbox';
 
 /** Label and icon per tab route; unknown routes fall back to their route name. */
 const TAB_META: Record<string, { label: string; icon: IconName }> = {
@@ -42,11 +43,16 @@ function AppTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   );
 }
 
+/**
+ * The tab screens. Also the app-wide home of the inbox reader, so new email is triaged and applied
+ * whichever tab is open (INBX-8); focusing the Inbox tab reads new Gmail messages.
+ */
 export default function TabsLayout() {
+  const { syncGmail } = useEmailReading();
   return (
     <Tabs screenOptions={{ headerShown: false }} tabBar={(props) => <AppTabBar {...props} />}>
       <Tabs.Screen name="index" options={{ title: 'Pipeline' }} />
-      <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
+      <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} listeners={{ focus: syncGmail }} />
       <Tabs.Screen name="prep" options={{ title: 'Prep' }} />
     </Tabs>
   );

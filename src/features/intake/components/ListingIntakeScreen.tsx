@@ -19,7 +19,7 @@ export interface ListingIntakeScreenProps {
   title: string;
   initial: IntakeInput;
   origin: IntakeOrigin;
-  /** Start reading as soon as the screen opens (share sheet, INT-1). */
+  /** Start reading as soon as the screen opens (share sheet INT-1, `intake/new?url=` link INT-3). */
   autoSubmit: boolean;
 }
 
@@ -71,6 +71,13 @@ export function ListingIntakeScreen({
           tone="warning"
           title={describeError(status.error).title}
           body={describeError(status.error).body}
+        />
+      ) : null}
+      {intake.linkedInLink !== undefined ? (
+        <Banner
+          tone="info"
+          title="LinkedIn doesn’t let apps read its job pages"
+          body="Paste the job description from LinkedIn, or fill in the details yourself."
         />
       ) : null}
 

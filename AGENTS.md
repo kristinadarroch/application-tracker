@@ -17,7 +17,7 @@ Rules for AI coding agents (Claude Code, Codex, Copilot) working in this repo. H
 - Screens use design-system components and tokens only. No color literals, raw font sizes, or inline style objects.
 - Import the design system from `@/design-system` only.
 - Use `useAppDispatch` / `useAppSelector`, never the untyped hooks.
-- AI output goes to drafts or proposals; it never writes straight into `applications`.
+- AI output goes to drafts or proposals; it never writes straight into applications — except email updates Triage is confident about (matched application, high confidence), which apply immediately, are logged on the application, and can be undone ([ADR 0007](docs/adr/0007-auto-apply-confident-email-updates.md)).
 - Only `src/services/ai/foundationModels.ios.ts` imports the on-device model library. Everything else uses the `OnDeviceModel` adapter (`@/services/ai/foundationModels`) or the RTK Query AI endpoints.
 - Every model request sets `maxOutputTokens` and `sampling`, and values the model must copy from the input (company, location, salary, role, matched application) are checked against that input in code. See "Guardrails" in `docs/architecture.md`.
 - All repo code is TypeScript. No Swift, Kotlin, or JavaScript source files; native code comes only from dependencies.

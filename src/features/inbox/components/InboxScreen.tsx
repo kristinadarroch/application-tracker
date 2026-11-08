@@ -7,18 +7,20 @@ import type { MessageId } from '@/lib/ids';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { describeEmailSourceError } from '../emailSource';
-import { useAutoTriage, type AutoTriage } from '../hooks/useAutoTriage';
 import { useGmailSync } from '../hooks/useGmailSync';
 import type { InboxMessage } from '../schema';
 import {
   selectCanTriage,
   selectEmailSource,
+  selectEmailUpdate,
   selectHasMoreFixtures,
   selectInboxMessages,
+  selectMessagesToTriage,
   selectTriage,
   selectTriageCandidates,
+  selectTriagePaused,
 } from '../selectors';
-import { nextFixtureReceived } from '../slice';
+import { nextFixtureReceived, triageResumed } from '../slice';
 import { startTriage } from '../thunks';
 import { MessageRow } from './MessageRow';
 
@@ -32,12 +34,16 @@ const useStyles = makeStyles((t) => ({
   list: { gap: t.space[3], paddingBottom: t.space[12] * 2 },
 }));
 
-/** Inbox tab: messages newest first with their Triage status (INBX-1). */
+/**
+ * Inbox tab: messages newest first with their Triage status (INBX-1). Triage and Gmail reading run
+ * app-wide (`useEmailReading` in the tabs layout); pulling down reads new Gmail messages (INBX-8).
+ */
 export function InboxScreen({ onOpenMessage, onOpenGmailSettings }: InboxScreenProps) {
   const styles = useStyles();
   const messages = useAppSelector(selectInboxMessages);
   const source = useAppSelector(selectEmailSource);
-  const autoTriage = useAutoTriage();
+  const gmail = useGmailSync();
+  const canRefresh = source === 'gmail' && gmail.accessToken !== null;
 
   return (
     <Screen header="panel" title="Inbox" eyebrow={source === 'gmail' ? 'GMAIL' : 'SAMPLE EMAILS'}>
@@ -45,9 +51,13 @@ export function InboxScreen({ onOpenMessage, onOpenGmailSettings }: InboxScreenP
         data={messages}
         keyExtractor={(message) => message.id}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          <InboxHeader autoTriage={autoTriage} onOpenGmailSettings={onOpenGmailSettings} />
-        }
+        {...(canRefresh
+          ? {
+              onRefresh: () => void gmail.sync(),
+              refreshing: gmail.state.status === 'syncing',
+            }
+          : {})}
+        ListHeaderComponent={<InboxHeader onOpenGmailSettings={onOpenGmailSettings} />}
         renderItem={({ item }) => <InboxRow message={item} onOpen={() => onOpenMessage(item.id)} />}
         ListEmptyComponent={
           <EmptyState
@@ -70,12 +80,14 @@ function InboxRow({ message, onOpen }: { message: InboxMessage; onOpen: () => vo
   const triage = useAppSelector((state) => selectTriage(state, message.id));
   const canTriage = useAppSelector((state) => selectCanTriage(state, message.id));
   const candidates = useAppSelector(selectTriageCandidates);
+  const update = useAppSelector((state) => selectEmailUpdate(state, message.id));
   const matchedId = triage?.status === 'done' ? triage.result.applicationId : null;
   return (
     <MessageRow
       message={message}
       triage={triage}
       matched={candidates.find((candidate) => candidate.id === matchedId)}
+      update={update}
       canTriage={canTriage}
       onOpen={onOpen}
       onRetry={() => void dispatch(startTriage(message.id))}
@@ -83,17 +95,13 @@ function InboxRow({ message, onOpen }: { message: InboxMessage; onOpen: () => vo
   );
 }
 
-function InboxHeader({
-  autoTriage,
-  onOpenGmailSettings,
-}: {
-  autoTriage: AutoTriage;
-  onOpenGmailSettings: () => void;
-}) {
+function InboxHeader({ onOpenGmailSettings }: { onOpenGmailSettings: () => void }) {
   const dispatch = useAppDispatch();
   const availability = useAppSelector(selectAiAvailability);
   const source = useAppSelector(selectEmailSource);
   const hasMoreFixtures = useAppSelector(selectHasMoreFixtures);
+  const paused = useAppSelector(selectTriagePaused);
+  const waiting = useAppSelector(selectMessagesToTriage).length;
 
   return (
     <Stack gap={3}>
@@ -104,12 +112,12 @@ function InboxHeader({
           body={describeError({ kind: 'ai_unavailable', reason: availability.reason }).body}
         />
       ) : null}
-      {autoTriage.paused && autoTriage.waiting > 0 ? (
+      {paused && waiting > 0 ? (
         <Banner
           tone="warning"
           title="Analysis paused"
-          body={`A message took too long to analyze, so ${autoTriage.waiting === 1 ? '1 message is' : `${autoTriage.waiting} messages are`} waiting.`}
-          action={{ label: 'Analyze remaining', onPress: autoTriage.resume }}
+          body={`A message took too long to analyze, so ${waiting === 1 ? '1 message is' : `${waiting} messages are`} waiting.`}
+          action={{ label: 'Analyze remaining', onPress: () => dispatch(triageResumed()) }}
         />
       ) : null}
       {source === 'gmail' ? <GmailSyncControls onReconnect={onOpenGmailSettings} /> : null}

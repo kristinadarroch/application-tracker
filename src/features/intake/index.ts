@@ -2,6 +2,7 @@
 export { DraftReview } from './components/DraftReview';
 export { DraftsBanner } from './components/DraftsBanner';
 export { ListingIntakeScreen } from './components/ListingIntakeScreen';
+export { linkFromDeepLink } from './deepLink';
 export { selectDraftById } from './draftsSlice';
 export type { IntakeInput } from './hooks/useListingIntake';
 export { ListingExtractionSchema } from './schema';

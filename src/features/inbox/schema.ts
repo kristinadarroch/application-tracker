@@ -2,7 +2,13 @@ import { z } from 'zod';
 
 import { IsoDateSchema } from '@/lib/dates';
 import type { AppError } from '@/lib/errors';
-import { ApplicationIdSchema, MessageIdSchema, type ApplicationId } from '@/lib/ids';
+import {
+  ApplicationIdSchema,
+  MessageIdSchema,
+  NextStepIdSchema,
+  type ApplicationId,
+} from '@/lib/ids';
+import { StageSchema } from '@/lib/stage';
 
 /** Where an Inbox Message came from. Gmail messages are removed when Gmail is disconnected. */
 export const EmailSourceKindSchema = z.enum(['mock', 'gmail']);
@@ -49,8 +55,32 @@ export const TriageResultSchema = z.object({
 });
 export type TriageResult = z.infer<typeof TriageResultSchema>;
 
-/** What the user did with a proposal. */
-export type ProposalDecision = 'open' | 'accepted' | 'dismissed';
+/**
+ * What happened to a Triage's proposal. `auto_applied`: Triage was confident, so the change was
+ * applied right away and recorded as an `EmailUpdate` (ADR 0007); `undone`: the user undid it.
+ */
+export type ProposalDecision = 'open' | 'accepted' | 'dismissed' | 'auto_applied' | 'undone';
+
+/**
+ * A change an Inbox Message made to an application on its own (ADR 0007). Kept as the log on the
+ * application, and holds what Undo needs to revert exactly that change.
+ */
+export const EmailUpdateSchema = z.object({
+  messageId: MessageIdSchema,
+  applicationId: ApplicationIdSchema,
+  /** Copied so the log still reads well after the message is gone (e.g. Gmail disconnected). */
+  subject: z.string(),
+  previousStage: StageSchema,
+  /** Absent when the Stage didn't change. */
+  newStage: StageSchema.optional(),
+  nextStepId: NextStepIdSchema.optional(),
+  nextStepTitle: z.string().optional(),
+  /** Came from an AI Replay recording; always labeled as replayed. */
+  replayed: z.boolean(),
+  appliedAt: z.iso.datetime({ offset: true }),
+  undoneAt: z.iso.datetime({ offset: true }).optional(),
+});
+export type EmailUpdate = z.infer<typeof EmailUpdateSchema>;
 
 /**
  * Triage lifecycle for one message. A message with no entry hasn't been triaged yet.
