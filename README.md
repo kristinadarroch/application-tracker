@@ -46,6 +46,7 @@ The brief also asks for a live demo, a code walkthrough, and a discussion of cha
 | [`docs/ai-development.md`](docs/ai-development.md) | How AI is used to build this, plus the decision log |
 | [`docs/demo-script.md`](docs/demo-script.md) | Timed demo and walkthrough script |
 | [`docs/adr/`](docs/adr/) | Architecture decision records |
+| [`docs/research/`](docs/research/README.md) | Product research: competitors, job-seeker needs, interview-prep evidence, platform guidance, UX audit, and a prioritized roadmap |
 
 ## Stack
 
