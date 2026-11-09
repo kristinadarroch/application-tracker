@@ -36,7 +36,8 @@ export const AI_AVAILABLE: AiAvailability = { status: 'available', contextTokens
 
 interface Options {
   preloadedState?: Partial<RootState>;
-  ai?: AiAvailability;
+  /** `null` means availability hasn't been checked yet, as at cold start. */
+  ai?: AiAvailability | null;
 }
 
 /**

@@ -39,6 +39,9 @@ export async function fetchListing(
       signal: controller.signal,
       headers: { Accept: 'text/html,application/xhtml+xml' },
     });
+    if (response.status === 404 || response.status === 410) {
+      return err({ kind: 'listing_unreadable', reason: 'gone' });
+    }
     if (!response.ok) return err({ kind: 'listing_unreadable', reason: 'blocked' });
     const contentType = response.headers.get('content-type');
     if (contentType !== null && !HTML_CONTENT_TYPE.test(contentType)) {

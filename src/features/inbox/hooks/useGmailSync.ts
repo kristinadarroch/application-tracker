@@ -5,7 +5,11 @@ import type { AppDispatch } from '@/store/store';
 
 import type { EmailSourceError } from '../emailSource';
 import { GmailEmailSource } from '../gmail/gmailEmailSource';
-import { setGmailAccessToken, useGmailAccessToken } from '../gmail/gmailSession';
+import {
+  getGmailAccessToken,
+  setGmailAccessToken,
+  useGmailAccessToken,
+} from '../gmail/gmailSession';
 import { syncGmail } from '../thunks';
 
 export type GmailSyncState =
@@ -48,8 +52,11 @@ async function runSync(dispatch: AppDispatch, token: string): Promise<void> {
   const result = await dispatch(
     syncGmail(new GmailEmailSource({ accessToken: token, fetch }), new Date()),
   );
-  // An expired token is useless: forget it so the UI asks to reconnect.
-  if (!result.ok && result.error.kind === 'reauth_required') setGmailAccessToken(null);
+  // An expired token is useless: forget it so the UI asks to reconnect, unless the user already
+  // signed in again while this sync ran.
+  if (!result.ok && result.error.kind === 'reauth_required' && getGmailAccessToken() === token) {
+    setGmailAccessToken(null);
+  }
   setSyncState(
     result.ok
       ? { status: 'synced', added: result.value }

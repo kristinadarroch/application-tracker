@@ -25,6 +25,10 @@ export function setGmailAccessToken(token: string | null): void {
   for (const listener of listeners) listener();
 }
 
+export function getGmailAccessToken(): string | null {
+  return accessToken;
+}
+
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);

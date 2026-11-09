@@ -1,5 +1,5 @@
-import { act, waitFor } from '@testing-library/react-native';
-import { AppState, type AppStateStatus, type NativeEventSubscription } from 'react-native';
+import { act, screen, waitFor } from '@testing-library/react-native';
+import { AppState, Text, type AppStateStatus, type NativeEventSubscription } from 'react-native';
 
 import { applicationAdded } from '@/features/applications/model';
 import { ApplicationIdSchema, MessageIdSchema } from '@/lib/ids';
@@ -8,8 +8,9 @@ import { makeStore } from '@/store/store';
 import { renderApp } from '@/test/renderApp';
 import { renderWithProviders } from '@/test/renderWithProviders';
 
-import { setGmailAccessToken } from '../gmail/gmailSession';
+import { getGmailAccessToken, setGmailAccessToken } from '../gmail/gmailSession';
 import { useEmailReading } from '../hooks/useEmailReading';
+import { useGmailSync } from '../hooks/useGmailSync';
 import { selectEmailUpdate, selectInboxMessages } from '../selectors';
 import { emailSourceChanged, nextFixtureReceived } from '../slice';
 
@@ -108,8 +109,8 @@ describe('Gmail reading on foreground (INBX-8)', () => {
     globalThis.fetch = fetchMock;
   });
 
-  afterEach(() => {
-    act(() => setGmailAccessToken(null));
+  afterEach(async () => {
+    await act(async () => setGmailAccessToken(null));
     globalThis.fetch = realFetch;
     jest.restoreAllMocks();
   });
@@ -123,6 +124,36 @@ describe('Gmail reading on foreground (INBX-8)', () => {
     act(async () => {
       for (const listener of appStateListeners) listener(status);
     });
+
+  it('keeps a newer token when an older sync comes back asking to sign in again', async () => {
+    const store = makeStore();
+    store.dispatch(emailSourceChanged('gmail'));
+    let expire: () => void = () => undefined;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          expire = () => resolve({ status: 401, ok: false, json: async () => ({}) });
+        }),
+    );
+    function SyncStatus() {
+      return <Text>{useGmailSync().state.status}</Text>;
+    }
+    await renderWithProviders(
+      <>
+        <EmailReader />
+        <SyncStatus />
+      </>,
+      { store },
+    );
+    await act(async () => setGmailAccessToken('old'));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    await act(async () => setGmailAccessToken('new'));
+    await act(async () => expire());
+
+    expect(await screen.findByText('failed')).toBeOnTheScreen();
+    expect(getGmailAccessToken()).toBe('new');
+  });
 
   it('reads Gmail when the token arrives and each time the app comes back', async () => {
     const store = makeStore();

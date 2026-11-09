@@ -19,6 +19,7 @@ import {
   selectEmailUpdatesForApplication,
   selectHasMoreFixtures,
   selectInboxMessages,
+  selectMessagesToTriage,
   selectTriage,
 } from '../selectors';
 import {
@@ -29,7 +30,13 @@ import {
   proposalDecided,
 } from '../slice';
 import { stageFromTriage } from '../stageFromTriage';
-import { acceptProposal, startTriage, syncGmail, undoEmailUpdate } from '../thunks';
+import {
+  acceptProposal,
+  startTriage,
+  syncGmail,
+  triageNextMessage,
+  undoEmailUpdate,
+} from '../thunks';
 
 const mockGenerate = jest.fn();
 jest.mock('@/services/ai/foundationModels', () => ({
@@ -222,6 +229,36 @@ describe('Triage', () => {
       replayed: true,
       result: { category: 'interview_invite', applicationId: acmeId },
     });
+  });
+
+  it('a manual retry waits for the running Triage, then runs from the queue', async () => {
+    const store = setup();
+    store.dispatch(nextFixtureReceived({ now: '2026-11-05T12:00:00.000Z' }));
+    mockGenerate.mockResolvedValueOnce(err({ kind: 'timeout', afterMs: 20_000 }));
+    await store.dispatch(startTriage(inviteId));
+    store.dispatch(nextFixtureReceived({ now: '2026-11-05T12:01:00.000Z' }));
+    const otherId = selectInboxMessages(store.getState())[0]?.id;
+    if (otherId === undefined || otherId === inviteId) throw new Error('second message missing');
+    let finishOther: () => void = () => undefined;
+    mockGenerate.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishOther = () => resolve(ok({ ...inviteOutput, matchedApplicationId: null }));
+        }),
+    );
+    mockGenerate.mockClear();
+    const running = store.dispatch(startTriage(otherId));
+
+    await store.dispatch(startTriage(inviteId));
+
+    expect(mockGenerate).toHaveBeenCalledTimes(1);
+    finishOther();
+    await running;
+    expect(selectMessagesToTriage(store.getState()).map((m) => m.id)).toEqual([inviteId]);
+    mockGenerate.mockResolvedValueOnce(ok(inviteOutput));
+    await store.dispatch(triageNextMessage());
+    expect(mockGenerate).toHaveBeenCalledTimes(2);
+    expect(selectTriage(store.getState(), inviteId)).toMatchObject({ status: 'done' });
   });
 });
 
@@ -509,6 +546,25 @@ describe('Email Source', () => {
 
     expect(await sync).toEqual(ok(0));
     expect(selectInboxMessages(store.getState())).toEqual([]);
+  });
+
+  it('counts only messages that are new to the inbox', async () => {
+    const store = setup();
+    store.dispatch(emailSourceChanged('gmail'));
+    const message = (id: string): InboxMessage => ({
+      id: MessageIdSchema.parse(id),
+      from: 'someone@example.com',
+      subject: 'Hello',
+      receivedAt: '2026-11-05T13:00:00.000Z',
+      bodyText: 'Hi',
+      origin: 'gmail',
+    });
+    store.dispatch(messagesReceived([message('gmail_known')]));
+    const source = { listRecent: async () => ok([message('gmail_known'), message('gmail_new')]) };
+
+    const result = await store.dispatch(syncGmail(source, new Date('2026-11-05T14:00:00.000Z')));
+
+    expect(result).toEqual(ok(1));
   });
 
   describe('reconnecting Gmail after an Email Update', () => {

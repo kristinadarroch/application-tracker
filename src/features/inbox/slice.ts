@@ -106,6 +106,10 @@ export const inboxSlice = createSlice({
         }
       }
     },
+    /** Retry while another Triage runs: a failed message goes back to the queue. */
+    triageRequeued(state, action: PayloadAction<MessageId>) {
+      if (state.triage[action.payload]?.status === 'failed') delete state.triage[action.payload];
+    },
     messageTaggedManually(state, action: PayloadAction<MessageId>) {
       state.triage[action.payload] = { status: 'manual' };
     },
@@ -166,6 +170,7 @@ export const {
   emailUpdateApplied,
   emailUpdateUndone,
   triageResumed,
+  triageRequeued,
   messageTaggedManually,
   emailSourceChanged,
 } = inboxSlice.actions;

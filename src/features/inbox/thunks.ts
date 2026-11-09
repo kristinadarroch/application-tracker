@@ -29,18 +29,26 @@ import {
   messagesReceived,
   messageTaggedManually,
   proposalDecided,
+  triageRequeued,
 } from './slice';
 import { isClosedStage, stageFromTriage } from './stageFromTriage';
 import { triageApi } from './triageApi';
 
 type Thunk<R> = (dispatch: AppDispatch, getState: () => RootState) => R;
 
-/** Runs Triage for one message. The slice records pending, done, or failed. */
+/**
+ * Runs Triage for one message. The slice records pending, done, or failed. The model runs one
+ * generation at a time, so while another Triage runs the message waits in the queue instead.
+ */
 export function startTriage(messageId: MessageId): Thunk<Promise<void>> {
   return async (dispatch, getState) => {
     const state = getState();
     const message = selectMessageById(state, messageId);
     if (message === undefined) return;
+    if (selectIsTriageRunning(state)) {
+      dispatch(triageRequeued(messageId));
+      return;
+    }
     const request = dispatch(
       triageApi.endpoints.triageMessage.initiate({
         message,
@@ -247,7 +255,8 @@ export function syncGmail(
     const result = await source.listRecent(since);
     if (!result.ok) return result;
     if (selectEmailSource(getState()) !== 'gmail') return ok(0);
+    const knownIds = new Set(selectInboxMessages(getState()).map((m) => m.id));
     dispatch(messagesReceived(result.value));
-    return ok(result.value.length);
+    return ok(result.value.filter((m) => !knownIds.has(m.id)).length);
   };
 }

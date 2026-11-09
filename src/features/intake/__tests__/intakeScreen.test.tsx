@@ -1,11 +1,12 @@
-import { fireEvent, screen } from 'expo-router/testing-library';
+import { act, fireEvent, screen } from 'expo-router/testing-library';
 
+import { aiAvailabilityChecked } from '@/features/capabilities';
 import { err, ok } from '@/lib/result';
 
 import { selectAllDrafts } from '../draftsSlice';
 import { fakeModel, type FakeModel } from '../testing/fakeModel';
 import { ACME_EXTRACTION, LISTING_PAGE_HTML, LISTING_TEXT } from '../testing/fixtures';
-import { renderIntake } from '../testing/renderIntake';
+import { AI_AVAILABLE, renderIntake } from '../testing/renderIntake';
 
 jest.mock('@/services/ai/foundationModels', () => ({
   onDeviceModel: jest.requireActual<{ fakeModel: FakeModel }>('../testing/fakeModel').fakeModel,
@@ -125,6 +126,41 @@ describe('Open a job link in the app (INT-3)', () => {
     expect(draft?.listingUrl).toBe(LINK);
     expect(draft?.source).toBe('pasted_url');
     expect(getPathname()).toBe(`/intake/review/${draft?.id}`);
+  });
+
+  it('waits until AI availability is known before reading the link', async () => {
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(LISTING_PAGE_HTML, { headers: { 'content-type': 'text/html' } }),
+      );
+    const { store } = await renderIntake(`/intake/new?url=${encodeURIComponent(LINK)}`, {
+      ai: null,
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts).toHaveLength(0);
+
+    await act(async () => {
+      store.dispatch(aiAvailabilityChecked(AI_AVAILABLE));
+    });
+    expect(await screen.findByText('Review draft')).toBeOnTheScreen();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fakeModel.prompts).toHaveLength(1);
+  });
+
+  it('waits for the user when AI turns out to be unavailable', async () => {
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    const { store } = await renderIntake(`/intake/new?url=${encodeURIComponent(LINK)}`, {
+      ai: null,
+    });
+
+    await act(async () => {
+      store.dispatch(aiAvailabilityChecked({ status: 'unavailable', reason: 'os_too_old' }));
+    });
+    expect(screen.getByRole('button', { name: 'Continue manually' })).toBeOnTheScreen();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts).toHaveLength(0);
   });
 
   it('opens a LinkedIn link in paste mode without loading it, and waits', async () => {

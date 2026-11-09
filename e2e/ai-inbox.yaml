@@ -67,13 +67,13 @@ appId: dev.kristinadarroch.applicationtracker
     centerElement: true
 - takeScreenshot: e2e/artifacts/inbox-03-pipeline-updated
 - tapOn: '.*Northwind Labs.*Stage: Interviewing.*'
-# Same lost-first-tap pattern as ai-prep.yaml (see docs/verification.md): tap once more if the
-# detail screen didn't open.
+# Same lost-first-tap pattern as ai-prep.yaml (see docs/verification.md): let navigation settle,
+# then tap once more only if the detail screen didn't open.
+- waitForAnimationToEnd
 - runFlow:
     when:
       visible: Filter by stage
     commands:
-      - waitForAnimationToEnd
       - tapOn: '.*Northwind Labs.*Stage: Interviewing.*'
 - extendedWaitUntil:
     visible: Edit application

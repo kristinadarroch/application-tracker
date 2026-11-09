@@ -4,7 +4,7 @@ import { assertNever } from './assertNever';
 export type AiUnavailableReason =
   'unsupported_platform' | 'os_too_old' | 'apple_intelligence_unavailable';
 
-export type ListingUnreadableReason = 'blocked' | 'empty' | 'login_wall' | 'non_html';
+export type ListingUnreadableReason = 'blocked' | 'gone' | 'empty' | 'login_wall' | 'non_html';
 
 /** Every failure the UI can show. Screens never see raw exceptions. */
 export type AppError =
@@ -35,6 +35,7 @@ const aiUnavailableBody: Record<AiUnavailableReason, string> = {
 
 const unreadableBody: Record<ListingUnreadableReason, string> = {
   blocked: 'The site blocked the request. Paste the listing text instead.',
+  gone: 'The page no longer exists. Paste the listing text instead.',
   empty: 'The page had no listing text. Paste the listing text instead.',
   login_wall: 'The page needs a login. Paste the listing text instead.',
   non_html: 'That link isn’t a web page. Paste the listing text instead.',
@@ -83,7 +84,7 @@ export function describeError(error: AppError): ErrorCopy {
       };
     case 'listing_unreadable':
       return {
-        title: 'Couldn’t read this page',
+        title: error.reason === 'gone' ? 'This listing is gone' : 'Couldn’t read this page',
         body: unreadableBody[error.reason],
         retryable: false,
       };

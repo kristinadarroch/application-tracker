@@ -1,3 +1,3 @@
 /** Public API of the capabilities feature. */
-export { selectAiAvailability } from './slice';
+export { aiAvailabilityChecked, selectAiAvailability } from './slice';
 export { useAiAvailabilitySync } from './useAiAvailabilitySync';

@@ -113,17 +113,22 @@ export function useListingIntake(
   const [text, setText] = useState(start.text);
   const [url, setUrl] = useState(start.url);
   const [urlError, setUrlError] = useState<string | undefined>(undefined);
-  // A shared listing starts reading as soon as it arrives (INT-1), unless AI can't run. A LinkedIn
-  // share that is only a short sentence ("Check out this job at …") waits for the description.
+  // A shared listing starts reading as soon as it arrives (INT-1) and AI is known to be
+  // available; at launch availability isn't checked yet, so it waits. A LinkedIn share that is
+  // only a short sentence ("Check out this job at …") waits for the description.
   const [sharedRequest] = useState(() => {
     const shortLinkedInShare = isLinkedInLink(start.url) && start.text.length < MIN_LISTING_CHARS;
-    return autoSubmit && aiUnavailable === undefined && !shortLinkedInShare
-      ? toListingRequest(start, origin)
-      : undefined;
+    return autoSubmit && !shortLinkedInShare ? toListingRequest(start, origin) : undefined;
   });
-  const [status, setStatus] = useState<IntakeStatus>(
+  const [ownStatus, setStatus] = useState<IntakeStatus>(
     sharedRequest === undefined ? { kind: 'editing' } : { kind: 'reading' },
   );
+  // A shared listing never starts when AI can't run; the user takes over instead (UX-7).
+  const status: IntakeStatus =
+    sharedRequest !== undefined && aiUnavailable !== undefined && ownStatus.kind === 'reading'
+      ? { kind: 'editing' }
+      : ownStatus;
+  const sharedStarted = useRef(false);
   const pending = useRef<{ abort: () => void } | null>(null);
 
   const trimmedUrl = url.trim();
@@ -220,14 +225,19 @@ export function useListingIntake(
     }
   };
 
+  /** Starts the shared listing once, when AI is known to be available. */
   const startShared = useEffectEvent(() => {
-    if (sharedRequest !== undefined) run(sharedRequest);
+    if (sharedRequest === undefined || sharedStarted.current) return;
+    if (availability?.status !== 'available') return;
+    sharedStarted.current = true;
+    run(sharedRequest);
   });
   useEffect(() => {
     startShared();
-    // Closing the screen cancels the request, so a late result can't navigate away.
-    return () => pending.current?.abort();
-  }, []);
+  }, [availability?.status]);
+
+  // Closing the screen cancels the request, so a late result can't navigate away.
+  useEffect(() => () => pending.current?.abort(), []);
 
   const openManualForm: ListingIntake['openManualForm'] = (reason) => {
     const prefill: ManualPrefill = { text: mode === 'text' ? text : '', url: trimmedUrl };

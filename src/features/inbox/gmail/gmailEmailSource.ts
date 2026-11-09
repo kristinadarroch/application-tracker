@@ -82,7 +82,10 @@ export class GmailEmailSource implements EmailSource {
     return ok(ids.slice(0, MAX_MESSAGES));
   }
 
-  /** `undefined` when the message can't become an Inbox Message (e.g. no sender address). */
+  /**
+   * `undefined` when the message can't become an Inbox Message (e.g. no sender address) or was
+   * deleted between listing and fetching (404).
+   */
   private async getMessage(
     id: string,
   ): Promise<Result<InboxMessage | undefined, EmailSourceError>> {
@@ -90,7 +93,9 @@ export class GmailEmailSource implements EmailSource {
       `${API}/${encodeURIComponent(id)}?format=full`,
       GmailMessageSchema,
     );
-    return response.ok ? ok(toInboxMessage(response.value)) : response;
+    if (response.ok) return ok(toInboxMessage(response.value));
+    const gone = response.error.kind === 'source_failed' && response.error.status === 404;
+    return gone ? ok(undefined) : response;
   }
 
   private async getJson<S extends z.ZodType>(

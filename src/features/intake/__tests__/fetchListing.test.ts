@@ -40,6 +40,14 @@ describe('fetchListing', () => {
     });
   });
 
+  it.each([[404], [410]])('reports a %p as gone', async (status) => {
+    fetchMock.mockResolvedValueOnce(htmlResponse('Not here', { status }));
+    expect(await fetchListing(LISTING_URL)).toEqual({
+      ok: false,
+      error: { kind: 'listing_unreadable', reason: 'gone' },
+    });
+  });
+
   it('reports a PDF as not a web page', async () => {
     fetchMock.mockResolvedValueOnce(
       new Response('%PDF-1.7', { status: 200, headers: { 'content-type': 'application/pdf' } }),

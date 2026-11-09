@@ -114,6 +114,21 @@ describe('GmailEmailSource', () => {
     });
   });
 
+  it('skips a message deleted before its details were fetched (404)', async () => {
+    const { fetch } = fakeFetch([
+      { match: LIST, respond: () => listPage(['gone', 'abc']) },
+      { match: (url) => url.includes('/messages/gone'), respond: () => json({}, 404) },
+      {
+        match: (url) => url.includes('/messages/abc'),
+        respond: () => multipartMessage('abc', 'Tue, 03 Nov 2026 09:00:00 +0000'),
+      },
+    ]);
+
+    const result = await new GmailEmailSource({ accessToken: 'token', fetch }).listRecent(SINCE);
+
+    expect(result.ok && result.value.map((m) => m.id)).toEqual(['gmail_abc']);
+  });
+
   it('falls back to the HTML part with tags stripped when there is no plain text', async () => {
     const html =
       '<html><head><style>p{color:red}</style></head><body><p>Please submit the take-home &amp; reply.</p><p>Thanks<br>Jordan</p></body></html>';
