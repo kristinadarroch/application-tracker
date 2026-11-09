@@ -1,5 +1,3 @@
-import { useRouter } from 'expo-router';
-
 import {
   Banner,
   Button,
@@ -12,6 +10,7 @@ import {
   TextField,
 } from '@/design-system';
 import { describeError } from '@/lib/errors';
+import { useGoBack } from '@/lib/useGoBack';
 
 import { useListingIntake, type IntakeInput, type IntakeOrigin } from '../hooks/useListingIntake';
 
@@ -34,19 +33,14 @@ export function ListingIntakeScreen({
   origin,
   autoSubmit,
 }: ListingIntakeScreenProps) {
-  const router = useRouter();
+  const goBack = useGoBack();
   const intake = useListingIntake(initial, origin, autoSubmit);
   const { status } = intake;
   const reading = status.kind === 'reading';
   const showsSubmit = status.kind !== 'failed' && status.kind !== 'missing_company_or_role';
 
   return (
-    <Screen
-      title={title}
-      header="plain"
-      onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-      scroll
-    >
+    <Screen title={title} header="plain" onBack={goBack} scroll>
       <Card variant="panel">
         <Stack gap={1}>
           <Text variant="mono" color="onPanelSecondary">

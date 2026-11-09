@@ -10,7 +10,7 @@ The app's visual language uses dark panels, a colored company badge per applicat
 
 The first design system (indigo accent, system fonts, stage pills tinted per stage) met its contrast and accessibility rules but had no distinct visual identity, and an application's progress was a single pill rather than something you could read along a path.
 
-AI (Claude Design) explored four complete directions, each as a design-system sheet plus three screens (home/Pipeline, Application detail, Mock interview feedback). Artifact: [claude.ai/artifact/S14rD7cgtzVwRd2qxpVZnA](https://claude.ai/artifact/S14rD7cgtzVwRd2qxpVZnA); exported renders and markup are in `e2e/artifacts/design/`.
+AI (Claude Design) explored four complete directions, each as a design-system sheet plus three screens (home/Pipeline, Application detail, Mock interview feedback). Artifact: [claude.ai/artifact/S14rD7cgtzVwRd2qxpVZnA](https://claude.ai/artifact/S14rD7cgtzVwRd2qxpVZnA); the exported renders and markup are kept locally and are not in git.
 
 - **A. Field Notes**: a job search kept like a notebook; Fraunces and IBM Plex Mono on paper tones.
 - **B. Dark panels and badges** (this decision): Overpass and Overpass Mono, flat cards, dark panels, yellow for urgency.

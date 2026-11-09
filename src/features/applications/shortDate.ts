@@ -1,7 +1,6 @@
 /**
- * Short dates: "FRI 6 NOV" (with weekday) or "14 OCT", in the device locale's names.
- * Parts are reordered day-before-month so every locale reads the same way; the `mono`
- * typography variant uppercases them on screen.
+ * Short dates: "FRI 6 NOV" (with weekday) or "14 OCT", in the device locale's names, uppercased.
+ * Parts are reordered day-before-month so every locale reads the same way.
  */
 export function formatShortDate(
   date: Date,

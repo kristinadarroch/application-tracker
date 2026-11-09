@@ -52,7 +52,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * Practice progress as a row of steps, for dark panels (B3): practiced steps filled yellow,
+ * Practice progress as a row of steps, for dark panels: practiced steps filled yellow,
  * the current step an ink ring, the rest hollow. Announced as "6 of 20 practiced".
  */
 export function ProgressSteps({ total, done }: ProgressStepsProps) {

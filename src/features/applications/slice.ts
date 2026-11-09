@@ -46,18 +46,14 @@ export const applicationsSlice = createSlice({
       action: PayloadAction<{ id: ApplicationId; input: ApplicationInput } & Stamped>,
     ) {
       const { id, input, now } = action.payload;
-      const existing = state.entities[id];
-      if (existing === undefined) return;
-      state.entities[id] = { ...existing, ...input, updatedAt: now };
+      applicationsAdapter.updateOne(state, { id, changes: { ...input, updatedAt: now } });
     },
     applicationRemoved(state, action: PayloadAction<ApplicationId>) {
       applicationsAdapter.removeOne(state, action.payload);
     },
     stageChanged(state, action: PayloadAction<{ id: ApplicationId; stage: Stage } & Stamped>) {
-      const existing = state.entities[action.payload.id];
-      if (existing === undefined) return;
-      existing.stage = action.payload.stage;
-      existing.updatedAt = action.payload.now;
+      const { id, stage, now } = action.payload;
+      applicationsAdapter.updateOne(state, { id, changes: { stage, updatedAt: now } });
     },
     nextStepAdded(
       state,
@@ -75,27 +71,42 @@ export const applicationsSlice = createSlice({
       const { applicationId, now, ...step } = action.payload;
       const existing = state.entities[applicationId];
       if (existing === undefined) return;
-      existing.nextSteps.push({ ...step, title: step.title.trim(), done: false });
-      existing.updatedAt = now;
+      const nextSteps = [...existing.nextSteps, { ...step, title: step.title.trim(), done: false }];
+      applicationsAdapter.updateOne(state, {
+        id: applicationId,
+        changes: { nextSteps, updatedAt: now },
+      });
     },
     nextStepToggled(
       state,
       action: PayloadAction<{ applicationId: ApplicationId; id: NextStepId } & Stamped>,
     ) {
       const { applicationId, id, now } = action.payload;
-      const step = state.entities[applicationId]?.nextSteps.find((s) => s.id === id);
-      if (step === undefined) return;
-      step.done = !step.done;
-      if (step.done) step.completedAt = now;
-      else delete step.completedAt;
+      const existing = state.entities[applicationId];
+      if (existing === undefined || !existing.nextSteps.some((s) => s.id === id)) return;
+      const nextSteps = existing.nextSteps.map((s) => {
+        if (s.id !== id) return s;
+        if (!s.done) return { ...s, done: true, completedAt: now };
+        const { completedAt: _completedAt, ...reopened } = s;
+        return { ...reopened, done: false };
+      });
+      applicationsAdapter.updateOne(state, {
+        id: applicationId,
+        changes: { nextSteps, updatedAt: now },
+      });
     },
     nextStepRemoved(
       state,
-      action: PayloadAction<{ applicationId: ApplicationId; id: NextStepId }>,
+      action: PayloadAction<{ applicationId: ApplicationId; id: NextStepId } & Stamped>,
     ) {
-      const existing = state.entities[action.payload.applicationId];
+      const { applicationId, id, now } = action.payload;
+      const existing = state.entities[applicationId];
       if (existing === undefined) return;
-      existing.nextSteps = existing.nextSteps.filter((s) => s.id !== action.payload.id);
+      const nextSteps = existing.nextSteps.filter((s) => s.id !== id);
+      applicationsAdapter.updateOne(state, {
+        id: applicationId,
+        changes: { nextSteps, updatedAt: now },
+      });
     },
   },
 });

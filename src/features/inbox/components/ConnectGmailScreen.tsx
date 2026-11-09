@@ -19,7 +19,7 @@ export interface ConnectGmailScreenProps {
 const SETUP_STEPS = [
   'In Google Cloud console, enable the Gmail API and set up the OAuth consent screen with yourself as a test user.',
   'Create OAuth client ids for iOS and Android using this app’s bundle id and package name.',
-  'Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID and EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in .env, then rebuild the dev client.',
+  'Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID and EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in .env.local, then rebuild the dev client.',
 ];
 
 /** Connect a real Gmail inbox, read-only (LATER-2). Without client ids the inbox stays on sample email. */

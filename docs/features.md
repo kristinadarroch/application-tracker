@@ -90,7 +90,7 @@ flowchart LR
 - `EmailSource` interface and `MockEmailSource` with about 8 fixture messages.
 - Inbox tab: messages with triage status (pending, done, failed).
 - Dev-only "Receive next email" button appends the next fixture.
-- `triage-message` endpoint: category, matched application (or none), proposed next step with due date, confidence.
+- `triageMessage` mutation in the RTK Query `triageApi` (`src/features/inbox/triageApi.ts`): category, matched application (or none), proposed next step with due date, confidence.
 - Accepting a proposed next step adds it to the matched application and applies the Stage change; low-confidence matches ask the user to choose.
 - Confident triage (high confidence, matched application) updates the application by itself: Stage decided in code and the Next Step, shown as "Updated from email" with one-tap Undo, and logged under "Updates from email" on the application ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)). New email is read and triaged app-wide; Gmail is read on open, foreground, Inbox focus, and pull-to-refresh, never on a timer.
 
@@ -109,7 +109,7 @@ flowchart LR
 ## Stretch
 
 - **Interview review summary** ([LATER-1](user-stories.md#later-1--summarize-interview-reviews-i-found)). The user pastes interview reviews they found (e.g. from Glassdoor); AI summarizes likely questions with the source text quoted. No scraping of any site.
-- **Gmail `EmailSource`** ([LATER-2](user-stories.md#later-2--connect-my-real-gmail)). OAuth with a read-only Gmail scope for test users only. Publishing publicly would need Google's verification. Triage runs on the device, so email content would not be sent to any AI service.
+- **Gmail `EmailSource`** ([LATER-2](user-stories.md#later-2--connect-my-real-gmail)). Built: `GmailEmailSource` (`src/features/inbox/gmail/`) sits behind the same `EmailSource` interface, using a read-only Gmail scope for test users. It needs Google OAuth client IDs in `.env.local`, so live sign-in is still unverified. Publishing publicly would need Google's verification. Triage runs on the device, so email content is not sent to any AI service.
 
 ## Out of scope
 

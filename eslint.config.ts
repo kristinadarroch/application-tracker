@@ -29,7 +29,7 @@ function restrictedImports(allowedFeaturePaths: string): Linter.RuleEntry {
           message: 'Import the design system from @/design-system only.',
         },
         {
-          group: ['react-native-foundation-models', '@react-native-ai/apple'],
+          group: ['@react-native-ai/apple'],
           message:
             'Only src/services/ai/foundationModels.ios.ts may import the on-device model library.',
         },

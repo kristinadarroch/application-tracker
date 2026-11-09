@@ -75,4 +75,12 @@ describe('readListingHtml (INT-3)', () => {
     );
     expect(readListingHtml(withSignIn).ok).toBe(true);
   });
+
+  it('accepts a full listing even when the page asks members to sign in', () => {
+    const withPrompt = LISTING_PAGE_HTML.replace(
+      '</main>',
+      '<p>Sign in to see who you already know at Acme Health.</p></main>',
+    );
+    expect(readListingHtml(withPrompt).ok).toBe(true);
+  });
 });

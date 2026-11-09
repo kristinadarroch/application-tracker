@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { draftAdded } from '../draftsSlice';
 import { useExtractListingMutation } from '../intakeApi';
 import { isLinkedInLink, linkedInListingUrl } from '../linkedInJob';
+import { MIN_LISTING_CHARS } from '../listingText';
 import { manualFormParams, recoveryFor, type ManualPrefill } from '../manualFallback';
 import type { ListingExtraction, ListingRequest } from '../schema';
 
@@ -112,10 +113,14 @@ export function useListingIntake(
   const [text, setText] = useState(start.text);
   const [url, setUrl] = useState(start.url);
   const [urlError, setUrlError] = useState<string | undefined>(undefined);
-  // A shared listing starts reading as soon as it arrives (INT-1), unless AI can't run.
-  const [sharedRequest] = useState(() =>
-    autoSubmit && aiUnavailable === undefined ? toListingRequest(start, origin) : undefined,
-  );
+  // A shared listing starts reading as soon as it arrives (INT-1), unless AI can't run. A LinkedIn
+  // share that is only a short sentence ("Check out this job at …") waits for the description.
+  const [sharedRequest] = useState(() => {
+    const shortLinkedInShare = isLinkedInLink(start.url) && start.text.length < MIN_LISTING_CHARS;
+    return autoSubmit && aiUnavailable === undefined && !shortLinkedInShare
+      ? toListingRequest(start, origin)
+      : undefined;
+  });
   const [status, setStatus] = useState<IntakeStatus>(
     sharedRequest === undefined ? { kind: 'editing' } : { kind: 'reading' },
   );
@@ -195,11 +200,28 @@ export function useListingIntake(
       return;
     }
     setStatus({ kind: 'reading' });
-    void run(request);
+    run(request);
+  };
+
+  /** A whole link pasted into the empty field starts reading at once: no extra tap (INT-3). */
+  const changeUrl = (next: string) => {
+    setUrl(next);
+    setUrlError(undefined);
+    clearOutcome();
+    const pasted = url.trim().length === 0 && status.kind !== 'reading';
+    if (pasted && keepLinkedInLink(next.trim())) return;
+    const request =
+      pasted && aiUnavailable === undefined
+        ? toListingRequest({ mode: 'url', text, url: next }, origin)
+        : undefined;
+    if (request !== undefined) {
+      setStatus({ kind: 'reading' });
+      run(request);
+    }
   };
 
   const startShared = useEffectEvent(() => {
-    if (sharedRequest !== undefined) void run(sharedRequest);
+    if (sharedRequest !== undefined) run(sharedRequest);
   });
   useEffect(() => {
     startShared();
@@ -250,22 +272,7 @@ export function useListingIntake(
       setText(next);
       clearOutcome();
     },
-    changeUrl: (next) => {
-      setUrl(next);
-      setUrlError(undefined);
-      clearOutcome();
-      // A whole link pasted into the empty field starts reading at once: no extra tap (INT-3).
-      const pasted = url.trim().length === 0 && status.kind !== 'reading';
-      if (pasted && keepLinkedInLink(next.trim())) return;
-      const request =
-        pasted && aiUnavailable === undefined
-          ? toListingRequest({ mode: 'url', text, url: next }, origin)
-          : undefined;
-      if (request !== undefined) {
-        setStatus({ kind: 'reading' });
-        run(request);
-      }
-    },
+    changeUrl,
     submit,
     editText: () => {
       if (status.kind === 'missing_company_or_role' && mode === 'url') {

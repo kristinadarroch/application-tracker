@@ -20,7 +20,7 @@ import type { Stage } from '@/lib/stage';
 import { useAppDispatch } from '@/store/hooks';
 
 import { useApplicationFromRoute } from '../hooks/useApplicationFromRoute';
-import { useGoBack } from '../hooks/useGoBack';
+import { useGoBack } from '@/lib/useGoBack';
 import { useNow } from '../hooks/useNow';
 import { applicationRemoved, stageChanged } from '../slice';
 import { AddNextStepForm } from './AddNextStepForm';
@@ -143,10 +143,20 @@ export function ApplicationDetailScreen({ emailUpdates }: ApplicationDetailScree
         </Text>
         <View style={styles.closeLinks}>
           {stage !== 'rejected' ? (
-            <Button label="Rejected" variant="ghost" onPress={() => changeStage('rejected')} />
+            <Button
+              label="Rejected"
+              variant="ghost"
+              accessibilityHint="Closes this application as Rejected"
+              onPress={() => changeStage('rejected')}
+            />
           ) : null}
           {stage !== 'withdrawn' ? (
-            <Button label="Withdrawn" variant="ghost" onPress={() => changeStage('withdrawn')} />
+            <Button
+              label="Withdrawn"
+              variant="ghost"
+              accessibilityHint="Closes this application as Withdrawn"
+              onPress={() => changeStage('withdrawn')}
+            />
           ) : null}
         </View>
       </Stack>

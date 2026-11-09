@@ -4,6 +4,8 @@ status: superseded by ADR-0005 (the proxy is replaced; the validated-drafts rule
 
 # Route AI through Expo API routes; AI output lands only as validated drafts
 
+> **Superseded by [ADR 0005](0005-on-device-apple-foundation-models.md).** Kept for history; the validated-drafts rule carries over.
+
 All model calls go through server-only Expo API routes (`src/app/api/ai/*+api.ts`) so the provider key never ships in the app bundle, where it could be extracted. Every response must match a Zod schema on both server and client, and AI output is written only to draft or proposal state that the user must confirm before it changes their Applications.
 
 ## Considered options

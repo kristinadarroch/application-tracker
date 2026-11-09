@@ -10,7 +10,7 @@ flowchart TB
     FE["Feature modules<br/>src/features/*"]
     ST["Redux store<br/>slices + RTK Query"]
     PS[("AsyncStorage<br/>redux-persist")]
-    ES["EmailSource<br/>Mock (demo) | Gmail (later)"]
+    ES["EmailSource<br/>Mock (demo) | Gmail (needs OAuth IDs)"]
     AD["AI adapter<br/>src/services/ai"]
     LIB["On-device model library<br/>(dependency)"]
   end
@@ -85,12 +85,12 @@ src/
     intake/        { schema.ts, draftsSlice.ts, fetchListing.ts, AI task + prompt, components/ }
     inbox/         { schema.ts, emailSource.ts, mock + Gmail sources, fixtures/, slice.ts, AI task + prompt, components/ }
     prep/          { schema.ts, slice.ts, AI tasks + prompts, components/ }
-    settings/      { slice.ts }
+    settings/      { slice.ts, components/ }
   services/
     ai/            { model.ts (adapter interface), foundationModels.ios.ts (library), foundationModels.ts (non-iOS stub),
                      errorMapping.ts, withTimeout.ts, budget.ts, aiApi.ts (RTK Query base) }
-  store/           { store.ts, hooks.ts }
-  lib/             { errors.ts, result.ts, assertNever.ts, ids.ts, dates.ts, stage.ts }
+  store/           { store.ts, appStore.ts, persistConfig.ts, hooks.ts }
+  lib/             { errors.ts, result.ts, assertNever.ts, ids.ts, dates.ts, stage.ts, accents.ts, useGoBack.ts }
   test/            { renderWithProviders.tsx }
 ```
 
@@ -98,7 +98,7 @@ Rules:
 
 1. A feature can import from `design-system`, `lib`, `services`, `store/hooks`, and its own folder. Features don't import each other's internals; they share through selectors exported from a feature's `index.ts`.
 2. Only `src/services/ai/foundationModels.ios.ts` imports the on-device model library. An ESLint `no-restricted-imports` rule blocks it everywhere else, so swapping libraries touches one file. Metro picks the `.ios.ts` file on iOS; every other platform gets `foundationModels.ts`, which always reports AI as unavailable, so the native library never loads on Android.
-3. Components receive data through props. Hooks (`useApplication(id)`) connect components to the store.
+3. Components receive data through props. Hooks (e.g. `useApplicationFromRoute`) connect components to the store.
 
 ### Error handling
 
@@ -149,6 +149,7 @@ interface RootState {
     messages: EntityState<InboxMessage, MessageId>;
     triage: Record<MessageId, TriageState>;               // idle | pending | done(result) | failed(AppError)
     fixtureCursor: number;                                // next mock message to "receive"
+    source: EmailSourceKind;                              // 'mock' | 'gmail'
     updates: Record<MessageId, EmailUpdate>;              // what confident Triage applied by itself; the log + Undo (ADR 0007)
     acknowledgedTimeoutAt: number | null;                 // "Analyze remaining" un-pauses Triage after a time-out
   };
@@ -156,8 +157,8 @@ interface RootState {
     questionSets: Record<ApplicationId, PrepQuestionSet>;
     sessions: EntityState<MockInterviewSession, SessionId>;
   };
-  settings: { theme: ThemePreference; emailSource: 'mock'; aiReplay: boolean };
-  capabilities: { ai: AiAvailability };                   // not persisted; re-checked at launch and on app foreground
+  settings: { theme: ThemePreference; aiReplay: boolean };
+  capabilities: { ai: AiAvailability | null };            // null until checked; not persisted; re-checked at launch and on app foreground
   aiApi: /* RTK Query cache */;
 }
 ```
@@ -167,7 +168,7 @@ interface RootState {
 - **Entity adapters** for anything listed or looked up by ID: O(1) lookups, ready-made CRUD reducers, normalized state.
 - **Drafts are a separate slice.** AI output never writes straight into `applications`. The user confirms a draft, which dispatches `applicationAdded` and `draftRemoved`. This is the human-in-the-loop boundary in code. The one exception is a confident Triage, which applies its Stage change and Next Step itself and records an `EmailUpdate` that can be undone ([ADR 0007](adr/0007-auto-apply-confident-email-updates.md)).
 - **Triage state lives next to messages**, keyed by ID, so one failed message doesn't affect others.
-- **RTK Query** owns request lifecycle (loading, error, dedupe) for AI calls. Its results are copied into domain slices on success via `extraReducers` or `onQueryStarted`, so domain data persists even though the RTK Query cache doesn't.
+- **RTK Query** owns request lifecycle (loading, error, dedupe) for AI calls. Its results are copied into domain slices on success, by `extraReducers` matchers (`triageApi.endpoints.triageMessage.matchFulfilled` in the inbox slice) or by thunks that `initiate` an endpoint and dispatch the result (`inbox/thunks.ts`, `prep/thunks.ts`), so domain data persists even though the RTK Query cache doesn't.
 
 ### Selectors
 
@@ -178,13 +179,13 @@ Memoized with `createSelector`, colocated in each feature's `selectors.ts`, and 
 | `selectApplicationsByStage` | `Record<Stage, Application[]>` for the pipeline board |
 | `selectUpcomingNextSteps` | Next steps sorted by due date, flagged `urgent` within 48 h |
 | `selectPipelineCounts` | Counts per stage for the header summary |
-| `selectUntriagedMessages` | Inbox messages with no triage result |
+| `selectMessagesToTriage` | Inbox messages still waiting for Triage (none while AI is unavailable) |
 | `selectAiAvailability` | `capabilities.ai`, read by every AI entry point |
 | `selectPrepProgress(applicationId)` | Answered / total prep questions |
 
 ### Persistence
 
-`redux-persist` with AsyncStorage. Persisted: `applications`, `drafts`, `inbox`, `prep`, `settings`. Not persisted: `capabilities` (the user can turn Apple Intelligence on or off at any time) and `aiApi` (request cache). Each persisted slice has a `version` and a `migrate` function from the first release onward.
+`redux-persist` with AsyncStorage (`src/store/persistConfig.ts`). Persisted: `applications`, `drafts`, `inbox`, `prep`, `settings`. Not persisted: `capabilities` (the user can turn Apple Intelligence on or off at any time) and `aiApi` (request cache). The persisted root has one `version: 3` with `createMigrate` migrations from earlier builds.
 
 ### Typed hooks
 
@@ -299,4 +300,4 @@ How AI is used to build the app (separate from AI features in the product) is in
 
 CI runners have no Apple Intelligence, so CI never calls the real model. Prompt quality is checked by hand against a fixed set of sample listings and emails (tier 2 and 4).
 
-CI (GitHub Actions): `tsc --noEmit`, ESLint, Jest on every push.
+CI (GitHub Actions): `tsc --noEmit`, ESLint, Prettier `format:check`, Jest on every push.

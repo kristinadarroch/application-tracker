@@ -11,7 +11,7 @@ const TAB_META: Record<string, { label: string; icon: IconName }> = {
   prep: { label: 'Prep', icon: 'reader-outline' },
 };
 
-/** The floating tab bar, with "Add from a link" as its action button (B1). */
+/** The floating tab bar, with "Add from a link" as its action button. */
 function AppTabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const tabs = state.routes.map((route, index) => {
     const meta = TAB_META[route.name];

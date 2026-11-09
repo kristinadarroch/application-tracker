@@ -67,4 +67,15 @@ describe('on-device generation queue', () => {
     calls[1]?.resolve({ output: { value: 'next' } });
     await expect(next).resolves.toEqual({ ok: true, value: { value: 'next' } });
   });
+
+  it('skips a queued request that timed out before its turn', async () => {
+    const first = onDeviceModel.generate({ ...request, timeoutMs: 10_000 });
+    const abandoned = await onDeviceModel.generate({ ...request, timeoutMs: 5 });
+    expect(abandoned).toEqual({ ok: false, error: { kind: 'timeout', afterMs: 5 } });
+
+    calls[0]?.resolve({ output: { value: 'one' } });
+    await expect(first).resolves.toEqual({ ok: true, value: { value: 'one' } });
+    await flush();
+    expect(calls).toHaveLength(1);
+  });
 });

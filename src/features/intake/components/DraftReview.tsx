@@ -17,6 +17,7 @@ import {
 import { applicationAdded, applicationSaved } from '@/features/applications/model';
 import { accentFor } from '@/lib/accents';
 import { ApplicationIdSchema, createId } from '@/lib/ids';
+import { useGoBack } from '@/lib/useGoBack';
 import { useAppDispatch } from '@/store/hooks';
 
 import { draftRemoved, draftUpdated } from '../draftsSlice';
@@ -40,6 +41,7 @@ export interface DraftReviewProps {
  */
 export function DraftReview({ draft }: DraftReviewProps) {
   const router = useRouter();
+  const goBack = useGoBack();
   const dispatch = useAppDispatch();
   const [values, setValues] = useState<DraftFormValues>(() => draftToFormValues(draft));
   const [errors, setErrors] = useState<DraftFormErrors>({});
@@ -86,12 +88,7 @@ export function DraftReview({ draft }: DraftReviewProps) {
   const role = values.role.trim();
 
   return (
-    <Screen
-      title="Review draft"
-      header="plain"
-      onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
-      scroll
-    >
+    <Screen title="Review draft" header="plain" onBack={goBack} scroll>
       <Card>
         <Stack gap={3}>
           <Stack direction="row" gap={3} align="center">

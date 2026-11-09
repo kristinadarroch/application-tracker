@@ -231,7 +231,7 @@ describe('Recover when extraction fails (INT-5)', () => {
     await renderIntake('/intake/new');
     await pasteLink(LINK);
 
-    expect(await screen.findByText('You’re offline')).toBeOnTheScreen();
+    expect(await screen.findByText('Couldn’t connect')).toBeOnTheScreen();
     expect(screen.getByLabelText('Listing text')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
     expect(screen.getByText(`The link ${LINK} will be saved with this listing.`)).toBeOnTheScreen();

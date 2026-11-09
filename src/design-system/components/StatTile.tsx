@@ -31,7 +31,7 @@ const useStyles = makeStyles((t) => ({
   label: { ...t.type.caption, color: t.color.text.secondary },
 }));
 
-/** Big number + caption on a card (B1 "This week"); read as one phrase, "3 sent this week". */
+/** Big number + caption on a card; read as one phrase, "3 sent this week". */
 export function StatTile({ icon, value, label }: StatTileProps) {
   const styles = useStyles();
   const theme = useTheme();

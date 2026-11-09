@@ -19,8 +19,8 @@ export interface StageMarkerProps {
   accent?: AccentIndex;
 }
 
-/** B4 shapes: each stage has its own mark, so color is never the only signal. */
-export const STAGE_GLYPHS: Record<Stage, GlyphKind> = {
+/** Each stage has its own mark, so color is never the only signal. */
+const STAGE_GLYPHS: Record<Stage, GlyphKind> = {
   saved: 'dot',
   applied: 'dot',
   interviewing: 'ring',

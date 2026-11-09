@@ -5,7 +5,7 @@ import type { Stage } from '@/lib/stage';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
-/** Stage icons (B4): stages are shape + icon + word, never color alone. */
+/** Stage icons: stages are shape + icon + word, never color alone. */
 export const STAGE_ICONS: Record<Stage, IconName> = {
   saved: 'bookmark-outline',
   applied: 'paper-plane-outline',

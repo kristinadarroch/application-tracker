@@ -37,8 +37,11 @@ export const onDeviceModel: OnDeviceModel = {
     }
     try {
       // Each call is a fresh on-device session, so context never accumulates.
-      const native = nativeQueue.then(() =>
-        generateText({
+      // A request that timed out while still queued never reaches the model.
+      let abandoned = false;
+      const native = nativeQueue.then(() => {
+        if (abandoned) throw new Error('Request timed out before it started.');
+        return generateText({
           model: apple(),
           system: instructions,
           prompt,
@@ -46,12 +49,15 @@ export const onDeviceModel: OnDeviceModel = {
           maxRetries: 0,
           maxOutputTokens,
           ...(sampling === 'repeatable' ? { temperature: 0 } : { temperature: 0.7, topP: 0.9 }),
-        }),
-      );
+        });
+      });
       nativeQueue = native.catch(() => undefined);
       // The time limit covers waiting in the queue too: it is how long the user waits.
       const response = await withTimeout(native, timeoutMs);
-      if (isTimedOut(response)) return err({ kind: 'timeout', afterMs: timeoutMs });
+      if (isTimedOut(response)) {
+        abandoned = true;
+        return err({ kind: 'timeout', afterMs: timeoutMs });
+      }
       // Parse again with Zod so the app never trusts a dependency's output.
       const parsed = schema.safeParse(response.output);
       if (!parsed.success) {

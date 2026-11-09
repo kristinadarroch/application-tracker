@@ -40,7 +40,7 @@ export interface GlyphMetrics {
   halo: number;
 }
 
-/** B4 stage markers (legend, StagePill). */
+/** Stage markers (legend, StagePill). */
 export const MARKER_METRICS: GlyphMetrics = {
   dot: { size: 14, radius: 7, border: 3 },
   ring: { width: 28, height: 16, radius: 8, border: 3 },
@@ -50,7 +50,7 @@ export const MARKER_METRICS: GlyphMetrics = {
   halo: 2,
 };
 
-/** B1 horizontal stage progress. */
+/** Horizontal stage progress. */
 export const STRIP_METRICS: GlyphMetrics = {
   dot: { size: 18, radius: 6, border: 3 },
   ring: { width: 36, height: 24, radius: 9, border: 3 },
@@ -60,7 +60,7 @@ export const STRIP_METRICS: GlyphMetrics = {
   halo: 2,
 };
 
-/** B2 vertical stage steps (the ring stands upright). */
+/** Vertical stage steps (the ring stands upright). */
 export const STEP_METRICS: GlyphMetrics = {
   dot: { size: 18, radius: 6, border: 3 },
   ring: { width: 36, height: 28, radius: 11, border: 3 },
@@ -74,7 +74,7 @@ export const STEP_METRICS: GlyphMetrics = {
 const FUTURE_BORDER = 2;
 const EXIT_THICKNESS = 4;
 
-export function strokeColor(theme: Theme, tone: GlyphTone, accent: AccentIndex): string {
+function strokeColor(theme: Theme, tone: GlyphTone, accent: AccentIndex): string {
   switch (tone) {
     case 'accent':
       return theme.color.accent[accent].bg;
@@ -94,7 +94,7 @@ export interface StageGlyphProps {
   metrics: GlyphMetrics;
   /** `vertical` turns the ring pill upright for vertical stage steps. */
   orientation?: 'horizontal' | 'vertical';
-  /** Dashed outline even when reached (B4 Saved: "hollow, not yet applied"). */
+  /** Dashed outline even when reached (Saved: hollow, not yet applied). */
   dashed?: boolean;
   /** Yellow halo marks the current stage. */
   halo?: boolean;
@@ -155,7 +155,7 @@ function shapeStyle(
   }
 }
 
-/** Two bars: a short run along the track, then a diagonal leaving it (B4 "exit"). */
+/** Two bars: a short run along the track, then a diagonal leaving it (Withdrawn). */
 function Exit({ color }: { color: string }) {
   const parts = useMemo<{ run: ViewStyle; leave: ViewStyle }>(() => {
     const leaveLength = Math.hypot(10, 14) + EXIT_THICKNESS;

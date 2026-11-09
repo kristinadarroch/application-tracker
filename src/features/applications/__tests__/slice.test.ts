@@ -59,6 +59,14 @@ describe('applications slice', () => {
     });
   });
 
+  it('moves an application to the front when its Stage changes', () => {
+    const otherId = ApplicationIdSchema.parse('app_globex');
+    let state = reducer(withApplication(), applicationAdded({ id: otherId, input, now: T1 }));
+    expect(state.ids[0]).toBe(otherId);
+    state = reducer(state, stageChanged({ id, stage: 'applied', now: '2026-11-05T11:00:00.000Z' }));
+    expect(state.ids[0]).toBe(id);
+  });
+
   it('updates fields and the updatedAt timestamp', () => {
     const state = reducer(
       withApplication(),
@@ -104,7 +112,7 @@ describe('applications slice', () => {
   });
 
   it('removes a Next Step', () => {
-    const state = reducer(withStep(), nextStepRemoved({ applicationId: id, id: stepId }));
+    const state = reducer(withStep(), nextStepRemoved({ applicationId: id, id: stepId, now: T1 }));
     expect(state.entities[id]?.nextSteps).toEqual([]);
   });
 

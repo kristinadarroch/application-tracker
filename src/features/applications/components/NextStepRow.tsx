@@ -33,7 +33,8 @@ export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowPr
   const due = dueLabel(step.dueDate, now);
   const toggle = () =>
     dispatch(nextStepToggled({ applicationId, id: step.id, now: new Date().toISOString() }));
-  const remove = () => dispatch(nextStepRemoved({ applicationId, id: step.id }));
+  const remove = () =>
+    dispatch(nextStepRemoved({ applicationId, id: step.id, now: new Date().toISOString() }));
 
   if (step.done) {
     return (

@@ -69,5 +69,8 @@ export function makeStore(preloadedState?: Partial<RootState>): TestStore {
     reducer: rootReducer,
     ...(preloadedState === undefined ? {} : { preloadedState }),
     middleware: (getDefault) => getDefault().prepend(createAppListeners()).concat(aiApi.middleware),
+    // RTK batches with `requestAnimationFrame` by default, which Jest fakes with a timer that
+    // can fire after teardown. Tests notify subscribers synchronously instead.
+    enhancers: (getDefault) => getDefault({ autoBatch: false }),
   });
 }

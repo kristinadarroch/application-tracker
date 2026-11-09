@@ -74,6 +74,8 @@ export function applyConfidentTriage({
     const triage = selectTriage(state, messageId);
     const message = selectMessageById(state, messageId);
     if (triage?.status !== 'done' || triage.decision !== 'open' || message === undefined) return;
+    // Already applied once (e.g. the message came back after reconnecting Gmail): never again.
+    if (selectEmailUpdate(state, messageId) !== undefined) return;
     const { result } = triage;
     if (result.confidence !== 'high' || result.applicationId === null) return;
     const application = selectApplicationById(state, result.applicationId);
@@ -129,7 +131,9 @@ export function undoEmailUpdate({
       dispatch(stageChanged({ id: update.applicationId, stage: update.previousStage, now }));
     }
     if (plan.removeStep && update.nextStepId !== undefined) {
-      dispatch(nextStepRemoved({ applicationId: update.applicationId, id: update.nextStepId }));
+      dispatch(
+        nextStepRemoved({ applicationId: update.applicationId, id: update.nextStepId, now }),
+      );
     }
     dispatch(emailUpdateUndone({ messageId, now }));
   };
@@ -166,13 +170,13 @@ export function acceptProposal({
     const state = getState();
     const triage = selectTriage(state, messageId);
     if (triage?.status !== 'done') return err({ kind: 'not_found', entity: 'message' });
+    // Already decided (e.g. a double tap): nothing left to apply.
+    if (triage.decision !== 'open') return ok(undefined);
     const application = selectApplicationById(state, applicationId);
     if (application === undefined) return err({ kind: 'not_found', entity: 'application' });
     const newStage = stageFromTriage(triage.result.category, application.stage);
     const step = triage.result.proposedNextStep;
-    if (newStage === undefined && step === undefined) {
-      return err({ kind: 'not_found', entity: 'message' });
-    }
+    if (newStage === undefined && step === undefined) return ok(undefined);
     if (newStage !== undefined) dispatch(stageChanged({ id: applicationId, stage: newStage, now }));
     if (step !== undefined) {
       dispatch(

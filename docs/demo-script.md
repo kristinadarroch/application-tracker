@@ -68,4 +68,3 @@ If `recordVideo` reports "Host recording is already in progress", an earlier rec
 - **Trade-off:** on-device AI (no metered per-token cost, private, offline, but a small context-token budget) vs a cloud model (stronger, billed per token), and keeping the repo all TypeScript ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)).
 - **Scope call:** mock inbox instead of live Gmail ([ADR 0002](adr/0002-mock-email-source-behind-interface.md)).
 - **AI in development:** walk the [decision log](ai-development.md#decision-log); the corrections are the point.
-- **Learning:** fill in after the build.

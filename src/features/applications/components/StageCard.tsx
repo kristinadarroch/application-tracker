@@ -35,7 +35,7 @@ export function StageCard({ application, accent, now, onStageChange }: StageCard
   const { id, stage, createdAt } = application;
   const closedTag = stage === 'rejected' || stage === 'withdrawn' ? CLOSED_TAG[stage] : undefined;
   const closed = closedTag !== undefined;
-  const currentIndex = OPEN_STAGES.findIndex((step) => step === stage);
+  const currentIndex = OPEN_STAGES.findIndex((stageInRoute) => stageInRoute === stage);
   const open = application.nextSteps
     .filter((step) => !step.done)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
@@ -60,27 +60,31 @@ export function StageCard({ application, accent, now, onStageChange }: StageCard
 
   return (
     <Card>
-      {OPEN_STAGES.map((step, index) => {
+      {OPEN_STAGES.map((stageInRoute, index) => {
         const state =
           closed || index > currentIndex ? 'future' : index < currentIndex ? 'passed' : 'current';
         const meta =
-          step === 'saved' && state === 'passed'
+          stageInRoute === 'saved' && state === 'passed'
             ? formatShortDate(new Date(createdAt))
             : !closed && index === currentIndex + 1
               ? 'Next stage'
               : undefined;
+        const label = STAGE_LABELS[stageInRoute];
         return (
           <StageStep
-            key={step}
-            stage={step}
+            key={stageInRoute}
+            stage={stageInRoute}
             state={state}
             accent={accent.index}
-            label={STAGE_LABELS[step]}
+            label={label}
             {...(meta === undefined ? {} : { meta })}
             {...(state === 'current' ? { tag: 'Current' } : {})}
             selected={state === 'current'}
+            {...(stageInRoute === stage
+              ? {}
+              : { accessibilityHint: `Moves this application to ${label}` })}
             onPress={() => {
-              if (step !== stage) onStageChange(step);
+              if (stageInRoute !== stage) onStageChange(stageInRoute);
             }}
             last={!closed && index === OPEN_STAGES.length - 1}
           >

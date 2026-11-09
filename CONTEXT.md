@@ -47,7 +47,7 @@ Classifying an Inbox Message, matching it to an Application, and proposing a Nex
 _Avoid_: Scan, parse, sort
 
 **Email Source**:
-Where Inbox Messages come from; the demo uses a fixed sample set.
+Where Inbox Messages come from; the demo uses a fixed sample set. Gmail is a second Email Source behind the same interface and needs Google OAuth client IDs.
 _Avoid_: Provider, integration, connector
 
 **Email Update**:
@@ -58,7 +58,7 @@ _Avoid_: Auto-update, sync, change log
 
 **Prep Question**:
 A likely interview question generated for a specific Application.
-_Avoid_: Practice question, flashcard
+_Avoid_: flashcard. "Practice questions" is allowed only as the button label that opens an Application's Prep Questions.
 
 **Mock Interview Session**:
 A turn-based practice interview for one Application, where the AI asks and the user answers.

@@ -277,7 +277,7 @@ describe('Stage filter (PIPE-8)', () => {
     }
   });
 
-  it('shows only the picked status, leaves the prep cards alone, and All brings everything back', async () => {
+  it('shows only the picked Stage, leaves the prep cards alone, and All brings everything back', async () => {
     await renderApp('/', { preloadedState: filterState });
     await fireEvent.press(chip('Interviewing · 2'));
 

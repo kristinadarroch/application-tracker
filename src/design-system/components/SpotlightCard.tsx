@@ -66,7 +66,7 @@ const useStyles = makeStyles((t) => ({
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2], flexShrink: 1 },
 }));
 
-/** Dark panel announcing the next step (B1 "Up next", B2 "Next step"). */
+/** Dark panel spotlighting one item: the next Next Step ("Up next") or the next interview. */
 export function SpotlightCard({
   eyebrow,
   count,

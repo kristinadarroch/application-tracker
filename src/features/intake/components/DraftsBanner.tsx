@@ -24,7 +24,9 @@ export function DraftsBanner() {
         <Text variant="heading">
           {drafts.length === 1 ? '1 draft to review' : `${drafts.length} drafts to review`}
         </Text>
-        <Text variant="bodySmall" color="secondary">{`Newest: ${role} at ${company}`}</Text>
+        <Text variant="bodySmall" color="secondary">
+          {`Newest: ${role === '' || company === '' ? 'New application' : `${role} at ${company}`}`}
+        </Text>
         <Stack direction="row">
           <Button
             label="Review draft"

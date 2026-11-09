@@ -4,22 +4,35 @@ A React Native + TypeScript app for tracking job applications from first listing
 
 > **Status:** all user stories built. Tested with Jest, Maestro E2E on iOS and Android, and on-device model checks, except three manual checks still open: the screen-reader pass, sharing from Safari/Chrome, and live Gmail sign-in (needs OAuth client IDs). Details in [`docs/features.md`](docs/features.md) and [`docs/verification.md`](docs/verification.md).
 
+## Read in 5 minutes
+
+1. The [brief → architecture table](#the-brief--the-architecture) below.
+2. The Redux section of [`docs/architecture.md`](docs/architecture.md#requirement-3--redux-redux-toolkit).
+3. [`src/features/applications/slice.ts`](src/features/applications/slice.ts) and [`selectors.ts`](src/features/applications/selectors.ts): entity adapter and memoized selectors.
+4. [`src/services/ai/foundationModels.ios.ts`](src/services/ai/foundationModels.ios.ts): the one file that talks to the on-device model.
+5. [`src/features/inbox/stageFromTriage.ts`](src/features/inbox/stageFromTriage.ts) and [`thunks.ts`](src/features/inbox/thunks.ts): AI classifies, code decides the Stage change.
+
 ## The brief → the architecture
 
 The project brief has four graded requirements. Each one is an architectural pillar with a home in the repo and a moment in the demo.
 
 | Brief requirement | How this repo meets it | Where it lives | Shown in demo |
 |---|---|---|---|
-| **React Native & TypeScript** — functional RN app, entirely TypeScript | Expo SDK 58 dev build, `strict` TypeScript plus stricter flags, Expo Router typed routes, no `any` | `app/`, `src/`, [`tsconfig` rules](docs/architecture.md#typescript-rules) | Live on iOS Simulator and Android Emulator |
+| **React Native & TypeScript** — functional RN app, entirely TypeScript | Expo SDK 58 dev build, `strict` TypeScript plus stricter flags, Expo Router typed routes, no `any` | `src/app/`, `src/`, [`tsconfig` rules](docs/architecture.md#typescript-rules) | Live on iOS Simulator and Android Emulator |
 | **Code quality** — clean, readable, type-safe, good component structure, basic error handling | Token-based design system, feature folders, Zod at every trust boundary, typed `AppError` union, error boundary, retry-able error states | [`docs/design-system.md`](docs/design-system.md), [`docs/architecture.md`](docs/architecture.md#error-handling) | Design-system gallery screen; AI gated off cleanly on Android with manual paths |
-| **AI in development** — use AI to build more efficiently and cleanly | Spec-first workflow, `AGENTS.md` rules for coding agents, an AI decision log, AI-drafted tests reviewed by a human, AI PR review | [`AGENTS.md`](AGENTS.md), [`docs/ai-development.md`](docs/ai-development.md) | Walk through log entries where AI output was accepted, changed, or rejected |
-| **Redux (or similar)** | Redux Toolkit slices with entity adapters, memoized selectors, RTK Query for AI endpoints, redux-persist | [`docs/architecture.md`](docs/architecture.md#requirement-3--redux-redux-toolkit) | Redux DevTools timeline while an AI draft becomes a saved application |
+| **AI in development** — use AI to build more efficiently and cleanly | Spec-first workflow, `AGENTS.md` rules for coding agents, parallel coding agents reviewed by the author, parallel reviewer agents before submission, an AI decision log, AI-drafted tests reviewed by a human | [`AGENTS.md`](AGENTS.md), [`docs/ai-development.md`](docs/ai-development.md) | Walk through log entries where AI output was accepted, changed, or rejected |
+| **Redux (or similar)** | Redux Toolkit slices with entity adapters, memoized selectors, RTK Query for AI endpoints, redux-persist | [`docs/architecture.md`](docs/architecture.md#requirement-3--redux-redux-toolkit) | Code walkthrough: `features/applications/slice.ts` + `selectors.ts`, then `features/inbox/thunks.ts` turning an AI triage result into a Stage change |
 
 The brief also asks for a live demo, a code walkthrough, and a discussion of challenges. See [`docs/demo-script.md`](docs/demo-script.md).
 
-## Product in one paragraph
+## Product at a glance
 
-Share a job listing into the app (or paste it, or open `applicationtracker://intake/new?url=…`). AI extracts the company, role, location, salary, and requirements into a **draft** you confirm; LinkedIn pages are never loaded (its terms), so a LinkedIn link switches to pasting the description and keeps the link. Each application moves through a pipeline of stages, with a Stage filter. The home screen is prep-first: a **Next interview** card leads with your soonest interview, its prep progress ("4 of 10 questions practiced · 1 mock interview"), and **Practice questions** / **Mock interview** buttons, followed by the next step and your applications. The inbox (sample email, or Gmail with OAuth client IDs) is triaged by AI on every screen: when the match is confident, the email moves the application's Stage and adds its next step by itself, logged with one-tap **Undo**; when unsure, it asks. For any application, AI generates **prep questions** and runs a text **mock interview** with feedback on each answer.
+- **Intake:** share a job listing into the app (or paste it, or open `applicationtracker://intake/new?url=…`). AI extracts company, role, location, salary, and requirements into a **draft** you confirm.
+- **LinkedIn:** pages are never loaded (its terms); a LinkedIn link switches to pasting the description and keeps the link.
+- **Pipeline:** each application moves through Stages, with a Stage filter.
+- **Prep-first home:** a **Next interview** card shows your soonest interview, its prep progress ("4 of 10 questions practiced · 1 mock interview"), and **Practice questions** / **Mock interview** buttons, then the next step and your applications.
+- **Inbox:** sample email, or Gmail with OAuth client IDs in `.env.local`, triaged by AI on every screen. A confident match moves the Stage and adds the next step by itself, with one-tap **Undo**; when unsure, it asks.
+- **Prep:** for any application, AI generates **prep questions** and runs a text **mock interview** with feedback on each answer.
 
 ## Docs
 

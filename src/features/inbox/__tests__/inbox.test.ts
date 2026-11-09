@@ -427,6 +427,19 @@ describe('proposals (INBX-2, INBX-4)', () => {
     expect(selectTriage(store.getState(), inviteId)).toMatchObject({ decision: 'accepted' });
   });
 
+  it('accepting twice adds the Next Step once', async () => {
+    const store = await triagedStore(unsure);
+    const accept = () =>
+      store.dispatch(
+        acceptProposal({ messageId: inviteId, applicationId: acmeId, now: '2026-11-05T12:05:00Z' }),
+      );
+
+    accept();
+    accept();
+
+    expect(acme(store).nextSteps).toHaveLength(1);
+  });
+
   it('dismissing changes nothing on applications', async () => {
     const store = await triagedStore(unsure);
     const before = store.getState().applications;
@@ -496,5 +509,50 @@ describe('Email Source', () => {
 
     expect(await sync).toEqual(ok(0));
     expect(selectInboxMessages(store.getState())).toEqual([]);
+  });
+
+  describe('reconnecting Gmail after an Email Update', () => {
+    const gmailInviteId = MessageIdSchema.parse('gmail_acme_invite');
+
+    async function reconnectAndTriageAgain({ undoFirst }: { undoFirst: boolean }) {
+      const store = setup();
+      const fixture = FIXTURE_MESSAGES.find((m) => m.id === inviteId);
+      if (fixture === undefined) throw new Error('Fixture is missing');
+      const gmailInvite: InboxMessage = { ...fixture, id: gmailInviteId, origin: 'gmail' };
+      const receiveAndTriage = async () => {
+        store.dispatch(emailSourceChanged('gmail'));
+        store.dispatch(messagesReceived([gmailInvite]));
+        mockGenerate.mockResolvedValueOnce(ok(inviteOutput));
+        await store.dispatch(startTriage(gmailInviteId));
+      };
+      await receiveAndTriage();
+      if (undoFirst) {
+        store.dispatch(undoEmailUpdate({ messageId: gmailInviteId, now: '2026-11-05T13:00:00Z' }));
+      }
+      const before = acme(store);
+
+      store.dispatch(emailSourceChanged('mock'));
+      await receiveAndTriage();
+
+      return { store, before };
+    }
+
+    it('does not re-apply an undone update', async () => {
+      const { store, before } = await reconnectAndTriageAgain({ undoFirst: true });
+
+      expect(acme(store).stage).toBe(before.stage);
+      expect(acme(store).nextSteps).toEqual(before.nextSteps);
+      expect(selectEmailUpdate(store.getState(), gmailInviteId)?.undoneAt).toBeDefined();
+      expect(selectTriage(store.getState(), gmailInviteId)).toMatchObject({ decision: 'undone' });
+    });
+
+    it('does not add the Next Step again', async () => {
+      const { store } = await reconnectAndTriageAgain({ undoFirst: false });
+
+      expect(acme(store).nextSteps).toHaveLength(1);
+      expect(selectTriage(store.getState(), gmailInviteId)).toMatchObject({
+        decision: 'auto_applied',
+      });
+    });
   });
 });

@@ -142,7 +142,7 @@ There is no per-stage color. Stages are monochrome: shape + icon + word.
 
 ### Contrast (WCAG 2.x, computed)
 
-Ratios were computed with the WCAG relative-luminance formula from the hex values above (script run 2026-11-06, not estimated). The dev gallery computes the same figures live on its palette swatches. Thresholds: text ≥ 4.5:1; large text (≥ 18.66 px bold / 24 px) and non-text marks that carry meaning ≥ 3:1.
+Ratios were computed with the WCAG relative-luminance formula from the hex values above (computed 2026-11-06, not estimated) by the in-app contrast check, `contrastRatio` in `src/app/dev/design-system.tsx`, which shows the same figures live on the gallery's palette swatches. Thresholds: text ≥ 4.5:1; large text (≥ 18.66 px bold / 24 px) and non-text marks that carry meaning ≥ 3:1.
 
 **Text pairs** — all pass 4.5:1.
 
@@ -387,4 +387,4 @@ Why an in-app gallery instead of Storybook: it ships with no extra build setup, 
 | No deep imports into the design system | ESLint `no-restricted-imports` (`@/design-system/*`) |
 | Required accessibility props | TypeScript prop types |
 | Component behavior (roles, states, labels, error copy) | Jest + React Native Testing Library, queried by role and label |
-| Contrast | Ratios computed by script and recorded above; new pairs added before use |
+| Contrast | Ratios computed by the in-app contrast check (`contrastRatio` in `src/app/dev/design-system.tsx`) and recorded above; new pairs added before use |

@@ -45,7 +45,7 @@ export function describeError(error: AppError): ErrorCopy {
   switch (error.kind) {
     case 'network':
       return {
-        title: 'You’re offline',
+        title: 'Couldn’t connect',
         body: 'Check your connection and try again.',
         retryable: true,
       };

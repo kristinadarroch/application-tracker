@@ -6,7 +6,7 @@ import { makeStyles } from '../theme/makeStyles';
 import { IconButton } from './IconButton';
 import { Text } from './Text';
 
-/** `plain`: title on the paper gray · `panel`: dark rounded panel (tab roots, B1). */
+/** `plain`: title on the paper gray · `panel`: dark rounded panel (tab roots). */
 export type ScreenHeader = 'plain' | 'panel';
 
 export interface ScreenProps {

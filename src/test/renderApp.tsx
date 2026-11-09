@@ -8,6 +8,7 @@ import PipelineRoute from '@/app/(tabs)/index';
 import ApplicationDetailRoute from '@/app/application/[id]/index';
 import EditApplicationRoute from '@/app/application/[id]/edit';
 import NewApplicationRoute from '@/app/application/new';
+import MessageRoute from '@/app/inbox/[messageId]';
 import SettingsRoute from '@/app/settings';
 import { Text, ThemeProvider } from '@/design-system';
 import { useEmailReading } from '@/features/inbox';
@@ -52,6 +53,7 @@ export async function renderApp(initialUrl: string, options: Options = {}) {
       'application/new': NewApplicationRoute,
       'application/[id]/index': ApplicationDetailRoute,
       'application/[id]/edit': EditApplicationRoute,
+      'inbox/[messageId]': MessageRoute,
       settings: SettingsRoute,
       'intake/new': OtherFeatureRoute,
       'prep/[applicationId]/index': OtherFeatureRoute,

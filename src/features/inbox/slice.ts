@@ -140,7 +140,11 @@ export const inboxSlice = createSlice({
         const id = action.meta.arg.originalArgs.message.id;
         if (state.triage[id]?.status !== 'pending') return;
         const { result, replayed } = action.payload;
-        state.triage[id] = { status: 'done', result, replayed, decision: 'open' };
+        // A message that already made an Email Update keeps that decision (e.g. Gmail reconnected).
+        const update = state.updates[id];
+        const decision =
+          update === undefined ? 'open' : update.undoneAt === undefined ? 'auto_applied' : 'undone';
+        state.triage[id] = { status: 'done', result, replayed, decision };
       })
       .addMatcher(matchRejected, (state, action) => {
         const id = action.meta.arg.originalArgs.message.id;

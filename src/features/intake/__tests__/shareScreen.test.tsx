@@ -122,4 +122,17 @@ describe('Share a LinkedIn job (INT-1)', () => {
     expect(draft?.listingUrl).toBe(CANONICAL);
     expect(draft?.source).toBe('shared');
   });
+
+  it('keeps a short share sentence in the text field and waits for the description', async () => {
+    const sentence = 'Check out this job at dYdX: https://www.linkedin.com/jobs/view/123/';
+    mockSharedPayloads = [{ shareType: 'text', value: sentence }];
+    const fetchMock = jest.spyOn(globalThis, 'fetch');
+    await renderIntake('/intake/share');
+
+    expect(screen.getByText(NOTICE)).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Paste text' })).toBeSelected();
+    expect(screen.getByLabelText('Listing text')).toHaveDisplayValue('Check out this job at dYdX:');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fakeModel.prompts).toHaveLength(0);
+  });
 });

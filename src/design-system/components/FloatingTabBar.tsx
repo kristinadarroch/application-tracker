@@ -108,7 +108,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * Floating pill tab bar with an optional round action button (B1). Rendered in normal flow
+ * Floating pill tab bar with an optional round action button. Rendered in normal flow
  * (not absolutely positioned) so screens above it are never covered; it pads for the home
  * indicator itself.
  */

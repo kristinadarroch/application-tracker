@@ -10,7 +10,6 @@ import {
   selectPrepSummaryByApplication,
   selectSentThisWeekCount,
   selectUpcomingNextSteps,
-  selectUrgentApplicationIds,
   selectUrgentNextStepByApplication,
 } from '../selectors';
 import type { Application } from '../schema';
@@ -142,7 +141,7 @@ describe('urgent applications', () => {
       }),
       makeApplication({ id: northwindId, nextSteps: [makeNextStep({ dueDate: '2026-12-01' })] }),
     );
-    expect([...selectUrgentApplicationIds(state, NOW)]).toEqual([globexId]);
+    expect([...selectUrgentNextStepByApplication(state, NOW).keys()]).toEqual([globexId]);
     expect(selectUrgentNextStepByApplication(state, NOW).get(globexId)?.title).toBe('Today');
   });
 });

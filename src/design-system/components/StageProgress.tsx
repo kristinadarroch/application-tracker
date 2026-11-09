@@ -17,7 +17,7 @@ export interface StageProgressProps {
 const STRIP_STAGES = ['saved', 'applied', 'interviewing', 'offer'] as const;
 const LEGEND = ['Saved', 'Applied', 'Interview', 'Offer'] as const;
 const COLUMNS = STRIP_STAGES.length;
-/** A closed application ends at this column (B1 "closed"), before the Offer star. */
+/** A closed application ends at this column (Interview); nothing is drawn under Offer. */
 const END_COLUMN = 2;
 const TRACK_HEIGHT = 30;
 const RUNNING_THICKNESS = 6;
@@ -90,7 +90,7 @@ function DottedSegment({ from, to }: { from: number; to: number }) {
 }
 
 /**
- * Horizontal 4-stage progress (B1). Reached track is solid in the accent color, the rest dotted;
+ * Horizontal 4-stage progress. Reached track is solid in the accent color, the rest dotted;
  * the current stage is the ring pill with a yellow halo. A closed application (Rejected,
  * Withdrawn) is solid with small pips, ending in a bar or an exit. Decorative: the row's own
  * label carries the stage.

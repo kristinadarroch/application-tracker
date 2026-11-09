@@ -10,4 +10,3 @@ export { EditApplicationScreen } from './components/EditApplicationScreen';
 export { NewApplicationScreen } from './components/NewApplicationScreen';
 export { PipelineScreen } from './components/PipelineScreen';
 export { loadDemoData } from './demoSeed';
-export { useGoBack } from './hooks/useGoBack';

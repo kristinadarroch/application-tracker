@@ -14,7 +14,8 @@ import {
   useTheme,
   type ThemePreference,
 } from '@/design-system';
-import { loadDemoData, useGoBack } from '@/features/applications';
+import { loadDemoData } from '@/features/applications';
+import { useGoBack } from '@/lib/useGoBack';
 import { selectAiAvailability } from '@/features/capabilities';
 import { assertNever } from '@/lib/assertNever';
 import { describeError } from '@/lib/errors';

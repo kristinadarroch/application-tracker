@@ -4,7 +4,7 @@ import { err, ok, type Result } from '@/lib/result';
 /** Below this, a page has no listing worth sending to the model (e.g. a JavaScript-only app shell). */
 export const MIN_LISTING_CHARS = 200;
 
-/** Pages this short that ask for a password are a login screen, not a listing with a sign-in menu. */
+/** Pages this short that ask the reader to sign in are a login screen, not a listing with a sign-in menu. */
 const LOGIN_FORM_MAX_CHARS = 400;
 
 /** Elements that never hold listing content. */
@@ -77,8 +77,8 @@ export function htmlToText(html: string): string {
  */
 export function readListingHtml(html: string): Result<string, ListingUnreadableReason> {
   const text = htmlToText(html);
-  const asksForPassword = PASSWORD_FIELD.test(html) && text.length < LOGIN_FORM_MAX_CHARS;
-  if (asksForPassword || LOGIN_PROMPT.test(text)) return err('login_wall');
+  const asksToSignIn = PASSWORD_FIELD.test(html) || LOGIN_PROMPT.test(text);
+  if (asksToSignIn && text.length < LOGIN_FORM_MAX_CHARS) return err('login_wall');
   if (text.length < MIN_LISTING_CHARS) return err('empty');
   return ok(text);
 }

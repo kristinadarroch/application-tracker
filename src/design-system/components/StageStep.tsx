@@ -26,6 +26,8 @@ export interface StageStepProps {
   onPress?: () => void;
   /** Button name; defaults to `label`. */
   accessibilityLabel?: string;
+  /** What pressing the row does, read after the name. */
+  accessibilityHint?: string;
   selected?: boolean;
   /** No track below the last stage. */
   last?: boolean;
@@ -109,7 +111,7 @@ function markerKind(stage: Stage, state: StageState): GlyphKind {
 }
 
 /**
- * One stage on the vertical progress track (B2): marker on the track, stage icon + word, mono
+ * One stage on the vertical progress track: marker on the track, stage icon + word, mono
  * meta, optional tag, and children laid along the track. Track above is solid once reached;
  * track below is solid only between passed stages, dotted toward the future.
  */
@@ -122,6 +124,7 @@ export function StageStep({
   tag,
   onPress,
   accessibilityLabel,
+  accessibilityHint,
   selected = false,
   last = false,
   children,
@@ -204,6 +207,7 @@ export function StageStep({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={accessibilityLabel ?? label}
+            {...(accessibilityHint === undefined ? {} : { accessibilityHint })}
             accessibilityState={{ selected }}
             onPress={onPress}
             style={({ pressed }) => [

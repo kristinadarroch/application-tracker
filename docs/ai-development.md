@@ -12,13 +12,13 @@ The principle: AI drafts, a human decides. The value shows in what was checked, 
 | Rules | [`AGENTS.md`](../AGENTS.md) gives coding agents the domain terms, layering, and design-system rules | Rules are enforced by TypeScript and ESLint, not just stated |
 | Build | Contracts first (store shape, slice names, routes, adapter API), then parallel coding agents, one per feature folder, each owning only its files. See [How the build ran](#how-the-build-ran) | Each agent's report checked against the story criteria; integration checks (tsc, ESLint, Prettier, Jest, Maestro on simulators) run by the integrator |
 | Tests | AI drafts test cases from acceptance criteria and schemas | Human adds missed edge cases and deletes tests that only restate the implementation |
-| Review | AI PR review on each tier's pull request | Each suggestion accepted or rejected with a reason in the PR |
-| Verification | Scripts compute facts instead of trusting AI claims (e.g. contrast ratios in the design system) | Script output pasted into docs |
+| Review | Coding agents' output reviewed by the author; before submission, parallel reviewer agents audited each area against the code | Each finding accepted, changed, or rejected; notable calls recorded in the [decision log](#decision-log) |
+| Verification | Code computes facts instead of trusting AI claims (e.g. the in-app contrast check, `contrastRatio` in `src/app/dev/design-system.tsx`) | Computed values copied into docs |
 
 ## Tools
 
 - **Claude Code** — spec drafting, scaffolding, implementation, refactors.
-- **GitHub Copilot** — inline completion and PR review.
+- **GitHub Copilot** — inline completion.
 
 ## How the build ran
 
@@ -53,7 +53,7 @@ Entries where a proposal (from AI or from me) was accepted with changes, correct
 | 2026-11-05 | AI binding | (AI) Write our own Expo module in Swift | Rejected after review | Puts Swift source in the repo against the brief's "built entirely with TypeScript". Using a library behind a TypeScript adapter instead ([ADR 0005](adr/0005-on-device-apple-foundation-models.md)) |
 | 2026-11-05 | AI context | Apple docs: on-device context is 4,096 tokens | Measured, then budgeted conservatively | A Swift probe on macOS 27.0.1 (M4) reported 8,192 tokens and extracted a sample listing in 2.1 s. The app still budgets for 4,096 |
 | 2026-11-05 | Product AI | (Mine) Use Apple Intelligence so AI has no metered per-token cost | Accepted | Replaces the cloud proxy (ADR 0003). Trade-offs: iOS only, smaller model, small context-token budget. See [ADR 0005](adr/0005-on-device-apple-foundation-models.md) |
-| 2026-11-05 | Design system | Color palette with claimed AA contrast | Accepted after verification | Ratios computed with a WCAG luminance script; every specified text/background pair ≥ 4.5:1 (lowest 4.97). Arbitrary palette combinations not checked |
+| 2026-11-05 | Design system | Color palette with claimed AA contrast | Accepted after verification | Ratios computed by code (`contrastRatio` in `src/app/dev/design-system.tsx`, the in-app contrast check), not taken from AI; every specified text/background pair ≥ 4.5:1 (lowest 4.97). Arbitrary palette combinations not checked |
 | 2026-11-05 | Inbox demo | "Mock inbox gives the same result every demo" | Corrected | Only the fixtures are fixed; triage still calls a live model, so it needs timeouts, error states, and labeled AI Replay |
 | 2026-11-05 | Gmail | "Real Gmail requires Google's security review" | Corrected | Verification applies to publishing a public app with restricted scopes; a test-user demo doesn't need it. Mock chosen for predictability and privacy, not because Gmail was impossible |
 | 2026-11-05 | Listing intake | "Greenhouse, Lever, and Ashby pages fetch fine" | Corrected | Any page can block, require JavaScript, or change. Paste-first intake for every job board |

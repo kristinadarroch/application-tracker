@@ -82,7 +82,7 @@ describe('ErrorState', () => {
   it('shows plain-language copy and Retry for a retryable error', async () => {
     const onRetry = jest.fn();
     await renderThemed(<ErrorState error={{ kind: 'network' }} onRetry={onRetry} />);
-    expect(screen.getByText('You’re offline')).toBeOnTheScreen();
+    expect(screen.getByText('Couldn’t connect')).toBeOnTheScreen();
     expect(screen.getByText('Check your connection and try again.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
     expect(onRetry).toHaveBeenCalledTimes(1);

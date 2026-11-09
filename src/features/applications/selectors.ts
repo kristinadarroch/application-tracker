@@ -78,12 +78,6 @@ export const selectUrgentNextStepByApplication = createSelector(
   },
 );
 
-/** Applications that have at least one urgent open Next Step. */
-export const selectUrgentApplicationIds = createSelector(
-  [selectUrgentNextStepByApplication],
-  (byApplication): ReadonlySet<ApplicationId> => new Set(byApplication.keys()),
-);
-
 /** Whether a stage means the application was sent. Withdrawn can happen before applying. */
 const SENT: Record<Stage, boolean> = {
   saved: false,

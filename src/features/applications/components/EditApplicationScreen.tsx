@@ -3,7 +3,7 @@ import { useAppDispatch } from '@/store/hooks';
 
 import { formStateFromApplication } from '../form';
 import { useApplicationFromRoute } from '../hooks/useApplicationFromRoute';
-import { useGoBack } from '../hooks/useGoBack';
+import { useGoBack } from '@/lib/useGoBack';
 import type { ApplicationInput } from '../schema';
 import { applicationUpdated } from '../slice';
 import { ApplicationForm } from './ApplicationForm';
