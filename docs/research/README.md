@@ -12,13 +12,15 @@ Researched 2026-11-08. Five parallel investigations, each with sources:
 
 ## Bottom line
 
-1. **Own "private, prep-first job search."** No major competitor runs AI on the device. Mock interviews are paid or gated everywhere else: Careerflow charges $19.99/week, and LinkedIn's is Premium-only. Email-to-stage automation stops at suggestions in Teal and Simplify. This app already does all three. ([competitors](competitors.md#where-application-tracker-can-stand-out))
-2. **The biggest product gap is time.** The app knows *what* stage you're in but not *when*: no interview time, no applied date, no reminders, no "gone quiet" nudge. Ghosting is the norm: 52–61% of candidates report it ([Greenhouse 2024](https://www.greenhouse.com/uk/blog/greenhouse-2024-state-of-job-hunting-report)). Every competitor users praise has dates and reminders.
+1. **Own "private, prep-first job search."** None of the reviewed leaders (Huntr, Teal, Simplify, Careerflow, LinkedIn, Eztrackr) advertises on-device AI. Among them, mock interviews are paid or gated: Careerflow charges $19.99/week, and LinkedIn's is Premium-only. Email-to-stage automation stops at suggestions in Teal and Simplify. This app already does all three. ([competitors](competitors.md#where-application-tracker-can-stand-out))
+2. **The biggest product gap is time.** The app knows _what_ stage you're in but not _when_: no interview time, no applied date, no reminders, no "gone quiet" nudge. Ghosting is the norm: 52–61% of candidates report it ([Greenhouse 2024](https://www.greenhouse.com/uk/blog/greenhouse-2024-state-of-job-hunting-report)). Huntr tracks interview dates, and Teal and Eztrackr offer reminders ([competitors](competitors.md#opportunities-for-application-tracker)).
 3. **Make the practice itself more effective.** Mock interviews give feedback, but not against a structured rubric. Questions are a one-time checkbox, not repeated practice. Structured answers and retrieval practice are the best-supported ideas in the research ([interview-prep](interview-prep.md)).
 
-## Before you send it (polish, about one day in total)
+**Evidence quality.** Capabilities and prices come from each product's own pages and docs. Behavioral numbers come from peer-reviewed studies or first-party reports (Greenhouse, Accountemps, Glassdoor, NY Fed). App Store reviews and Reddit threads are **anecdotal signals** of what some users ask for, not measures of how common a need is.
 
-Small changes that remove things an interviewer would trip over in the first five minutes.
+## Before you send it (polish, about 2 days in total)
+
+Small changes that remove things an interviewer would trip over in the first five minutes. Items 1–4 fit in one day; item 5 needs a schema field and a persist migration. None adds a native dependency. Calendar, notifications, voice, and new practice data belong after the interview (next section): they add native modules and demo risk.
 
 | # | Change | Why | Effort |
 |---|---|---|---|

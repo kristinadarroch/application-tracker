@@ -52,9 +52,9 @@ Prices, ratings, and feature lists were checked on the vendors' own pages and st
 
 ## Where Application Tracker can stand out
 
-- **Mobile-first capture.** The share sheet works from inside the LinkedIn and Indeed apps. Huntr reviewers ask for exactly this.
-- **Prep is the home screen, not an upsell.** Every competitor with mock interviews charges weekly for them or gates them. On-device inference has no per-call cost, so prep can be unlimited and free [INFERENCE].
-- **Private by construction.** Competitors send resumes and email text to cloud LLMs. Simplify trains its own models on that data, and Careerflow stores interview audio and video.
+- **Mobile-first capture.** The app accepts shared URLs and text, so sharing from the LinkedIn and Indeed apps is expected to work; a real share from those apps on a physical device is still untested (`docs/verification.md`). Huntr reviewers ask for share-sheet capture.
+- **Prep is the home screen, not an upsell.** Every reviewed product with mock interviews charges weekly for them or gates them. On-device inference has no per-call cost, so prep can be unlimited and free [INFERENCE].
+- **Private by construction.** The reviewed competitors' privacy policies describe sending resumes or email text to cloud AI providers. Simplify's says it trains its own models on that data, and Careerflow's says it stores interview audio and video.
 - **Confident auto-apply with Undo.** This goes one step past the suggest-only inbox flows at Teal and Simplify.
 
 ## Opportunities for Application Tracker
