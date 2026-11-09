@@ -56,7 +56,8 @@ Ordered by impact for effort. Each builds on what's already there.
 | **Home Screen widget + App Shortcuts.** "Next interview Thu 2:00 PM · 6/10 practiced", "Practice for my next interview" via Siri. | [HIG widgets](https://developer.apple.com/design/human-interface-guidelines/widgets), [`expo-widgets`](https://docs.expo.dev/versions/latest/sdk/widgets/), [`expo-app-intents`](https://docs.expo.dev/versions/v58.0.0/sdk/app-intents/) (alpha) | M–L |
 | **Android AI on Gemini Nano devices** through the existing `OnDeviceModel` adapter. | [RN AI Android](https://www.react-native-ai.dev/docs/android/getting-started) | M–L |
 | **Personal funnel by source.** Interview rate by career site vs job board vs referral, on device. | Career sites convert about 1.7× job boards ([Huntr research](https://huntr.co/research/job-search-trends-q3-2026)) | M |
-| **Read the model's context size at runtime** instead of the hard-coded 4,096, and prewarm the model when intake or a mock interview opens. | Context size varies by device on iOS 27 ([Apple](https://developer.apple.com/documentation/foundationmodels/detecting-available-apple-foundation-models)) | S |
+| **Prewarm the model** with `prepare()` when intake or a mock interview opens, so the first answer starts sooner. `AppleLLMChatLanguageModel.prepare()` exists in the installed 0.12.0. | Fewer slow first responses [INFERENCE: not measured] | S |
+| **Read the model's context size at runtime** instead of the hard-coded 4,096. **Blocked:** the installed `@react-native-ai/apple` 0.12.0, which is also the latest on npm (checked 2026-11-08), has no `getModelInfo()` or `contextSize`; the docs page describes an unreleased API. Needs a library upgrade or a small native spike. | Context size varies by device on iOS 27 ([Apple](https://developer.apple.com/documentation/foundationmodels/detecting-available-apple-foundation-models)) | Unknown until the spike |
 
 ## Non-goals
 
