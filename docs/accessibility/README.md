@@ -19,7 +19,7 @@ Updated 2026-11-09. Three documents:
 
 ADA Title III (private providers) has no codified technical standard. HIPAA adds no visual standard but shapes some components: session-timeout warnings, masked fields, and keeping health information out of logs and notification previews. [`healthcare-standards.md`](healthcare-standards.md) covers these, plus Section 1557, Section 508, and when FDA rules apply.
 
-A component library can't claim conformance on its own: WCAG conformance applies to complete screens and processes. The library's job is to make the accessible behavior the default and to give each product the evidence it needs for its own Accessibility Conformance Report (VPAT).
+A component library can't claim conformance on its own: WCAG conformance applies to complete screens and processes. The library's job is to make the accessible behavior the default and to give each product the evidence it needs for its own Accessibility Conformance Report (a completed VPAT).
 
 ## Status of the design system
 
@@ -32,9 +32,9 @@ WCAG 2.2 A/AA criteria the component library is responsible for, applied to nati
 | 1.3.4 Orientation | **Does not support: documented exception** | The app is locked to portrait (`app.json`). This is app configuration, not a component; landscape needs layout work and a native rebuild |
 | 1.4.1 Use of color | Supports | Stage is shape + icon + word |
 | 1.4.3 / 1.4.11 Contrast | Supports | Every text and meaningful-mark pair in both themes, checked by `tokens/__tests__/contrast.test.ts` |
-| 1.4.4 Resize text | Supports | Every style reaches 200% except `display`, which starts above body text at 200% and follows iOS's Large Title, as [WCAG2ICT 1.4.4 Note 3](https://www.w3.org/TR/wcag2ict-22/#applying-sc-1-4-4-resize-text-to-non-web-software) allows; headings stay larger than body text at every size (`tokens/__tests__/typography.test.ts`). Header buttons move above the title at accessibility sizes (`largeTextHeader.test.tsx`). Checked at iOS AX5 and Android font scale 2.0 (`e2e/a11y-large-text.yaml`). Long single words in titles can still wrap mid-word at the largest size; no text is cut off |
+| 1.4.4 Resize text | Supports | Every style reaches 200% except `display`, which starts above body text at 200% (1.8× cap), as [WCAG2ICT 1.4.4 Note 3](https://www.w3.org/TR/wcag2ict-22/#applying-sc-1-4-4-resize-text-to-non-web-software) allows for naturally large headings; headings stay larger than body text at every font scale up to iOS's largest (`tokens/__tests__/typography.test.ts`). Header buttons move above the title at accessibility sizes (`largeTextHeader.test.tsx`). Layout checked at iOS AX5 and Android font scale 2.0 (`e2e/a11y-large-text.yaml`, screenshots reviewed). Long single words in titles can still wrap mid-word at the largest size; no text is cut off |
 | 2.2.1 Timing adjustable | Supports | No time limits; Undo stays until dismissed |
-| 2.5.8 Target size | Supports | 44 pt iOS / 48 dp Android (`tokens/__tests__/sizing.test.ts`) |
+| 2.5.8 Target size | Supports | 44 pt iOS / 48 dp Android (`tokens/__tests__/sizing.test.ts`), above WCAG's 24 × 24 minimum; 44 × 44 is also WCAG 2.5.5 (AAA) |
 | 3.2.2 On input | Supports | The Job link field says before use that pasting a link starts reading it (visible helper text, also the field's hint) |
 | 3.3.1 / 3.3.3 Errors | Supports | Errors are text next to the field and say how to fix them |
 | 3.3.2 Labels or instructions | Supports | Required fields show "· Required" and are named "Company, required" (`TextField`, `ChipGroup`) |
@@ -47,7 +47,7 @@ WCAG 2.2 A/AA criteria the component library is responsible for, applied to nati
 | Before (audit at `4392072`) | Now |
 |---|---|
 | Errors, AI results, and Undo outcomes appeared silently | `useAnnounce` / `useAnnounceChange` in the design system; `TextField`, `ErrorState`, `Banner`, `ApplicationPicker`, and the inbox and intake screens use them |
-| Small text stopped growing at 1.6×; at the largest sizes, body text outgrew screen titles | Small text reaches 2×; title caps follow iOS's heading ramp so headings stay larger than body text; header buttons move above the title at accessibility sizes |
+| Small text stopped growing at 1.6×; at the largest sizes, body text outgrew screen titles | Small text reaches 2×; heading caps raised so headings stay larger than body text; header buttons move above the title at accessibility sizes |
 | Deleting a Next Step and discarding a draft were immediate | Both ask first |
 | Required fields weren't marked | `required` on `TextField` and `ChipGroup` |
 | Chip-row labels weren't tied to their chips | New `ChipGroup`: a radio group on Android; on iOS each chip's hint carries the group name |

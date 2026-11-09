@@ -50,7 +50,7 @@ const useStyles = makeStyles((t) => ({
 }));
 
 /**
- * From the accessibility text sizes up, header buttons move above the title so a 2× title gets
+ * From the accessibility text sizes up, header buttons move above the title so an enlarged title gets
  * the full width instead of breaking mid-word beside them (HIG: stacked layouts at large sizes).
  */
 const STACK_HEADER_AT_FONT_SCALE = 1.5;

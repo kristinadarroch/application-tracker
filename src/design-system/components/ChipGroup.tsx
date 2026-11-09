@@ -32,8 +32,9 @@ const useStyles = makeStyles((t) => ({
 /**
  * A labelled single-choice row of `Chip`s (WCAG 1.3.1); each chip inside is a radio with `checked`.
  *
- * Android: the container is a focusable radio group named after the label (TalkBack says
- * "Stage, radio group"), so the visible label is hidden to avoid reading it twice.
+ * Android: the container is a focusable radio group named after the label (intended to be
+ * announced as "Stage, radio group"; not yet heard with TalkBack), so the visible label is
+ * hidden to avoid reading it twice.
  * iOS: there is no radio group trait, and an accessible container would hide its chips from
  * VoiceOver, so the label stays readable text and each chip carries the group name in its hint.
  */

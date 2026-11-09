@@ -259,7 +259,7 @@ Overpass (an open-source face based on U.S. highway signage) for display and bod
 | `overline` | 12 / 16, tracking 0.8, UPPERCASE | Overpass ExtraBold (800) | Stage names, eyebrows: SAVED · APPLIED · INTERVIEW |
 | `mono` | 13 / 18, tracking 0.4, UPPERCASE | Overpass Mono Bold (700) | Dates and status text: DUE TOMORROW · SAT 7 NOV |
 
-`overline` and `mono` upper-case through `textTransform`, so the stored text stays sentence case ("Due tomorrow") and screen readers read words, not letters. Dynamic Type / font scaling stays on. Every variant reaches 200% (WCAG 1.4.4) except `display`, which starts above body text at 200% and caps at 1.8× like iOS's Large Title; [WCAG2ICT 1.4.4 Note 3](https://www.w3.org/TR/wcag2ict-22/#applying-sc-1-4-4-resize-text-to-non-web-software) allows that for native apps as long as size differences keep their meaning. Caps: `body`, `bodyStrong`, `bodySmall`, `heading` uncapped; `feature` 2.65×, `title` 2.1×, `display` 1.8×; `caption`, `overline`, `mono` 2×. `tokens/__tests__/typography.test.ts` checks both rules: the 200% floor, and that a larger style is never rendered smaller than a smaller one at any font scale up to iOS's largest. From the accessibility sizes up (font scale ≥ 1.5), `Screen` moves header buttons above the title so the title gets the full width (`largeTextHeader.test.tsx`). Text containers have no fixed heights so large text wraps.
+`overline` and `mono` upper-case through `textTransform`, so the stored text stays sentence case ("Due tomorrow") and screen readers read words, not letters. Dynamic Type / font scaling stays on. Every variant reaches 200% (WCAG 1.4.4) except `display`, which starts above body text at 200% and caps at 1.8×; [WCAG2ICT 1.4.4 Note 3](https://www.w3.org/TR/wcag2ict-22/#applying-sc-1-4-4-resize-text-to-non-web-software) allows that for naturally large headings in native apps as long as size differences keep their meaning. Caps (project values, checked at AX5): `body`, `bodyStrong`, `bodySmall`, `heading` uncapped; `feature` 2.65×, `title` 2.1×, `display` 1.8×; `caption`, `overline`, `mono` 2×. `tokens/__tests__/typography.test.ts` checks both rules: the 200% floor, and that a larger style is never rendered smaller than a smaller one at any font scale up to iOS's largest. From the accessibility sizes up (font scale ≥ 1.5), `Screen` moves header buttons above the title so the title gets the full width (`largeTextHeader.test.tsx`). Text containers have no fixed heights so large text wraps.
 
 ### Elevation
 
@@ -366,7 +366,7 @@ Each component has a typed props interface, string-union variants, accessibility
 
 The bar is WCAG 2.2 AA for native apps (which covers the WCAG 2.1 AA that HHS Section 504 requires); see [`accessibility/`](accessibility/README.md). Every component and screen PR passes this list:
 
-- [ ] Touch targets ≥ 44×44 pt (iOS) / 48×48 dp (Android) via size or `hitSlop` (2.5.8)
+- [ ] Touch targets ≥ 44×44 pt (iOS) / 48×48 dp (Android) via size or `hitSlop` (platform targets; WCAG 2.5.8 needs 24×24)
 - [ ] Every interactive element has a role, a label that contains its visible text, and its state (4.1.2, 2.5.3)
 - [ ] Text contrast ≥ 4.5:1 and meaningful marks ≥ 3:1, enforced by `contrast.test.ts` (1.4.3, 1.4.11)
 - [ ] Text reaches 200% and headings stay larger than body text at every size, enforced by `typography.test.ts`; nothing clips at the largest size (1.4.4)

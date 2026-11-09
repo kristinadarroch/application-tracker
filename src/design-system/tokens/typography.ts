@@ -65,8 +65,8 @@ export const typography: Record<TypographyVariant, TypeStyle> = {
 /**
  * Dynamic Type cap per variant. `0` means uncapped (React Native convention).
  * WCAG 1.4.4 (WCAG2ICT Note 3): every variant reaches 200%, except `display`, which already
- * starts above body text at 200%. Caps follow iOS's own heading ramp at the largest sizes
- * (Large Title ≈ 1.8×, Title 1 ≈ 2.1×) so headings stay larger than body text at every size;
+ * starts above body text at 200%. The heading caps are project values, chosen so headings stay
+ * larger than body text at every font scale up to iOS's largest and checked at AX5;
  * small variants stop at 2× to protect pill and tab layouts. Tested in
  * `__tests__/typography.test.ts`.
  */
