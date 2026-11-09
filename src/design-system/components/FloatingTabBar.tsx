@@ -78,8 +78,9 @@ const useStyles = makeStyles((t) => ({
     position: 'absolute',
     top: 2,
     right: 4,
+    // minHeight (not height) so the count can grow with Dynamic Type without clipping.
     minWidth: BADGE,
-    height: BADGE,
+    minHeight: BADGE,
     paddingHorizontal: 2,
     borderRadius: BADGE / 2,
     borderWidth: 2,
@@ -149,7 +150,7 @@ export function FloatingTabBar({ tabs, action }: FloatingTabBarProps) {
             </RNText>
             {tab.badge !== undefined ? (
               <View style={styles.badge}>
-                <RNText style={styles.badgeText} allowFontScaling={false}>
+                <RNText style={styles.badgeText} maxFontSizeMultiplier={2}>
                   {tab.badge}
                 </RNText>
               </View>

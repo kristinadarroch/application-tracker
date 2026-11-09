@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect } from 'react';
-import { AccessibilityInfo, Text as RNText, View } from 'react-native';
+import { useState } from 'react';
+import { Text as RNText, View } from 'react-native';
 
 import { assertNever } from '@/lib/assertNever';
 
+import { useAnnounce } from '../a11y/useAnnounce';
 import { makeStyles } from '../theme/makeStyles';
 import { useScaledIconSize } from '../theme/useScaledIconSize';
 import { useTheme } from '../theme/useTheme';
@@ -69,15 +70,25 @@ const useStyles = makeStyles((t) => ({
   danger: { borderLeftColor: t.color.feedback.danger.fg },
 }));
 
-/** Inline status message. Announced politely on mount and whenever the title changes; never moves focus. */
+/** Tones that report an outcome or a problem, so they're announced as soon as they appear. */
+const ANNOUNCED_ON_MOUNT: ReadonlySet<BannerTone> = new Set(['success', 'warning', 'danger']);
+
+/**
+ * Inline status message; never moves focus. `success`, `warning`, and `danger` banners are
+ * announced when they appear; any banner is announced when its title changes. Static `info` and
+ * `neutral` banners stay quiet on mount so they aren't re-read every time a screen opens.
+ */
 export function Banner({ tone, title, body, action }: BannerProps) {
   const styles = useStyles();
   const theme = useTheme();
   const iconSize = useScaledIconSize(20, 'bodyStrong');
 
-  useEffect(() => {
-    AccessibilityInfo.announceForAccessibility(title);
-  }, [title]);
+  const [initialTitle] = useState(title);
+  const [titleChanged, setTitleChanged] = useState(false);
+  // Adjusting state during render (React's "storing information from previous renders" pattern).
+  if (title !== initialTitle && !titleChanged) setTitleChanged(true);
+  const announced = ANNOUNCED_ON_MOUNT.has(tone) || titleChanged || title !== initialTitle;
+  useAnnounce(announced ? title : undefined);
 
   return (
     <View style={[styles.banner, styles[tone]]}>
@@ -94,6 +105,7 @@ export function Banner({ tone, title, body, action }: BannerProps) {
           maxFontSizeMultiplier={theme.maxFontSizeMultiplier.bodyStrong}
           // Role on the title (an accessible element) so the action button stays reachable.
           accessibilityRole={tone === 'danger' ? 'alert' : 'text'}
+          accessibilityLiveRegion={announced ? 'polite' : 'none'}
         >
           {title}
         </RNText>

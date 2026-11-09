@@ -1,6 +1,16 @@
 import { useState, type ReactNode } from 'react';
+import { View } from 'react-native';
 
-import { Badge, Banner, Button, Card, ProposalCard, Stack, Text } from '@/design-system';
+import {
+  Badge,
+  Banner,
+  Button,
+  Card,
+  ProposalCard,
+  Stack,
+  Text,
+  useAnnounce,
+} from '@/design-system';
 import { formatDueDate } from '@/lib/dates';
 import type { ApplicationId } from '@/lib/ids';
 import { STAGE_LABELS, type Stage } from '@/lib/stage';
@@ -22,10 +32,14 @@ export interface TriageResultPanelProps {
   onDismiss: () => void;
 }
 
+const DISMISSED = 'Dismissed. Nothing was changed.';
+
 /**
  * A finished Triage: category and matched application, then the proposal (Stage change and Next
  * Step), shown hatched until the user accepts or dismisses it (INBX-2–4). Changes a confident
- * Triage applied by itself are shown by `EmailUpdatePanel` instead (INBX-7).
+ * Triage applied by itself are shown by `EmailUpdatePanel` instead (INBX-7). Announces the result
+ * while it waits for a decision, and "Dismissed" once the user dismisses it (accepting shows a
+ * success `Banner`, which announces itself).
  */
 export function TriageResultPanel({
   result,
@@ -40,6 +54,14 @@ export function TriageResultPanel({
   // Uncertain or missing matches are never accepted silently: the user picks (INBX-4).
   const mustChoose = result.confidence === 'low' || matched === undefined;
   const [chosenId, setChosenId] = useState<ApplicationId | null>(null);
+  const [openedDecision] = useState(decision);
+  useAnnounce(
+    decision === 'open'
+      ? `Analysis ready: ${CATEGORY_LABELS[result.category]}`
+      : decision === 'dismissed' && openedDecision !== 'dismissed'
+        ? DISMISSED
+        : undefined,
+  );
   const targetId = mustChoose ? chosenId : (matched?.id ?? null);
   const target = applications.find((a) => a.id === targetId);
   const step = result.proposedNextStep;
@@ -189,7 +211,9 @@ function Proposal({
             title={step === undefined ? `Change applied${where}` : `Next Step added${where}`}
           />
         ) : (
-          <Text color="secondary">Dismissed. Nothing was changed.</Text>
+          <View accessibilityLiveRegion="polite">
+            <Text color="secondary">{DISMISSED}</Text>
+          </View>
         )}
       </Stack>
     </Card>

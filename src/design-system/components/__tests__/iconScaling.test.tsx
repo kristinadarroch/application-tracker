@@ -42,12 +42,12 @@ describe('icons follow the text size (UX-2)', () => {
     expect(iconSizes()).toEqual(expect.arrayContaining([18, 14]));
   });
 
-  it('grows with large text but stops at the label cap (caption 1.6x) or 2x', async () => {
+  it('grows with large text but stops at the label cap (caption 2x) or 2x', async () => {
     withFontScale(3.1);
     await renderPair();
     const sizes = iconSizes();
     expect(sizes).toContain(36); // button: 18 × 2 (icon cap; body text is uncapped)
-    expect(sizes).toContain(22); // stage pill: 14 × 1.6 (same cap as the caption label)
+    expect(sizes).toContain(28); // stage pill: 14 × 2 (same cap as the caption label)
   });
 
   it('never shrinks below the base size when the user picks smaller text', async () => {

@@ -58,13 +58,10 @@ appId: dev.kristinadarroch.applicationtracker
     direction: UP
 - assertVisible: Add the company
 - assertVisible: Add the role
-- tapOn:
-    text: Company
-    index: 1
+# Required inputs are named "Company, required" / "Role, required" (WCAG 3.3.2).
+- tapOn: 'Company, required'
 - inputText: Initech
-- tapOn:
-    text: Role
-    index: 1
+- tapOn: 'Role, required'
 - inputText: Staff Mobile Engineer
 # On Android the field can sit under the keyboard; bring it into view first.
 - pressKey: Enter

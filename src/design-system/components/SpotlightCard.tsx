@@ -85,7 +85,11 @@ export function SpotlightCard({
   return (
     <View style={styles.card}>
       <View style={styles.top}>
-        <RNText style={styles.eyebrow} maxFontSizeMultiplier={theme.maxFontSizeMultiplier.mono}>
+        <RNText
+          style={styles.eyebrow}
+          maxFontSizeMultiplier={theme.maxFontSizeMultiplier.mono}
+          accessibilityRole="header"
+        >
           {eyebrow}
         </RNText>
         {count !== undefined ? (

@@ -1,3 +1,5 @@
+import { View } from 'react-native';
+
 import {
   Banner,
   Button,
@@ -8,6 +10,7 @@ import {
   Stack,
   Text,
   TextField,
+  useAnnounce,
 } from '@/design-system';
 import { describeError } from '@/lib/errors';
 import { useGoBack } from '@/lib/useGoBack';
@@ -38,6 +41,13 @@ export function ListingIntakeScreen({
   const { status } = intake;
   const reading = status.kind === 'reading';
   const showsSubmit = status.kind !== 'failed' && status.kind !== 'missing_company_or_role';
+  const readingMessage =
+    intake.mode === 'url'
+      ? 'Reading the page on this device…'
+      : 'Reading the listing on this device…';
+  // Said once when reading starts; results speak for themselves (ErrorState, warning Banners, or
+  // the draft review screen opening).
+  useAnnounce(reading ? readingMessage : undefined);
 
   return (
     <Screen title={title} header="plain" onBack={goBack} scroll>
@@ -98,7 +108,7 @@ export function ListingIntakeScreen({
           placeholder="https://"
           keyboardType="url"
           autoCapitalize="none"
-          helperText="Sharing a job from Safari or Chrome skips this screen."
+          helperText="Pasting a link starts reading it right away. Sharing a job from Safari or Chrome skips this screen."
           {...(intake.urlError === undefined ? {} : { error: intake.urlError })}
         />
       ) : (
@@ -166,11 +176,11 @@ export function ListingIntakeScreen({
             onPress={intake.submit}
           />
           {reading ? (
-            <Text variant="mono" color="secondary" align="center">
-              {intake.mode === 'url'
-                ? 'Reading the page on this device…'
-                : 'Reading the listing on this device…'}
-            </Text>
+            <View accessibilityLiveRegion="polite">
+              <Text variant="mono" color="secondary" align="center">
+                {readingMessage}
+              </Text>
+            </View>
           ) : (
             <Button
               label="Fill in manually"

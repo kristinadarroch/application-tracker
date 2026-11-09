@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { Badge, Card, IconButton, makeStyles, Text } from '@/design-system';
 import { isUrgent } from '@/lib/dates';
@@ -34,7 +34,21 @@ export function NextStepRow({ applicationId, step, now, eyebrow }: NextStepRowPr
   const toggle = () =>
     dispatch(nextStepToggled({ applicationId, id: step.id, now: new Date().toISOString() }));
   const remove = () =>
-    dispatch(nextStepRemoved({ applicationId, id: step.id, now: new Date().toISOString() }));
+    Alert.alert(
+      'Delete this next step?',
+      `“${step.title}” will be removed. This can’t be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () =>
+            dispatch(
+              nextStepRemoved({ applicationId, id: step.id, now: new Date().toISOString() }),
+            ),
+        },
+      ],
+    );
 
   if (step.done) {
     return (

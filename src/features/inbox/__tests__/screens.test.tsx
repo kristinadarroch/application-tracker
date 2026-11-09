@@ -1,3 +1,4 @@
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 
 import { applicationAdded } from '@/features/applications/model';
@@ -252,7 +253,14 @@ describe('Message detail', () => {
     expect(screen.getByText('Which application is this about?')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled();
 
-    await fireEvent.press(screen.getByRole('button', { name: 'Globex — Mobile Engineer' }));
+    expect(screen.getByRole('radio', { name: 'Globex — Mobile Engineer' })).toHaveProp(
+      'accessibilityHint',
+      'Which application is this about?',
+    );
+    await fireEvent.press(screen.getByRole('radio', { name: 'Globex — Mobile Engineer' }));
+    expect(
+      screen.getByRole('radio', { name: 'Globex — Mobile Engineer', checked: true }),
+    ).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Accept' }));
 
     expect(store.getState().applications.entities[globexId]?.nextSteps).toEqual([
@@ -280,15 +288,28 @@ describe('Message detail', () => {
     const store = setup({ ai: UNAVAILABLE, received: 1 });
     await renderMessage(store, 'msg_fixture_acme_invite');
 
+    const announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    expect(
+      screen.getByRole('radio', { name: 'Acme Health — Senior React Native Engineer' }),
+    ).toHaveProp('accessibilityHint', 'Application, required');
+    expect(screen.getByRole('radio', { name: 'Tomorrow', checked: true })).toHaveProp(
+      'accessibilityHint',
+      'Due',
+    );
+
     await fireEvent.press(screen.getByRole('button', { name: 'Add Next Step' }));
     expect(screen.getByText('Choose an application')).toBeOnTheScreen();
+    expect(announce).toHaveBeenCalledWith('Choose an application');
     expect(screen.getByText('Add a title')).toBeOnTheScreen();
+    announce.mockRestore();
 
     await fireEvent.press(
-      screen.getByRole('button', { name: 'Acme Health — Senior React Native Engineer' }),
+      screen.getByRole('radio', { name: 'Acme Health — Senior React Native Engineer' }),
     );
-    await fireEvent.changeText(screen.getByLabelText('Next Step'), 'Book interview');
-    await fireEvent.press(screen.getByRole('button', { name: 'In 3 days' }));
+    await fireEvent.changeText(screen.getByLabelText('Next Step, required'), 'Book interview');
+    await fireEvent.press(screen.getByRole('radio', { name: 'In 3 days' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Add Next Step' }));
 
     expect(store.getState().applications.entities[acmeId]?.nextSteps).toEqual([

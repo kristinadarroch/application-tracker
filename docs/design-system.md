@@ -142,7 +142,7 @@ There is no per-stage color. Stages are monochrome: shape + icon + word.
 
 ### Contrast (WCAG 2.x, computed)
 
-Ratios were computed with the WCAG relative-luminance formula from the hex values above (computed 2026-11-06, not estimated) by the in-app contrast check, `contrastRatio` in `src/app/dev/design-system.tsx`, which shows the same figures live on the gallery's palette swatches. Thresholds: text ≥ 4.5:1; large text (≥ 18.66 px bold / 24 px) and non-text marks that carry meaning ≥ 3:1.
+Ratios were computed with the WCAG relative-luminance formula from the hex values above (computed 2026-11-06, not estimated). The formula lives in `src/design-system/tokens/contrast.ts` (`contrastRatio`); `tokens/__tests__/contrast.test.ts` checks every pair below in both themes on each `npm run check`, and the gallery shows the same figures live on its palette swatches. Thresholds: text ≥ 4.5:1; large text (≥ 18.66 px bold / 24 px) and non-text marks that carry meaning ≥ 3:1.
 
 **Text pairs** — all pass 4.5:1.
 
@@ -259,7 +259,7 @@ Overpass (an open-source face based on U.S. highway signage) for display and bod
 | `overline` | 12 / 16, tracking 0.8, UPPERCASE | Overpass ExtraBold (800) | Stage names, eyebrows: SAVED · APPLIED · INTERVIEW |
 | `mono` | 13 / 18, tracking 0.4, UPPERCASE | Overpass Mono Bold (700) | Dates and status text: DUE TOMORROW · SAT 7 NOV |
 
-`overline` and `mono` upper-case through `textTransform`, so the stored text stays sentence case ("Due tomorrow") and screen readers read words, not letters. Dynamic Type / font scaling stays on. `maxFontSizeMultiplier` is capped at 1.8 for `feature` and 1.6 for `display`, `title`, `caption`, `overline`, and `mono`; body and heading text are uncapped. Text containers have no fixed heights so large text wraps.
+`overline` and `mono` upper-case through `textTransform`, so the stored text stays sentence case ("Due tomorrow") and screen readers read words, not letters. Dynamic Type / font scaling stays on. Every variant reaches 200% (WCAG 1.4.4) except `display`, which starts above body text at 200% and caps at 1.8× like iOS's Large Title; [WCAG2ICT 1.4.4 Note 3](https://www.w3.org/TR/wcag2ict-22/#applying-sc-1-4-4-resize-text-to-non-web-software) allows that for native apps as long as size differences keep their meaning. Caps: `body`, `bodyStrong`, `bodySmall`, `heading` uncapped; `feature` 2.65×, `title` 2.1×, `display` 1.8×; `caption`, `overline`, `mono` 2×. `tokens/__tests__/typography.test.ts` checks both rules: the 200% floor, and that a larger style is never rendered smaller than a smaller one at any font scale up to iOS's largest. From the accessibility sizes up (font scale ≥ 1.5), `Screen` moves header buttons above the title so the title gets the full width (`largeTextHeader.test.tsx`). Text containers have no fixed heights so large text wraps.
 
 ### Elevation
 
@@ -330,22 +330,23 @@ Each component has a typed props interface, string-union variants, accessibility
 | `Screen` | `title?`, `eyebrow?`, `headerRight?`, `onBack?`, `scroll?`, `header?: 'plain' \| 'panel'` | Safe-area aware; title keeps the header role; back is a round `IconButton` labelled "Back" |
 | `Button` | `label`, `onPress`, `variant?: 'primary' \| 'secondary' \| 'ghost' \| 'destructive' \| 'onPanel'`, `size?: 'md' \| 'lg'`, `icon?`, `trailingIcon?`, `loading?`, `disabled?` | Min touch target even for `ghost` (underlined text, no box); `accessibilityState` busy/disabled; label required |
 | `IconButton` | `icon`, `accessibilityLabel`, `onPress`, `variant?: 'primary' \| 'secondary' \| 'ghost' \| 'onPanel'` | Round; `accessibilityLabel` is a required prop; min touch target |
-| `TextField` | `label`, `value`, `onChangeText`, `helperText?`, `error?`, `multiline?`, `secure?` | Radius `md`, 1.5 px `border.strong`, 2 px `focus.ring` when focused; label announced; error announced on change |
-| `Card` | `children`, `onPress?`, `accessibilityLabel?`, `accessibilityHint?`, `variant?: 'surface' \| 'panel' \| 'proposal'` | Pressable cards get `accessibilityRole="button"` |
-| `Chip` | `label`, `onPress`, `selected?`, `icon?` | Round; selected = ink fill; `accessibilityState.selected` |
+| `TextField` | `label`, `value`, `onChangeText`, `helperText?`, `error?`, `required?`, `multiline?`, `secure?` | Radius `md`, 1.5 px `border.strong`, 2 px `focus.ring` when focused; named by its label ("Company, required" plus a visible "· Required" when `required`); helper text is the hint; a new error is spoken (iOS) and sits in a live region (Android) |
+| `Card` | `children`, `onPress?`, `accessibilityLabel?`, `accessibilityHint?`, `variant?: 'surface' \| 'panel' \| 'proposal'` | Pressable cards get `accessibilityRole="button"`; a labelled non-pressable card is one element read by that label |
+| `Chip` | `label`, `onPress`, `selected?`, `icon?` | Round; selected = ink fill. Inside a `ChipGroup`: `radio` with `checked`; alone: button with `selected` |
+| `ChipGroup` | `label`, `required?`, `labelVariant?: 'overline' \| 'bodyStrong'`, `children` | Single-choice row of chips tied to its visible label (WCAG 1.3.1). Android: a radio group named after the label. iOS (no radio-group trait): each chip's hint carries the group name |
 | `StagePill` | `stage` | Stage label (current `StageMarker` + icon + word, no tint); announces "Stage: Interviewing" |
 | `Badge` | `label`, `tone?: 'neutral' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'urgent'`, `icon?` | Text always present; `urgent` = yellow, ink `mono` text, clock icon |
 | `ListItem` | `title`, `subtitle`, `leading`, `trailing`, `onPress` | Combined label for the row |
-| `Banner` | `tone`, `title`, `body?`, `action?` | Flat surface with a 4 px left rule and icon in the tone color; announced politely |
+| `Banner` | `tone`, `title`, `body?`, `action?` | Flat surface with a 4 px left rule and icon in the tone color. `danger`, `warning`, `success` are spoken when they appear; any tone is spoken when its title changes; `info`/`neutral` stay quiet on first render so static notes aren't re-read on every visit |
 | `EmptyState` | `icon`, `title`, `body`, `action` | Hero text is a header |
-| `ErrorState` | `error: AppError`, `onRetry?` | Maps `AppError.kind` to plain-language copy; retry focusable first |
+| `ErrorState` | `error: AppError`, `onRetry?` | Maps `AppError.kind` to plain-language copy; spoken once when it appears ("Title. Body"); retry focusable first |
 | `Skeleton` | `width`, `height`, `radius` | Hidden from screen readers; parent sets `accessibilityState={{ busy: true }}` |
 | `CompanyBadge` | `accent: AccentIndex`, `letter`, `size?: 'sm' \| 'md' \| 'lg'` (24/32/44), `surface?: CompanyBadgeSurface` | Shape by accent index; decorative, hidden from screen readers |
 | `StageMarker` | `stage`, `state: StageState` (`'passed' \| 'current' \| 'future'`), `accent?` | Decorative; the adjacent label names the stage |
 | `StageProgress` | `stage`, `accent` | Four stage markers; reached segments solid, unreached dotted; closed applications end in a bar or exit mark. Decorative (the row label carries the stage) |
 | `StageProgressLegend` | — | SAVED · APPLIED · INTERVIEW · OFFER captions aligned with `StageProgress` |
 | `StageStep` | `stage`, `state`, `accent`, `label`, `meta?`, `tag?`, `onPress?`, `accessibilityLabel?`, `selected?`, `last?`, `children?` | When pressable: a button named `accessibilityLabel ?? label` with `accessibilityState.selected` |
-| `SpotlightCard` | `eyebrow`, `count?`, `accent?: { index, letter }`, `title`, `subtitle?`, `body?`, `urgentLabel?`, `action?: { label, onPress }`, `secondaryAction?: { label, onPress }`, `onDone?`, `onDoneLabel?` | Dark panel; urgency is shown as text (`urgentLabel`), not just yellow; badge decorative; `body` is a plain line under the subtitle; `secondaryAction` is a second button without the arrow |
+| `SpotlightCard` | `eyebrow`, `count?`, `accent?: { index, letter }`, `title`, `subtitle?`, `body?`, `urgentLabel?`, `action?: { label, onPress }`, `secondaryAction?: { label, onPress }`, `onDone?`, `onDoneLabel?` | Dark panel; the eyebrow is a header; urgency is shown as text (`urgentLabel`), not just yellow; badge decorative; `body` is a plain line under the subtitle; `secondaryAction` is a second button without the arrow |
 | `ProposalCard` | `eyebrow`, `onDevice?`, `children` | Dashed border + hatched fill; container label starts "Proposal, not saved" |
 | `StatTile` | `icon`, `value`, `label` | Big number + caption on a white card |
 | `ProgressSteps` | `total`, `done` | Announces "6 of 20 practiced" |
@@ -359,16 +360,21 @@ Each component has a typed props interface, string-union variants, accessibility
 4. **Loading and error are component states**, not ad-hoc spinners. Every async screen renders `Skeleton` → content, or `ErrorState` with retry.
 5. **No business logic.** Components don't import from `src/features`, the store, or navigation. `StageMarker` takes a `Stage`; `CompanyBadge` takes an accent index and letter that the feature got from `accentFor`.
 6. **Shapes from Views.** Badges, stage markers, hatching, and dashed lines are built from Views (`borderStyle`, rotation, `overflow: 'hidden'`). No `react-native-svg`: it is a native module and would need a dev-client rebuild.
+7. **Status messages go through `useAnnounce`** (or `useAnnounceChange` for changes after first render): VoiceOver speaks them on iOS; on Android the visible text carries `accessibilityLiveRegion="polite"`. Features never call `AccessibilityInfo` directly.
 
 ## Accessibility checklist
 
-Every component and screen PR passes this list:
+The bar is WCAG 2.2 AA for native apps (which covers the WCAG 2.1 AA that HHS Section 504 requires); see [`accessibility/`](accessibility/README.md). Every component and screen PR passes this list:
 
-- [ ] Touch targets ≥ 44×44 pt (iOS) / 48×48 dp (Android) via size or `hitSlop`
-- [ ] Every interactive element has a role and a label
-- [ ] Text contrast ≥ 4.5:1 and meaningful marks ≥ 3:1 (tables above)
-- [ ] Works at the largest Dynamic Type / font scale without clipped text
-- [ ] Color is never the only signal (stages: shape + icon + word; applications: color + shape + letter)
+- [ ] Touch targets ≥ 44×44 pt (iOS) / 48×48 dp (Android) via size or `hitSlop` (2.5.8)
+- [ ] Every interactive element has a role, a label that contains its visible text, and its state (4.1.2, 2.5.3)
+- [ ] Text contrast ≥ 4.5:1 and meaningful marks ≥ 3:1, enforced by `contrast.test.ts` (1.4.3, 1.4.11)
+- [ ] Text reaches 200% and headings stay larger than body text at every size, enforced by `typography.test.ts`; nothing clips at the largest size (1.4.4)
+- [ ] Color is never the only signal (stages: shape + icon + word; applications: color + shape + letter) (1.4.1)
+- [ ] Errors, results, and undo outcomes are spoken through `useAnnounce` without moving focus (4.1.3)
+- [ ] Required fields say so visibly and in their name (`required`) (3.3.2)
+- [ ] Single-choice chips sit in a labelled `ChipGroup` (1.3.1)
+- [ ] Deleting or discarding asks first or offers Undo (3.3.4)
 - [ ] Reduced Motion respected
 - [ ] VoiceOver / TalkBack reading order matches visual order; decorative shapes hidden
 

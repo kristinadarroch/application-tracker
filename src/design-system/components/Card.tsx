@@ -58,7 +58,12 @@ export function Card({
   );
   if (onPress === undefined) {
     return (
-      <View style={[styles.base, styles[variant]]} {...a11y}>
+      // `accessible` groups the card so iOS uses its label; without a label, children stay reachable.
+      <View
+        style={[styles.base, styles[variant]]}
+        accessible={accessibilityLabel !== undefined}
+        {...a11y}
+      >
         {content}
       </View>
     );

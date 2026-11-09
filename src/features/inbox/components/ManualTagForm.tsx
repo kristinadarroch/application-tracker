@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, Card, Chip, Stack, Text, TextField } from '@/design-system';
+import { Button, Card, Chip, ChipGroup, Stack, Text, TextField } from '@/design-system';
 import { NextStepInputSchema, type NextStepInput } from '@/features/applications/model';
 import { addDays, formatDueDate, toIsoDate } from '@/lib/dates';
 import type { ApplicationId } from '@/lib/ids';
@@ -63,6 +63,7 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
         </Stack>
         <ApplicationPicker
           label="Application"
+          required
           applications={applications}
           selectedId={applicationId}
           onSelect={setApplicationId}
@@ -70,16 +71,14 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
         />
         <TextField
           label="Next Step"
+          required
           value={title}
           onChangeText={setTitle}
           placeholder="e.g. Book interview"
           {...(errors.title === undefined ? {} : { error: errors.title })}
         />
         <Stack gap={2}>
-          <Text variant="overline" color="secondary">
-            Due
-          </Text>
-          <Stack direction="row" gap={2} wrap="wrap">
+          <ChipGroup label="Due">
             {DUE_PICKS.map((pick) => (
               <Chip
                 key={pick.label}
@@ -88,7 +87,7 @@ export function ManualTagForm({ applications, onSubmit, onCancel }: ManualTagFor
                 onPress={() => setDueInDays(pick.days)}
               />
             ))}
-          </Stack>
+          </ChipGroup>
           <Text variant="mono" color="secondary">
             {formatDueDate(dueDate, now)}
           </Text>

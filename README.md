@@ -47,6 +47,7 @@ The brief also asks for a live demo, a code walkthrough, and a discussion of cha
 | [`docs/demo-script.md`](docs/demo-script.md) | Timed demo and walkthrough script |
 | [`docs/adr/`](docs/adr/) | Architecture decision records |
 | [`docs/research/`](docs/research/README.md) | Product research: competitors, job-seeker needs, interview-prep evidence, platform guidance, UX audit, and a prioritized roadmap |
+| [`docs/accessibility/`](docs/accessibility/README.md) | Healthcare accessibility: which standard applies (WCAG 2.1 AA via HHS Section 504), the design-system audit, current conformance status, and what still needs a device |
 
 ## Stack
 

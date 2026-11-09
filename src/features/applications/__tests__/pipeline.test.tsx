@@ -262,18 +262,19 @@ describe('Stage filter (PIPE-8)', () => {
       }),
     ),
   };
-  const chip = (name: string) => screen.getByRole('button', { name });
+  const chip = (name: string) => screen.getByRole('radio', { name });
   const row = (company: string) =>
     screen.queryByRole('button', { name: new RegExp(`^${company},`) });
 
   it('offers All plus each Stage that has applications, with counts, All selected', async () => {
     await renderApp('/', { preloadedState: filterState });
     expect(screen.getByText('Filter by stage')).toBeOnTheScreen();
-    expect(chip('All · 3')).toBeSelected();
-    expect(chip('Applied · 1')).not.toBeSelected();
-    expect(chip('Interviewing · 2')).not.toBeSelected();
+    expect(chip('All · 3')).toBeChecked();
+    expect(chip('All · 3')).toHaveProp('accessibilityHint', 'Filter by stage');
+    expect(chip('Applied · 1')).not.toBeChecked();
+    expect(chip('Interviewing · 2')).not.toBeChecked();
     for (const empty of ['Saved', 'Offer', 'Rejected', 'Withdrawn']) {
-      expect(screen.queryByRole('button', { name: new RegExp(`^${empty} · `) })).toBeNull();
+      expect(screen.queryByRole('radio', { name: new RegExp(`^${empty} · `) })).toBeNull();
     }
   });
 
@@ -281,12 +282,12 @@ describe('Stage filter (PIPE-8)', () => {
     await renderApp('/', { preloadedState: filterState });
     await fireEvent.press(chip('Interviewing · 2'));
 
-    expect(chip('Interviewing · 2')).toBeSelected();
-    expect(chip('All · 3')).not.toBeSelected();
+    expect(chip('Interviewing · 2')).toBeChecked();
+    expect(chip('All · 3')).not.toBeChecked();
     expect(row('Acme Health')).toBeOnTheScreen();
     expect(row('Globex')).toBeOnTheScreen();
     expect(row('Northwind Labs')).toBeNull();
-    expect(screen.getByText('Next interview')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Next interview' })).toBeOnTheScreen();
 
     await fireEvent.press(chip('All · 3'));
     expect(row('Northwind Labs')).toBeOnTheScreen();
@@ -306,7 +307,7 @@ describe('Stage filter (PIPE-8)', () => {
       );
     });
 
-    expect(chip('Applied · 0')).toBeSelected();
+    expect(chip('Applied · 0')).toBeChecked();
     expect(screen.getByText('No applications in this stage.')).toBeOnTheScreen();
     expect(row('Northwind Labs')).toBeNull();
   });

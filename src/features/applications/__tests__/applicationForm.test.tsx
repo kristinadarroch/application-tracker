@@ -17,8 +17,8 @@ describe('Add an application (PIPE-2)', () => {
 
   it('rejects a listing link that is not an http(s) URL', async () => {
     const { store } = await renderApp('/application/new');
-    await fireEvent.changeText(screen.getByLabelText('Company'), 'Acme Health');
-    await fireEvent.changeText(screen.getByLabelText('Role'), 'Engineer');
+    await fireEvent.changeText(screen.getByLabelText('Company, required'), 'Acme Health');
+    await fireEvent.changeText(screen.getByLabelText('Role, required'), 'Engineer');
     await fireEvent.changeText(screen.getByLabelText('Listing link'), 'ftp://acme.com/job');
     await fireEvent.press(screen.getByRole('button', { name: 'Save application' }));
 
@@ -28,11 +28,11 @@ describe('Add an application (PIPE-2)', () => {
 
   it('saves trimmed fields in the picked stage and opens the new application', async () => {
     const { store, getPathname } = await renderApp('/application/new');
-    await fireEvent.changeText(screen.getByLabelText('Company'), '  Acme Health ');
-    await fireEvent.changeText(screen.getByLabelText('Role'), ' Senior Engineer  ');
+    await fireEvent.changeText(screen.getByLabelText('Company, required'), '  Acme Health ');
+    await fireEvent.changeText(screen.getByLabelText('Role, required'), ' Senior Engineer  ');
     await fireEvent.changeText(screen.getByLabelText('Listing link'), ' https://acme.com/jobs/1 ');
     await fireEvent.changeText(screen.getByLabelText('Requirements'), 'TypeScript, Redux\nJest');
-    await fireEvent.press(screen.getByRole('button', { name: 'Applied' }));
+    await fireEvent.press(screen.getByRole('radio', { name: 'Applied' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Save application' }));
 
     const [saved] = selectAllApplications(store.getState());
@@ -53,8 +53,21 @@ describe('Add an application (PIPE-2)', () => {
     );
     expect(screen.getByDisplayValue('Globex')).toBeOnTheScreen();
     expect(screen.getByDisplayValue('Pasted listing text')).toBeOnTheScreen();
-    expect(screen.getByRole('button', { name: 'Applied' })).toBeSelected();
+    expect(screen.getByRole('radio', { name: 'Applied', checked: true })).toBeOnTheScreen();
     expect(screen.getByText('Apple Intelligence is off')).toBeOnTheScreen();
+  });
+
+  it('groups the Stage chips under their label, one checked (WCAG 1.3.1)', async () => {
+    await renderApp('/application/new');
+    expect(screen.getByRole('radio', { name: 'Saved', checked: true })).toHaveProp(
+      'accessibilityHint',
+      'Stage',
+    );
+    expect(screen.getByRole('radio', { name: 'Applied', checked: false })).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByRole('radio', { name: 'Applied' }));
+    expect(screen.getByRole('radio', { name: 'Applied', checked: true })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: 'Saved', checked: false })).toBeOnTheScreen();
   });
 });
 
@@ -67,7 +80,7 @@ describe('Edit an application (PIPE-4)', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Edit application' }));
     expect(screen.getByDisplayValue('Senior React Native Engineer')).toBeOnTheScreen();
 
-    await fireEvent.changeText(screen.getByLabelText('Role'), 'Staff Engineer');
+    await fireEvent.changeText(screen.getByLabelText('Role, required'), 'Staff Engineer');
     await fireEvent.press(screen.getByRole('button', { name: 'Save changes' }));
 
     expect(getPathname()).toBe('/application/app_acme');

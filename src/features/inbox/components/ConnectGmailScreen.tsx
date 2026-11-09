@@ -1,7 +1,18 @@
 import * as Google from 'expo-auth-session/providers/google';
 import { useEffect, useEffectEvent } from 'react';
 
-import { Badge, Banner, Button, Card, Screen, Stack, Text } from '@/design-system';
+import { View } from 'react-native';
+
+import {
+  Badge,
+  Banner,
+  Button,
+  Card,
+  Screen,
+  Stack,
+  Text,
+  useAnnounceChange,
+} from '@/design-system';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 import { describeEmailSourceError } from '../emailSource';
@@ -31,6 +42,10 @@ export function ConnectGmailScreen({
   const gmail = useGmailSync();
   const dispatch = useAppDispatch();
   const connected = source === 'gmail' && gmail.accessToken !== null;
+  // Spoken when the user connects or disconnects, not when the screen opens.
+  useAnnounceChange(
+    connected ? 'Gmail connected' : source === 'gmail' ? 'Gmail signed out' : 'Using sample emails',
+  );
 
   return (
     <Screen title="Gmail" onBack={onBack} scroll>
@@ -158,6 +173,14 @@ function SignIn({
 function Connected({ gmail }: { gmail: GmailSync }) {
   const { state, sync } = gmail;
   const copy = state.status === 'failed' ? describeEmailSourceError(state.error) : undefined;
+  const added =
+    state.status === 'synced'
+      ? state.added === 1
+        ? '1 new message'
+        : `${state.added} new messages`
+      : undefined;
+  // Each finished check is announced; a result already showing when the screen opens isn't.
+  useAnnounceChange(added);
   return (
     <Stack gap={2}>
       <Button
@@ -167,10 +190,10 @@ function Connected({ gmail }: { gmail: GmailSync }) {
         loading={state.status === 'syncing'}
         onPress={() => void sync()}
       />
-      {state.status === 'synced' ? (
-        <Text color="secondary">
-          {state.added === 1 ? '1 new message' : `${state.added} new messages`}
-        </Text>
+      {added !== undefined ? (
+        <View accessibilityLiveRegion="polite">
+          <Text color="secondary">{added}</Text>
+        </View>
       ) : null}
       {copy !== undefined ? <Banner tone="danger" title={copy.title} body={copy.body} /> : null}
     </Stack>

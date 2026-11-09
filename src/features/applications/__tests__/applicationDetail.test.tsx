@@ -27,6 +27,12 @@ async function openAcmeFromPipeline(application = acme) {
 
 afterEach(() => jest.restoreAllMocks());
 
+function pressAlertButton(text: string) {
+  const alert = jest.mocked(Alert.alert);
+  const buttons: AlertButton[] = alert.mock.calls.at(-1)?.[2] ?? [];
+  buttons.find((button) => button.text === text)?.onPress?.();
+}
+
 describe('Application detail (PIPE-4)', () => {
   it('shows every field and opens the listing link in the browser', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
@@ -119,8 +125,13 @@ describe('Next Steps (PIPE-6)', () => {
         ],
       }),
     );
-    await fireEvent.changeText(screen.getByLabelText('Next Step'), 'Soonest');
-    await fireEvent.press(screen.getByRole('button', { name: 'Today' }));
+    await fireEvent.changeText(screen.getByLabelText('Next Step, required'), 'Soonest');
+    expect(screen.getByRole('radio', { name: 'Tomorrow', checked: true })).toHaveProp(
+      'accessibilityHint',
+      'Due',
+    );
+    await fireEvent.press(screen.getByRole('radio', { name: 'Today' }));
+    expect(screen.getByRole('radio', { name: 'Today', checked: true })).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Add Next Step' }));
 
     const toggles = screen.getAllByRole('button', { name: /^Mark “.+” done$/ });
@@ -134,8 +145,8 @@ describe('Next Steps (PIPE-6)', () => {
 
   it('flags the pipeline card when a step is due tomorrow, and clears it once done', async () => {
     await openAcmeFromPipeline();
-    await fireEvent.changeText(screen.getByLabelText('Next Step'), 'Book the onsite');
-    await fireEvent.press(screen.getByRole('button', { name: 'Tomorrow' }));
+    await fireEvent.changeText(screen.getByLabelText('Next Step, required'), 'Book the onsite');
+    await fireEvent.press(screen.getByRole('radio', { name: 'Tomorrow' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Add Next Step' }));
     expect(screen.getByText('Due tomorrow')).toBeOnTheScreen();
 
@@ -156,22 +167,37 @@ describe('Next Steps (PIPE-6)', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('deletes a step', async () => {
+  it('asks before deleting a step and keeps it when cancelled', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
     await openAcmeFromPipeline(makeApplication({ nextSteps: [makeNextStep()] }));
     await fireEvent.press(
       screen.getByRole('button', { name: 'Delete “Book the onsite interview”' }),
     );
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Delete this next step?',
+      expect.stringContaining('Book the onsite interview'),
+      expect.any(Array),
+    );
+    await act(async () => pressAlertButton('Cancel'));
+    expect(screen.getByText('Book the onsite interview')).toBeOnTheScreen();
+  });
+
+  it('deletes a step once confirmed', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    const { store } = await openAcmeFromPipeline(makeApplication({ nextSteps: [makeNextStep()] }));
+    await fireEvent.press(
+      screen.getByRole('button', { name: 'Delete “Book the onsite interview”' }),
+    );
+    expect(selectAllApplications(store.getState())[0]?.nextSteps).toHaveLength(1);
+
+    await act(async () => pressAlertButton('Delete'));
+    expect(selectAllApplications(store.getState())[0]?.nextSteps).toHaveLength(0);
     expect(screen.getByText('No open Next Steps.')).toBeOnTheScreen();
   });
 });
 
 describe('Delete an application (PIPE-5)', () => {
-  function pressAlertButton(text: string) {
-    const alert = jest.mocked(Alert.alert);
-    const buttons: AlertButton[] = alert.mock.calls.at(-1)?.[2] ?? [];
-    buttons.find((button) => button.text === text)?.onPress?.();
-  }
-
   it('asks for confirmation and keeps the application when cancelled', async () => {
     jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
     const { store } = await openAcmeFromPipeline();

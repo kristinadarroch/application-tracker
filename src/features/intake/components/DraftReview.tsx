@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { Alert } from 'react-native';
 
 import {
   Banner,
@@ -78,10 +79,18 @@ export function DraftReview({ draft }: DraftReviewProps) {
     router.replace({ pathname: '/application/[id]', params: { id } });
   };
 
-  const discard = () => {
-    dispatch(draftRemoved(draft.id));
-    router.dismissTo('/');
-  };
+  const discard = () =>
+    Alert.alert('Discard this draft?', 'Your edits will be lost. This can’t be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Discard',
+        style: 'destructive',
+        onPress: () => {
+          dispatch(draftRemoved(draft.id));
+          router.dismissTo('/');
+        },
+      },
+    ]);
 
   const accent = accentFor(draft.id, values.company);
   const company = values.company.trim();
@@ -126,8 +135,8 @@ export function DraftReview({ draft }: DraftReviewProps) {
             />
           ) : null}
 
-          <TextField label="Company" autoCapitalize="words" {...field('company')} />
-          <TextField label="Role" autoCapitalize="words" {...field('role')} />
+          <TextField label="Company" required autoCapitalize="words" {...field('company')} />
+          <TextField label="Role" required autoCapitalize="words" {...field('role')} />
           <TextField label="Location" autoCapitalize="words" {...field('location')} />
           <TextField label="Salary" {...field('salary')} />
           <TextField

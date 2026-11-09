@@ -25,6 +25,11 @@ appId: dev.kristinadarroch.applicationtracker
       visible: Discard
     commands:
       - tapOn: Discard
+      # Discard asks first (WCAG 3.3.4); the alert's destructive button is also "Discard".
+      - assertVisible: Discard this draft?
+      - tapOn:
+          text: Discard
+          index: 1
 
 # 2. LinkedIn link
 - openLink: applicationtracker://intake/new?url=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fview%2F4426021931%2F%3FtrackingId%3Dabc%26refId%3Dxyz

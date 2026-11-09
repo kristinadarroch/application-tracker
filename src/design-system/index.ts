@@ -1,3 +1,6 @@
+export { useAnnounce } from './a11y/useAnnounce';
+export { useAnnounceChange } from './a11y/useAnnounceChange';
+export { contrastRatio } from './tokens/contrast';
 export { ThemeProvider } from './theme/ThemeProvider';
 export type { ThemeProviderProps } from './theme/ThemeProvider';
 export { useTheme } from './theme/useTheme';
@@ -39,6 +42,8 @@ export { Banner } from './components/Banner';
 export type { BannerAction, BannerProps, BannerTone } from './components/Banner';
 export { Chip } from './components/Chip';
 export type { ChipProps } from './components/Chip';
+export { ChipGroup } from './components/ChipGroup';
+export type { ChipGroupProps } from './components/ChipGroup';
 export { CompanyBadge } from './components/CompanyBadge';
 export type {
   CompanyBadgeProps,

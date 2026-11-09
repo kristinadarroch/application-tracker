@@ -23,14 +23,14 @@ Flow changes in this round:
 
 | Flow | iOS 27 Simulator | Android 36 emulator |
 |---|---|---|
-| `pipeline.yaml` | Pass | Pass |
+| `pipeline.yaml` | Pass; rerun 2026-11-09 with required fields named "Company, required" | Pass; rerun 2026-11-09 |
 | `tour.yaml` (screenshots of every main screen) | Pass in Light and Dark, after the wait fix above | — |
-| `link-import.yaml` | Pass, after two flow fixes (field selector, focus wait) | — |
-| `ai-intake.yaml` | Pass | — (AI is iOS only) |
+| `link-import.yaml` | Pass, after two flow fixes (field selector, focus wait); 2026-11-09: 2 / 2 passes with the Discard confirmation, after one run lost the tap on the listing field (the known lost-first-tap pattern) | — |
+| `ai-intake.yaml` | Pass; rerun 2026-11-09 | — (AI is iOS only) |
 | `ai-prep.yaml` | Pass | — |
-| `ai-inbox.yaml` | Pass: Northwind Applied → Interviewing from email, log, Undo | — |
+| `ai-inbox.yaml` | Pass: Northwind Applied → Interviewing from email, log, Undo; rerun 2026-11-09 | — |
 | `android-ai-off.yaml` | — | Pass |
-| `a11y-large-text.yaml` | Pass (AX5), at `86c5cd2`, before the email and link changes | Pass (font scale 2.0), at `86c5cd2` |
+| `a11y-large-text.yaml` | Pass (AX5), 2026-11-09 after the accessibility fixes; asserts the panel title stays visible | Pass (font scale 2.0), 2026-11-09 |
 | `demo.yaml` | Pass | — |
 | `new-experience.yaml` | Pass (sample listing served from `e2e/fixtures` on `127.0.0.1:8099`) | — |
 | `ai-checks.yaml` | 2 / 2 consecutive runs, every group "0 failed" (at `7cf0ac3`) | — |
@@ -82,14 +82,16 @@ What the checks caught before passing (all fixed, each with a unit test):
 
 ## Accessibility
 
-### Largest text (2026-11-06, `e2e/a11y-large-text.yaml`)
+### Largest text (`e2e/a11y-large-text.yaml`; first pass 2026-11-06, rerun 2026-11-09)
 
 Screens: settings, pipeline with demo data, application detail, Next Step form, inbox, intake.
 
 | Platform | Setting | Result |
 |---|---|---|
-| iOS 27 Simulator | Larger Accessibility Sizes, largest (`AX5`) | Pass. All text wraps; nothing clipped or overlapping; long screens scroll. Sign-panel titles, pills, and captions stop growing at 1.6×. |
+| iOS 27 Simulator | Larger Accessibility Sizes, largest (`AX5`) | Pass. All text wraps; nothing clipped or overlapping; long screens scroll. Since 2026-11-09: small text grows to 2×, headings stay larger than body text, and header buttons sit above the title. |
 | Android 36 emulator | Font scale 2.0 | Pass. Same screens; single-line fields truncate their placeholder with an ellipsis. |
+
+Found and fixed on 2026-11-09: raising heading caps made "Pipeline" break mid-word beside the header buttons, so `Screen` now stacks the buttons above the title at accessibility sizes. The first stacked version collapsed the panel title to zero height (a `flex: 1` wrapper in a column); the flow now asserts the title is visible.
 
 Found and fixed in the first pass: icons stayed at their base size beside very large labels. Icons that sit next to text now follow the text size, with the same cap as their label and at most 2× (`useScaledIconSize`).
 
@@ -106,7 +108,7 @@ To repeat: set the size (`xcrun simctl ui <udid> content_size accessibility-extr
 Not yet verified on a running build. The iOS Simulator has no VoiceOver, and an automated TalkBack attempt on the emulator produced no usable evidence (no speech output, focus stayed on a system dialog). Needs a person with a device:
 
 1. VoiceOver on an iPhone with this build: swipe through pipeline, detail, intake review, inbox detail, prep.
-2. TalkBack on the Android emulator or a phone: the same screens.
-3. Check on each: reading order matches the visual order; every control has a name and role; stage pills read "Stage: …"; selected chips read as selected; errors and banners are announced.
+2. TalkBack on the Android emulator or a phone: the same screens, plus a field error, an `ErrorState`, and Undo, to hear whether Android 16 speaks the live regions.
+3. Check on each: reading order matches the visual order; every control has a name and role; stage pills read "Stage: …"; chips in a group read as radio buttons with the group name; required fields say "required"; errors, results, and undo outcomes are announced.
 
-What is covered automatically: roles, labels, selected and disabled states, and error announcements in component and screen tests.
+What is covered automatically: roles, labels, selected, checked, and disabled states, required-field names, radio groups, and the announcement calls (`announcements.test.tsx` in the design system and inbox), plus contrast, type-scale, and target-size rules. See [`accessibility/README.md`](accessibility/README.md).

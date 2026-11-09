@@ -1,7 +1,16 @@
 import { View } from 'react-native';
 
-import { Badge, Button, ListItem, makeStyles, Stack, Text } from '@/design-system';
+import {
+  Badge,
+  Button,
+  ListItem,
+  makeStyles,
+  Stack,
+  Text,
+  useAnnounceChange,
+} from '@/design-system';
 import { assertNever } from '@/lib/assertNever';
+import { STAGE_LABELS } from '@/lib/stage';
 
 import type { EmailUpdate, InboxMessage, TriageCandidate, TriageState } from '../schema';
 import { MatchedApplication } from './MatchedApplication';
@@ -35,7 +44,26 @@ const useStyles = makeStyles((t) => ({
   status: { paddingHorizontal: t.space[4], paddingBottom: t.space[4], gap: t.space[2] },
 }));
 
-/** One Inbox Message as a white card: subject, sender, Triage status, and application (INBX-1). */
+/**
+ * What to say when this row's Triage finishes or fails while the Inbox is open. Pending and the
+ * user's later decisions are left out, so loading isn't narrated and Accept or Undo on the
+ * message screen isn't announced a second time from the list underneath.
+ */
+function triageAnnouncement(
+  subject: string,
+  triage: TriageState | undefined,
+  update: EmailUpdate | undefined,
+): string | undefined {
+  if (triage?.status === 'failed') return `Couldn’t analyze ${subject}`;
+  if (triage?.status !== 'done') return undefined;
+  const moved = update?.newStage === undefined ? '' : `. Moved to ${STAGE_LABELS[update.newStage]}`;
+  return `${subject}: ${CATEGORY_LABELS[triage.result.category]}${moved}`;
+}
+
+/**
+ * One Inbox Message as a white card: subject, sender, Triage status, and application (INBX-1).
+ * Announces when its Triage finishes or fails, never on first render.
+ */
 export function MessageRow({
   message,
   triage,
@@ -46,17 +74,19 @@ export function MessageRow({
   onRetry,
 }: MessageRowProps) {
   const styles = useStyles();
+  const subject = message.subject.length > 0 ? message.subject : '(No subject)';
+  useAnnounceChange(triageAnnouncement(subject, triage, update));
   const showMatch =
     matched !== undefined && triage?.status === 'done' && triage.result.category !== 'unrelated';
   return (
     <View style={styles.card}>
       <ListItem
-        title={message.subject.length > 0 ? message.subject : '(No subject)'}
+        title={subject}
         subtitle={`${message.fromName ?? message.from} · ${shortDate(message.receivedAt)}`}
         onPress={onOpen}
         accessibilityHint="Opens the message"
       />
-      <View style={styles.status}>
+      <View style={styles.status} accessibilityLiveRegion="polite">
         <TriageStatus
           triage={triage}
           update={update}

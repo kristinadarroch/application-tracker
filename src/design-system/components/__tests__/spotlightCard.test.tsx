@@ -40,4 +40,14 @@ describe('SpotlightCard body and secondary action', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Mock interview' }));
     expect(onSecondary).toHaveBeenCalledTimes(1);
   });
+
+  it('makes the eyebrow a header so screen readers can jump to the card (WCAG 1.3.1)', async () => {
+    await render(
+      <ThemeProvider preference="light">
+        <SpotlightCard eyebrow="Next interview" count="1 today" title="Acme Health" />
+      </ThemeProvider>,
+    );
+    expect(screen.getByRole('header', { name: 'Next interview' })).toBeOnTheScreen();
+    expect(screen.queryByRole('header', { name: '1 today' })).toBeNull();
+  });
 });

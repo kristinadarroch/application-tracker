@@ -30,22 +30,22 @@ describe('ListItem', () => {
 describe('Banner', () => {
   afterEach(() => jest.restoreAllMocks());
 
-  it('announces its title on mount and when the title changes', async () => {
+  it('announces a success title on mount and a new title after mount', async () => {
     const announce = jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
     const { rerender } = await renderThemed(
-      <Banner tone="info" title="On-device AI unavailable" body="Fill in the form manually." />,
+      <Banner tone="success" title="Saved" body="Your changes are kept." />,
     );
-    expect(announce).toHaveBeenLastCalledWith('On-device AI unavailable');
-    expect(screen.getByText('Fill in the form manually.')).toBeOnTheScreen();
+    expect(announce).toHaveBeenLastCalledWith('Saved');
+    expect(screen.getByText('Your changes are kept.')).toBeOnTheScreen();
 
     await rerender(
       <ThemeProvider preference="light">
-        <Banner tone="success" title="Saved" />
+        <Banner tone="success" title="Saved again" />
       </ThemeProvider>,
     );
-    expect(announce).toHaveBeenLastCalledWith('Saved');
+    expect(announce).toHaveBeenLastCalledWith('Saved again');
   });
 
   it('uses the alert role only for danger and fires its action', async () => {

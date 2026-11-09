@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { View } from 'react-native';
 import { z } from 'zod';
 
-import { Button, Chip, makeStyles, Stack, Text, TextField } from '@/design-system';
+import { Button, Chip, ChipGroup, Stack, TextField } from '@/design-system';
 import { addDays, toIsoDate } from '@/lib/dates';
 import { createId, NextStepIdSchema, type ApplicationId } from '@/lib/ids';
 import { useAppDispatch } from '@/store/hooks';
@@ -18,14 +17,9 @@ export interface AddNextStepFormProps {
 
 type NextStepErrors = Partial<Record<keyof NextStepInput, string>>;
 
-const useStyles = makeStyles((t) => ({
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] },
-}));
-
 /** Title plus a due date from quick picks or typed as YYYY-MM-DD, validated by `NextStepInputSchema` (PIPE-6). */
 export function AddNextStepForm({ applicationId, now }: AddNextStepFormProps) {
   const dispatch = useAppDispatch();
-  const styles = useStyles();
   const tomorrow = toIsoDate(addDays(now, 1));
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState(tomorrow);
@@ -73,6 +67,7 @@ export function AddNextStepForm({ applicationId, now }: AddNextStepFormProps) {
     <Stack gap={3}>
       <TextField
         label="Next Step"
+        required
         placeholder="e.g. Book the onsite interview"
         value={title}
         onChangeText={(text) => {
@@ -81,24 +76,19 @@ export function AddNextStepForm({ applicationId, now }: AddNextStepFormProps) {
         }}
         {...(errors.title === undefined ? {} : { error: errors.title })}
       />
-      <Stack gap={2}>
-        <Text variant="overline" color="secondary">
-          Due
-        </Text>
-        <View style={styles.chips}>
-          {DUE_QUICK_PICKS.map(({ label, daysFromToday }) => {
-            const date = toIsoDate(addDays(now, daysFromToday));
-            return (
-              <Chip
-                key={label}
-                label={label}
-                selected={dueDate === date}
-                onPress={() => changeDueDate(date)}
-              />
-            );
-          })}
-        </View>
-      </Stack>
+      <ChipGroup label="Due">
+        {DUE_QUICK_PICKS.map(({ label, daysFromToday }) => {
+          const date = toIsoDate(addDays(now, daysFromToday));
+          return (
+            <Chip
+              key={label}
+              label={label}
+              selected={dueDate === date}
+              onPress={() => changeDueDate(date)}
+            />
+          );
+        })}
+      </ChipGroup>
       <TextField
         label="Due date"
         helperText="YYYY-MM-DD"

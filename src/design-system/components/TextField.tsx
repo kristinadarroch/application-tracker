@@ -1,6 +1,7 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { Text as RNText, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
+import { useAnnounce } from '../a11y/useAnnounce';
 import { makeStyles } from '../theme/makeStyles';
 import { useTheme } from '../theme/useTheme';
 import { Text } from './Text';
@@ -11,6 +12,8 @@ export interface TextFieldProps {
   onChangeText: (value: string) => void;
   helperText?: string;
   error?: string;
+  /** Marks the field as required: a visible "Required" next to the label and ", required" in its name. */
+  required?: boolean;
   placeholder?: string;
   multiline?: boolean;
   secure?: boolean;
@@ -21,6 +24,7 @@ export interface TextFieldProps {
 
 const useStyles = makeStyles((t) => ({
   wrap: { gap: t.space[1] },
+  labelRow: { flexDirection: 'row', flexWrap: 'wrap', gap: t.space[1] },
   input: {
     ...t.type.body,
     color: t.color.text.primary,
@@ -44,6 +48,7 @@ export function TextField({
   onChangeText,
   helperText,
   error,
+  required = false,
   placeholder,
   multiline = false,
   secure = false,
@@ -53,20 +58,24 @@ export function TextField({
 }: TextFieldProps) {
   const styles = useStyles();
   const theme = useTheme();
-  const labelId = useId();
   const [focused, setFocused] = useState(false);
   const hasError = error !== undefined && error.length > 0;
   const hint = hasError ? error : helperText;
+  useAnnounce(hasError ? error : undefined);
   return (
     <View style={styles.wrap}>
-      <View nativeID={labelId}>
+      <View style={styles.labelRow}>
         <Text variant="bodySmall" color="secondary">
           {label}
         </Text>
+        {required ? (
+          <Text variant="bodySmall" color="secondary">
+            · Required
+          </Text>
+        ) : null}
       </View>
       <TextInput
-        accessibilityLabel={label}
-        accessibilityLabelledBy={labelId}
+        accessibilityLabel={required ? `${label}, required` : label}
         {...(hint === undefined ? {} : { accessibilityHint: hint })}
         value={value}
         onChangeText={onChangeText}
@@ -92,7 +101,7 @@ export function TextField({
         <RNText
           style={styles.errorText}
           maxFontSizeMultiplier={theme.maxFontSizeMultiplier.caption}
-          accessibilityRole="alert"
+          // No "alert" role: iOS ignores it (useAnnounce speaks) and it could double Android's live region.
           accessibilityLiveRegion="polite"
         >
           {error}

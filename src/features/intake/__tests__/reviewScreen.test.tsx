@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from 'expo-router/testing-library';
+import { Alert, type AlertButton } from 'react-native';
 
 import { selectAllApplications } from '@/features/applications/model';
 import { DraftIdSchema } from '@/lib/ids';
@@ -9,6 +10,12 @@ import { renderIntake } from '../testing/renderIntake';
 
 const draft = makeDraft({ listingUrl: 'https://acme.example/jobs/42' });
 const REVIEW_URL = `/intake/review/${draft.id}`;
+
+function pressAlertButton(text: string) {
+  const alert = jest.mocked(Alert.alert);
+  const buttons: AlertButton[] = alert.mock.calls.at(-1)?.[2] ?? [];
+  buttons.find((button) => button.text === text)?.onPress?.();
+}
 
 async function press(name: string) {
   await fireEvent.press(screen.getByRole('button', { name }));
@@ -21,8 +28,8 @@ describe('Review a draft (INT-4)', () => {
     });
 
     for (const [label, value] of [
-      ['Company', 'Acme Health'],
-      ['Role', 'Senior React Native Engineer'],
+      ['Company, required', 'Acme Health'],
+      ['Role, required', 'Senior React Native Engineer'],
       ['Location', 'Austin, TX'],
       ['Salary', '$150,000 - $180,000'],
       ['Listing link', 'https://acme.example/jobs/42'],
@@ -40,7 +47,10 @@ describe('Review a draft (INT-4)', () => {
     const { store, getPathname } = await renderIntake(REVIEW_URL, {
       preloadedState: { drafts: draftsState(draft) },
     });
-    await fireEvent.changeText(screen.getByLabelText('Role'), 'Staff React Native Engineer');
+    await fireEvent.changeText(
+      screen.getByLabelText('Role, required'),
+      'Staff React Native Engineer',
+    );
     await fireEvent.changeText(screen.getByLabelText('Notes'), 'Referred by Sam');
     await press('Confirm');
 
@@ -62,7 +72,7 @@ describe('Review a draft (INT-4)', () => {
     const { store } = await renderIntake(REVIEW_URL, {
       preloadedState: { drafts: draftsState(draft) },
     });
-    await fireEvent.changeText(screen.getByLabelText('Company'), '  ');
+    await fireEvent.changeText(screen.getByLabelText('Company, required'), '  ');
     await press('Confirm');
 
     expect(screen.getByText('Add the company')).toBeOnTheScreen();
@@ -70,12 +80,31 @@ describe('Review a draft (INT-4)', () => {
     expect(selectAllDrafts(store.getState())).toHaveLength(1);
   });
 
-  it('removes the draft on Discard and creates nothing', async () => {
-    const { store, getPathname } = await renderIntake(REVIEW_URL, {
+  it('asks before discarding and keeps the draft when cancelled', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    const { store } = await renderIntake(REVIEW_URL, {
       preloadedState: { drafts: draftsState(draft) },
     });
     await press('Discard');
 
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Discard this draft?',
+      expect.any(String),
+      expect.any(Array),
+    );
+    await act(async () => pressAlertButton('Cancel'));
+    expect(selectAllDrafts(store.getState())).toHaveLength(1);
+  });
+
+  it('removes the draft once Discard is confirmed and creates nothing', async () => {
+    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    const { store, getPathname } = await renderIntake(REVIEW_URL, {
+      preloadedState: { drafts: draftsState(draft) },
+    });
+    await press('Discard');
+    expect(selectAllDrafts(store.getState())).toHaveLength(1);
+
+    await act(async () => pressAlertButton('Discard'));
     expect(selectAllDrafts(store.getState())).toHaveLength(0);
     expect(selectAllApplications(store.getState())).toHaveLength(0);
     expect(getPathname()).toBe('/');
@@ -113,7 +142,7 @@ describe('Review a draft (INT-4)', () => {
     // What Confirm and Discard do just before the screen animates away.
     await act(() => store.dispatch(draftRemoved(draft.id)));
     expect(screen.queryByText('Not found')).toBeNull();
-    expect(screen.getByLabelText('Company')).toHaveDisplayValue('Acme Health');
+    expect(screen.getByLabelText('Company, required')).toHaveDisplayValue('Acme Health');
   });
 });
 

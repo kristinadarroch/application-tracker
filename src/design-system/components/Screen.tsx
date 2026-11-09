@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { makeStyles } from '../theme/makeStyles';
@@ -49,6 +49,16 @@ const useStyles = makeStyles((t) => ({
   scrollContent: { paddingHorizontal: t.space[4], paddingBottom: t.space[6], gap: t.space[3] },
 }));
 
+/**
+ * From the accessibility text sizes up, header buttons move above the title so a 2× title gets
+ * the full width instead of breaking mid-word beside them (HIG: stacked layouts at large sizes).
+ */
+const STACK_HEADER_AT_FONT_SCALE = 1.5;
+
+function useStackedHeader(): boolean {
+  return useWindowDimensions().fontScale >= STACK_HEADER_AT_FONT_SCALE;
+}
+
 /** Header pieces resolved by `Screen`; each may be absent. */
 interface HeaderProps {
   title: string | undefined;
@@ -60,31 +70,51 @@ interface HeaderProps {
 
 function PanelHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: HeaderProps) {
   const styles = useStyles();
+  const stacked = useStackedHeader();
+  const back =
+    onBack !== undefined ? (
+      <IconButton
+        icon="chevron-back"
+        accessibilityLabel="Back"
+        onPress={onBack}
+        variant="onPanel"
+      />
+    ) : null;
+  const hasRight = headerRight !== undefined && headerRight !== null;
+  // `titleWrap` (flex: 1) shares a row with the buttons; stacked, it would collapse to zero height.
+  const titleBlock = (
+    <View style={stacked ? null : styles.titleWrap}>
+      {eyebrow !== undefined ? (
+        <Text variant="mono" color="onPanelSecondary">
+          {eyebrow}
+        </Text>
+      ) : null}
+      {title !== undefined ? (
+        <Text variant={onBack === undefined ? 'display' : 'title'} color="onPanel">
+          {title}
+        </Text>
+      ) : null}
+    </View>
+  );
   return (
     <View style={[styles.panel, onBack !== undefined ? styles.panelWithBack : null]}>
-      <View style={styles.row}>
-        {onBack !== undefined ? (
-          <IconButton
-            icon="chevron-back"
-            accessibilityLabel="Back"
-            onPress={onBack}
-            variant="onPanel"
-          />
-        ) : null}
-        <View style={styles.titleWrap}>
-          {eyebrow !== undefined ? (
-            <Text variant="mono" color="onPanelSecondary">
-              {eyebrow}
-            </Text>
+      {stacked ? (
+        <>
+          {back !== null || hasRight ? (
+            <View style={styles.toolbar}>
+              {back ?? <View />}
+              {headerRight}
+            </View>
           ) : null}
-          {title !== undefined ? (
-            <Text variant={onBack === undefined ? 'display' : 'title'} color="onPanel">
-              {title}
-            </Text>
-          ) : null}
+          {titleBlock}
+        </>
+      ) : (
+        <View style={styles.row}>
+          {back}
+          {titleBlock}
+          {headerRight}
         </View>
-        {headerRight}
-      </View>
+      )}
       {headerAccessory}
     </View>
   );
@@ -92,21 +122,29 @@ function PanelHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: H
 
 function PlainHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: HeaderProps) {
   const styles = useStyles();
+  const stacked = useStackedHeader();
   const hasTitle = title !== undefined || eyebrow !== undefined;
+  const hasRight = headerRight !== undefined && headerRight !== null;
+  // With Back, or at large text sizes, the header buttons get their own row above the title.
+  const toolbar = onBack !== undefined || (stacked && hasRight);
   return (
     <View style={styles.plain}>
-      {onBack !== undefined ? (
+      {toolbar ? (
         <View style={styles.toolbar}>
-          <IconButton
-            icon="chevron-back"
-            accessibilityLabel="Back"
-            onPress={onBack}
-            variant="secondary"
-          />
+          {onBack !== undefined ? (
+            <IconButton
+              icon="chevron-back"
+              accessibilityLabel="Back"
+              onPress={onBack}
+              variant="secondary"
+            />
+          ) : (
+            <View />
+          )}
           {headerRight}
         </View>
       ) : null}
-      {hasTitle || (onBack === undefined && headerRight !== undefined) ? (
+      {hasTitle || (!toolbar && hasRight) ? (
         <View style={styles.row}>
           <View style={styles.titleWrap}>
             {eyebrow !== undefined ? (
@@ -116,7 +154,7 @@ function PlainHeader({ title, eyebrow, headerRight, onBack, headerAccessory }: H
             ) : null}
             {title !== undefined ? <Text variant="title">{title}</Text> : null}
           </View>
-          {onBack === undefined ? headerRight : null}
+          {toolbar ? null : headerRight}
         </View>
       ) : null}
       {headerAccessory}

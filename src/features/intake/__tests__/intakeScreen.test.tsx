@@ -45,6 +45,8 @@ describe('Add from a link (INT-3)', () => {
       );
     const { store, getPathname } = await renderIntake('/intake/new');
     expect(screen.getByRole('button', { name: 'From a link' })).toBeSelected();
+    // WCAG 3.2.2: the user is told before pasting that a pasted link opens the draft by itself.
+    expect(screen.getByText(/Pasting a link starts reading it right away/)).toBeOnTheScreen();
 
     await fireEvent.changeText(screen.getByLabelText('Job link'), LINK);
 

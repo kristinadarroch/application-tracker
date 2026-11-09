@@ -37,6 +37,10 @@ appId: dev.kristinadarroch.applicationtracker
     text: Back
     retryTapIfNoChange: true
 - waitForAnimationToEnd
+# The panel title must stay visible above its buttons (two matches: the title and the tab label).
+- assertVisible:
+    text: Pipeline
+    index: 1
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-pipeline
 - scrollUntilVisible:
     element: '.*Acme Health.*Interviewing.*'
@@ -61,6 +65,8 @@ appId: dev.kristinadarroch.applicationtracker
 - extendedWaitUntil:
     visible: Edit application
     timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 5000
 - takeScreenshot: e2e/artifacts/a11y-${PLATFORM}-detail
 - scrollUntilVisible:
     element: Add Next Step

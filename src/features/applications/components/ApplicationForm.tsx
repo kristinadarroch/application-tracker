@@ -57,8 +57,8 @@ export function ApplicationForm({ initialValues, submitLabel, onSubmit }: Applic
     <Stack gap={3}>
       <Card>
         <Text variant="heading">The job</Text>
-        {field('company', 'Company', { autoCapitalize: 'words' })}
-        {field('role', 'Role', { autoCapitalize: 'words' })}
+        {field('company', 'Company', { autoCapitalize: 'words', required: true })}
+        {field('role', 'Role', { autoCapitalize: 'words', required: true })}
         {field('location', 'Location', { autoCapitalize: 'words' })}
         {field('salary', 'Salary')}
         {field('listingUrl', 'Listing link', {
