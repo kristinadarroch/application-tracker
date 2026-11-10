@@ -33,9 +33,9 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 |---|---|---|
 | 2026-11-06 | 4 passes across flow revisions; the current flow (waits before tapping End) passed once | 106 s, 149 s (first run after a simulator reboot), 109 s; the 4th was not timed separately |
 
-The recorded run (`backup-demo.mov`) is 77 s from demo data loaded to dark mode; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed.
+The recorded run (`backup-demo.mov`, re-recorded 2026-11-09 against the current app) is 81 s from the first Pipeline frame to dark mode, including the email that moves Acme by itself; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed. `backup-intake.mov` (28 s) pastes a Globex listing and confirms the draft. Copies of all three videos are in `~/Movies/Application Tracker backups/`; the 2026-11-06 versions, which show the older design, are in its `older (2026-11-06)` folder.
 
-`e2e/new-experience.yaml` shows the link-first path end to end: a job link (a sample page served from the Mac, `e2e/fixtures/job-listing.html`) is read on the device, the draft is confirmed, prep questions are already there, and the mock interview asks its first question on open. Its recording, `new-experience.mov` (35 s), passed on 2026-11-06. The link is typed in that run, so it takes one Create draft tap; the simulator used here has no working pasteboard to show a real paste.
+`e2e/new-experience.yaml` shows the link-first path end to end: a job link (a sample page served from the Mac, `e2e/fixtures/job-listing.html`) is read on the device, the draft is confirmed, prep questions are already there, and the mock interview asks its first question on open. Its recording, `new-experience.mov` (60 s), was re-recorded on 2026-11-09. The link is typed in that run, so it takes one Create draft tap; the simulator used here has no working pasteboard to show a real paste.
 
 Re-record the backup videos (iOS Simulator, Metro running):
 
@@ -50,6 +50,8 @@ xcrun simctl io <udid> recordVideo --codec h264 --force e2e/artifacts/backup-int
 maestro --device <udid> test e2e/clip-intake.yaml
 kill -INT $REC; wait $REC
 ```
+
+Each recording starts while the app relaunches and the developer menu is open; trim that off with `avconvert --source raw.mov --preset PresetHighestQuality --output e2e/artifacts/<name>.mov --start <seconds>` (the 2026-11-09 cuts: 39 s, 16 s, 38.2 s).
 
 If `recordVideo` reports "Host recording is already in progress", an earlier recorder was killed without SIGINT; shut down and boot the simulator to clear it.
 

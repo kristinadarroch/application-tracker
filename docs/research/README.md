@@ -30,7 +30,7 @@ Small changes that remove things an interviewer would trip over in the first fiv
 | 4 | **One meaning per icon.** The header "+" (manual form) and the floating "+" (add from a link) look the same but do different things. The Settings icon (sliders) reads as "filter". Keep one "+" that offers both, and use a gear for Settings. | [audit #7](in-app-ux-audit.md#issues-ranked-by-user-impact) | S |
 | 5 | **Keep the listing text.** Save the shared or pasted description on the application and show it under Details. | Postings disappear; users want the description at interview time ([Teal help](https://help.tealhq.com/en/articles/14435727-how-to-track-your-job-applications), [competitors #1](competitors.md#opportunities-for-application-tracker)) | S |
 | 6 | **Duplicate guard.** At draft review, if company and role match an application, say "You added this on 28 Oct". | "I sometimes even forget that I applied" ([competitors #4](competitors.md#opportunities-for-application-tracker)) | S |
-| 7 | **App icon.** Replace the default Expo icon (`assets/expo.icon` uses `expo-symbol 2.svg`). | First thing seen on the home screen | S |
+| 7 | **App icon.** Done 2026-11-09: a three-stop track ending in the yellow current-stage ring, on ink (`assets/images/icon.png`, Android adaptive layers, splash). | First thing seen on the home screen | S |
 
 ## Next: the features that make it a real product (about 1–2 weeks)
 
