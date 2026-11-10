@@ -35,7 +35,7 @@ If the model fails live: say so, show the error state (it's part of the demo), t
 
 The recorded run (`backup-demo.mov`, re-recorded 2026-11-09 against the current app) is 81 s from the first Pipeline frame to dark mode, including the Acme invite email adding a Next Step by itself with Undo; the 6-minute slot leaves room for narration. The presenter's own rehearsal with narration has not been timed. `backup-intake.mov` (28 s) pastes a Globex listing and confirms the draft. Copies of all three videos are in `~/Movies/Application Tracker backups/`; the 2026-11-06 versions, which show the older design, are in its `older (2026-11-06)` folder.
 
-`e2e/new-experience.yaml` shows the link-first path end to end: a job link (a sample page served from the Mac, `e2e/fixtures/job-listing.html`) is read on the device, the draft is confirmed, prep questions are already there, and the mock interview asks its first question on open. Its recording, `new-experience.mov` (60 s), was re-recorded on 2026-11-09. The link is typed in that run, so it takes one Create draft tap; the simulator used here has no working pasteboard to show a real paste.
+`e2e/new-experience.yaml` shows the link-first path end to end: a job link (a sample page served from the Mac, `e2e/fixtures/job-listing.html`) is read on the device, the draft is confirmed, prep questions start generating, and the mock interview asks its first question on open. Its recording, `new-experience.mov` (56 s, starting at Add from a link), was re-recorded on 2026-11-09. The link is typed in that run, so it takes one Create draft tap; the simulator used here has no working pasteboard to show a real paste.
 
 Re-record the backup videos (iOS Simulator, Metro running):
 
@@ -51,7 +51,7 @@ maestro --device <udid> test e2e/clip-intake.yaml
 kill -INT $REC; wait $REC
 ```
 
-Each recording starts while the app relaunches and the developer menu is open; trim that off with `avconvert --source raw.mov --preset PresetHighestQuality --output e2e/artifacts/<name>.mov --start <seconds>` (the 2026-11-09 cuts: 39 s, 16 s, 38.2 s).
+Each recording starts while the app relaunches and the developer menu is open; trim that off with `avconvert --source raw.mov --preset PresetHighestQuality --output e2e/artifacts/<name>.mov --start <seconds>` (the 2026-11-09 cuts: 39 s for the demo, 16 s for the intake clip, 42.4 s for the link-first video so it starts at Add from a link).
 
 If `recordVideo` reports "Host recording is already in progress", an earlier recorder was killed without SIGINT; shut down and boot the simulator to clear it.
 
